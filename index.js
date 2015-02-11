@@ -18,7 +18,6 @@
         this.expressApp = null;
         this.rpcApp = null;
         this.expressServer = null;
-
     }
 
     util.inherits(HttpServerPort, Port);
@@ -34,11 +33,16 @@
 
         this.rpcApp.use(bodyParser.json());
         var self = this;
+        var methods = {};
         this.rpcApp.post('/', function(req, res) {
 
             if (req.body) {
-                var rpcc = self.rpc(req.body.method);
-                rpcc(req.body).then(function(r) {
+                var method = methods[req.body.method]
+                if (!method){
+                    self.bus.importMethods(methods, [req.body.method])
+                    method = methods[req.body.method];
+                }
+                method(req.body).then(function(r) {
                         if (r.$$) {
                             delete r.$$;
                         }
@@ -47,7 +51,7 @@
                         }
                         var ress = {
                             jsonrpc:'2.0',
-                            id: r.id,
+                            id: req.body.id,
                             result:r
                         };
                         res.json(ress);
@@ -56,14 +60,15 @@
                         if (erMsg.$$ && erMsg.$$.opcode == 'login') {
                             res.status(401);
                         }
-
+                        var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
+                        var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : erMs;
                         res.json({
                             jsonrpc:'2.0',
-                            id: erMsg.id,
+                            id: req.body.id,
                             error: {
                                 code: erMsg.$$ ? erMsg.$$.errorCode : '-1',
-                                message: erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message,
-                                errorPrint: erMsg.$$ ? erMsg.$$.errorPrint : ''
+                                message: erMs,
+                                errorPrint: erPr
                             }
                         });
                     }
