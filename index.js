@@ -61,12 +61,12 @@
                             res.status(401);
                         }
                         var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
-                        var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : erMs;
+                        var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
                         res.json({
                             jsonrpc:'2.0',
                             id: req.body.id,
                             error: {
-                                code: erMsg.$$ ? erMsg.$$.errorCode : '-1',
+                                code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
                                 message: erMs,
                                 errorPrint: erPr
                             }
