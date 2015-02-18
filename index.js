@@ -36,7 +36,7 @@
         var methods = {};
         this.rpcApp.post('/', function(req, res) {
 
-            if (req.body) {
+            if (req.body && req.body.method) {
                 var method = methods[req.body.method]
                 if (!method){
                     self.bus.importMethods(methods, [req.body.method])
