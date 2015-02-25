@@ -40,6 +40,18 @@
                 },
                 handler: function (request, reply) {
                     try {
+                        if(!request.payload.method){
+                            return reply({
+                                jsonrpc:'2.0',
+                                id: request.payload.id,
+                                error: {
+                                    code: '-1',
+                                    message: 'Missing request method',
+                                    errorPrint: 'Invalid request!'
+                                }
+                            });
+                        }
+
                         var method = methods[request.payload.method]
                         if (!method) {
                             self.bus.importMethods(methods, [request.payload.method])
