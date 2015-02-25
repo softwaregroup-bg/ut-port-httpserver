@@ -3,9 +3,7 @@
 
     var Port = require('ut-bus/port');
     var util = require('util');
-    var express = require('express');
-    var bodyParser = require('body-parser');
-    var through2 = require('through2');
+    var hapi = require('hapi');
 
     function HttpServerPort() {
         Port.call(this);
@@ -15,86 +13,91 @@
             type: 'httpserver',
             port: 8002
         };
-        this.expressApp = null;
-        this.rpcApp = null;
-        this.expressServer = null;
+
+        this.hapiServer = null;
     }
 
     util.inherits(HttpServerPort, Port);
 
     HttpServerPort.prototype.init = function init() {
         Port.prototype.init.apply(this, arguments);
-        this.expressApp = express();
-        this.rpcApp = express();
+        this.hapiServer = new hapi.Server();
     };
 
     HttpServerPort.prototype.start = function start() {
         Port.prototype.start.apply(this, arguments);
-
-        this.rpcApp.use(bodyParser.json());
         var self = this;
         var methods = {};
-        this.rpcApp.post('/', function(req, res) {
+        this.hapiServer.connection({ port: this.config.port });
 
-            if (req.body && req.body.method) {
-                var method = methods[req.body.method]
-                if (!method){
-                    self.bus.importMethods(methods, [req.body.method])
-                    method = methods[req.body.method];
-                }
-                method(req.body).then(function(r) {
-                        if (r.$$) {
-                            delete r.$$;
+        this.hapiServer.route({
+            method: 'POST',
+            path: '/rpc',
+            config: {
+                payload : {
+                    output:'data',
+                    parse: true
+                },
+                handler: function (request, reply) {
+                    try {
+                        var method = methods[request.payload.method]
+                        if (!method) {
+                            self.bus.importMethods(methods, [request.payload.method])
+                            method = methods[request.payload.method];
                         }
-                        if (r.authentication) {
-                            delete r.authentication;
-                        }
-                        var ress = {
+                        method(request.payload).then(function (r) {
+                                if (r.$$) {
+                                    delete r.$$;
+                                }
+                                if (r.authentication) {
+                                    delete r.authentication;
+                                }
+                                var ress = {
+                                    jsonrpc: '2.0',
+                                    id: request.payload.id,
+                                    result: r
+                                };
+                                reply(ress);
+                            },
+                            function (erMsg) {
+                                if (erMsg.$$ && erMsg.$$.opcode == 'login') {
+                                    res.status(401);
+                                }
+                                var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
+                                var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
+                                reply({
+                                    jsonrpc: '2.0',
+                                    id: request.payload.id,
+                                    error: {
+                                        code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
+                                        message: erMs,
+                                        errorPrint: erPr
+                                    }
+                                });
+                            }
+                        );
+                    } catch (err){
+                        return reply({
                             jsonrpc:'2.0',
-                            id: req.body.id,
-                            result:r
-                        };
-                        res.json(ress);
-                    },
-                    function(erMsg) {
-                        if (erMsg.$$ && erMsg.$$.opcode == 'login') {
-                            res.status(401);
-                        }
-                        var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
-                        var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
-                        res.json({
-                            jsonrpc:'2.0',
-                            id: req.body.id,
+                            id: request.payload.id,
                             error: {
-                                code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
-                                message: erMs,
-                                errorPrint: erPr
+                                code: '-1',
+                                message: err.message,
+                                errorPrint: err.message
                             }
                         });
                     }
-                );
-            }else {
-                res.status(400);
-                res.json({
-                    jsonrpc:'2.0',
-                    id: '0',
-                    error: {
-                        code: '1',
-                        message: 'Missing or invalid request body'
-                    }
-                });
+                }
             }
-
 
         });
 
-        this.expressApp.use('/rpc', this.rpcApp);
-        this.expressServer = this.expressApp.listen(this.config.port);
+        this.hapiServer.start();
 
     };
 
     HttpServerPort.prototype.stop = function stop() {
-        this.expressServer.close();
+        this.hapiServer.stop();
         Port.prototype.stop.apply(this, arguments);
     };
 
