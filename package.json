@@ -1,5 +1,5 @@
 {
-  "name": "ut-httpserver",
+  "name": "ut-port-httpserver",
   "version": "5.0.0",
   "dependencies": {
     "ut-bus": "~5.0.0"
