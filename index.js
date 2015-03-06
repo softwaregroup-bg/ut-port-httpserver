@@ -61,7 +61,7 @@
                             },
                             function (erMsg) {
                                 if (erMsg.$$ && erMsg.$$.opcode == 'login') {
-                                    res.status(401);
+                                    //res.status(401);
                                 }
                                 var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
                                 var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
