@@ -4,6 +4,7 @@
     var Port = require('ut-bus/port');
     var util = require('util');
     var hapi = require('hapi');
+    var swagger = require('hapi-swagger');
 
     function HttpServerPort() {
         Port.call(this);
@@ -28,6 +29,9 @@
         Port.prototype.start.apply(this, arguments);
         var self = this;
         var methods = {};
+        var swaggerOptions = {
+            basePath: 'http://localhost:' + this.config.port
+        }
         this.hapiServer.connection({ port: this.config.port });
 
         this.hapiServer.route({
@@ -87,13 +91,26 @@
                             }
                         });
                     }
-                }
+                },
+                tags: ['api']
             }
 
         });
 
-        this.hapiServer.start();
+        //this.hapiServer.start();
 
+        this.hapiServer.register({
+            register: swagger,
+            options: swaggerOptions
+        }, function(err) {
+            if (err) {
+                console.log('plugin swagger load error');
+            } else {
+                self.hapiServer.start(function() {
+                    console.log('swagger interface loaded');
+                })
+            }
+        })
     };
 
     HttpServerPort.prototype.stop = function stop() {
