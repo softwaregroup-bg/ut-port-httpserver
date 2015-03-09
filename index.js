@@ -45,7 +45,11 @@
                             self.bus.importMethods(methods, [request.payload.method])
                             method = methods[request.payload.method];
                         }
-                        method(request.payload).then(function (r) {
+                        if(!request.payload.params){
+                            request.payload.params = {};
+                        }
+                        request.payload.params.$$ = {authentication: request.payload.authentication};
+                        method(request.payload.params).then(function (r) {
                                 if (r.$$) {
                                     delete r.$$;
                                 }
