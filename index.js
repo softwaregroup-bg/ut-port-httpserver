@@ -57,7 +57,11 @@
                             self.bus.importMethods(methods, [request.payload.method])
                             method = methods[request.payload.method];
                         }
-                        method(request.payload).then(function (r) {
+                        if(!request.payload.params){
+                            request.payload.params = {};
+                        }
+                        request.payload.params.$$ = {authentication: request.payload.authentication};
+                        method(request.payload.params).then(function (r) {
                                 if (r.$$) {
                                     delete r.$$;
                                 }
@@ -73,7 +77,7 @@
                             },
                             function (erMsg) {
                                 if (erMsg.$$ && erMsg.$$.opcode == 'login') {
-                                    res.status(401);
+                                    //res.status(401);
                                 }
                                 var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
                                 var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
