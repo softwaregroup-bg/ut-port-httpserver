@@ -107,11 +107,11 @@
             if (Object.keys(method)) {
                 route.config = {
                     description: method.description,
-                        notes: method.notes,
-                        tags: method.tags,
-                        validate: {
+                    notes: method.notes,
+                    tags: method.tags,
+                    validate: {
                         payload: method.payload
-                    },
+                     },
                     response: {
                         schema: method.responseSchema
                     }
