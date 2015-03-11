@@ -38,7 +38,7 @@
         this.hapiServer.connection({ port: this.config.port });
 
         var swaggerMethods = {};
-        self.bus.importMethods(swaggerMethods, [self.config.imports])
+        self.bus.importMethods(swaggerMethods, self.config.imports)
         var routes = [{
             method: 'POST',
             path: '/rpc',
@@ -93,17 +93,30 @@
 
         }];
 
-        Object.keys(swaggerMethods).forEach(function(key, value) {
+        Object.keys(swaggerMethods).forEach(function(key) {
             // create routes for all methods
+            var method = swaggerMethods[key]
             var route = {
                 method: "POST",
                 path: '/' + key.split('.').join('/'),
-                config: {
-                    handler: function (request, reply) {
-                        reply(this.path);
-                    }
+                handler: function (request, reply) {
+                    reply(this.path);
                 }
             };
+
+            if (Object.keys(method)) {
+                route.config = {
+                    description: method.description,
+                        notes: method.notes,
+                        tags: method.tags,
+                        validate: {
+                        payload: method.payload
+                    },
+                    response: {
+                        schema: method.responseSchema
+                    }
+                }
+            }
 
             routes.push(route)
         })
