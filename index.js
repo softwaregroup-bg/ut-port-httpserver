@@ -110,10 +110,10 @@
                     notes: method.notes,
                     tags: method.tags,
                     validate: {
-                        payload: method.payload
-                     },
+                        payload: method.params
+                    },
                     response: {
-                        schema: method.responseSchema
+                        schema: method.returns
                     }
                 }
             }
