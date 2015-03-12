@@ -4,6 +4,7 @@
     var Port = require('ut-bus/port');
     var util = require('util');
     var hapi = require('hapi');
+    var when = require('when');
 
     function HttpServerPort() {
         Port.call(this);
@@ -61,7 +62,7 @@
                             request.payload.params = {};
                         }
                         request.payload.params.$$ = {authentication: request.payload.authentication};
-                        method(request.payload.params).then(function (r) {
+                        when(method(request.payload.params)).then(function (r) {
                                 if (r.$$) {
                                     delete r.$$;
                                 }
