@@ -5,6 +5,9 @@
     var util = require('util');
     var hapi = require('hapi');
     var when = require('when');
+    var swagger = require('hapi-swagger');
+    var Joi = require('joi');
+    var packageJson = require('./package.json');
 
     function HttpServerPort() {
         Port.call(this);
@@ -29,9 +32,15 @@
         Port.prototype.start.apply(this, arguments);
         var self = this;
         var methods = {};
+        var swaggerOptions = {
+            basePath: 'http://localhost:' + this.config.port,
+            version: packageJson.version
+        }
         this.hapiServer.connection({ port: this.config.port });
 
-        this.hapiServer.route({
+        var swaggerMethods = {};
+        self.bus.importMethods(swaggerMethods, self.config.imports)
+        var routes = [{
             method: 'POST',
             path: '/rpc',
             config: {
@@ -40,6 +49,11 @@
                     parse: true
                 },
                 handler: function (request, reply) {
+                    var endReply = {
+                        jsonrpc: '2.0',
+                        id: request.payload.id,
+                    };
+
                     try {
                         if(!request.payload.method){
                             return reply({
@@ -69,28 +83,21 @@
                                 if (r.authentication) {
                                     delete r.authentication;
                                 }
-                                var ress = {
-                                    jsonrpc: '2.0',
-                                    id: request.payload.id,
-                                    result: r
-                                };
-                                reply(ress);
+                                endReply.result = r;
+                                reply(endReply);
                             },
                             function (erMsg) {
                                 if (erMsg.$$ && erMsg.$$.opcode == 'login') {
-                                    //res.status(401);
+                                    res.status(401);
                                 }
                                 var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
                                 var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
-                                reply({
-                                    jsonrpc: '2.0',
-                                    id: request.payload.id,
-                                    error: {
-                                        code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
+                                endReply.error =  {
+                                    code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
                                         message: erMs,
                                         errorPrint: erPr
-                                    }
-                                });
+                                }
+                                reply(endReply);
                             }
                         );
                     } catch (err){
@@ -107,10 +114,63 @@
                 }
             }
 
-        });
+        }];
 
-        this.hapiServer.start();
+        Object.keys(swaggerMethods).forEach(function(key) {
+            // create routes for all methods
+            var method = swaggerMethods[key]
+            var route = {
+                method: "POST",
+                path: '/' + key.split('.').join('/'),
+                handler: function (request, reply) {
+                    reply(this.path);
+                }
+            };
 
+            if (Object.keys(method)) {
+                route.config = {
+                    description: method.description,
+                    notes: method.notes,
+                    tags: method.tags,
+                    validate: {
+                        payload: method.params
+                    },
+                    response: {
+                        schema: method.returns
+                    }
+                }
+            }
+
+            routes.push(route)
+        })
+
+        //TODO: delete this test
+        routes.push({
+            method: "GET",
+            path: '/test' ,
+            config: {
+                handler: function (request, reply) {
+                    reply(routes);
+                }
+            }
+        })
+
+        this.hapiServer.route(routes);
+
+        //this.hapiServer.start();
+
+        this.hapiServer.register({
+            register: swagger,
+            options: swaggerOptions
+        }, function(err) {
+            if (err) {
+                console.log('plugin swagger load error');
+            } else {
+                self.hapiServer.start(function() {
+                    console.log('swagger interface loaded');
+                })
+            }
+        })
     };
 
     HttpServerPort.prototype.stop = function stop() {
