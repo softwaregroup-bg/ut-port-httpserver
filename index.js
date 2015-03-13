@@ -33,7 +33,7 @@
         var self = this;
         var methods = {};
         var swaggerOptions = {
-            basePath: 'http://localhost:' + this.config.port,
+            basePath: '',
             version: packageJson.version
         }
         this.hapiServer.connection({ port: this.config.port });
@@ -56,15 +56,13 @@
 
                     try {
                         if(!request.payload.method){
-                            return reply({
-                                jsonrpc:'2.0',
-                                id: request.payload.id,
-                                error: {
-                                    code: '-1',
-                                    message: 'Missing request method',
-                                    errorPrint: 'Invalid request!'
-                                }
-                            });
+                            endReply.error = {
+                                code: '-1',
+                                message: 'Missing request method',
+                                errorPrint: 'Invalid request!'
+                            }
+
+                            return reply(endReply);
                         }
 
                         var method = methods[request.payload.method]
@@ -94,22 +92,21 @@
                                 var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
                                 endReply.error =  {
                                     code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
-                                        message: erMs,
-                                        errorPrint: erPr
+                                    message: erMs,
+                                    errorPrint: erPr
                                 }
+
                                 reply(endReply);
                             }
-                        );
+                        )
                     } catch (err){
-                        return reply({
-                            jsonrpc:'2.0',
-                            id: request.payload.id,
-                            error: {
-                                code: '-1',
-                                message: err.message,
-                                errorPrint: err.message
-                            }
-                        });
+                        endReply.error = {
+                            code: '-1',
+                            message: err.message,
+                            errorPrint: err.message
+                        }
+
+                        return reply(endReply);
                     }
                 }
             }
@@ -123,7 +120,7 @@
                 method: "POST",
                 path: '/' + key.split('.').join('/'),
                 handler: function (request, reply) {
-                    reply(this.path);
+                    reply({hello: 'world'});
                 }
             };
 
@@ -156,8 +153,6 @@
         })
 
         this.hapiServer.route(routes);
-
-        //this.hapiServer.start();
 
         this.hapiServer.register({
             register: swagger,
