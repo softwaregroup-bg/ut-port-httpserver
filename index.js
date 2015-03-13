@@ -33,7 +33,6 @@
         var self = this;
         var methods = {};
         var swaggerOptions = {
-            basePath: 'http://localhost:' + this.config.port,
             version: packageJson.version
         }
         this.hapiServer.connection({ port: this.config.port });
