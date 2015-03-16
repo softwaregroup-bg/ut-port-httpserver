@@ -7,6 +7,7 @@
     var when = require('when');
     var swagger = require('hapi-swagger');
     var packageJson = require('./package.json');
+    var _ = require('lodash');
 
     function HttpServerPort() {
         Port.call(this);
@@ -118,7 +119,31 @@
                 method: "POST",
                 path: '/' + key.split('.').join('/'),
                 handler: function (request, reply) {
-                    reply({hello: 'world'});
+                    var payload = _.cloneDeep(request.payload);
+                    request.payload.method = key;
+                    request.payload.jsonrpc = '2.0';
+                    request.payload.id = '1';
+                    request.payload.authentication = payload;
+                    //// TODO Change this in the future
+                    //if (payload.username && payload.password) {
+                    //    request.payload.authentication = {
+                    //        username: payload.username,
+                    //        password: payload.password
+                    //    }
+                    //    delete payload.username;
+                    //    delete payload.password;
+                    //} else if (payload.fingerPrint) {
+                    //    request.payload.authentication = {
+                    //        fingerprint: payload.fingerPrint
+                    //    }
+                    //    delete payload.fingerPrint;
+                    //}
+                    //// TODO END
+                    //request.payload.params = payload;
+
+                    handler(request, function (result){
+                        return reply(result.result || result.error);
+                    })
                 }
             };
 
