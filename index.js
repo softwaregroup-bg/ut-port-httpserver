@@ -38,7 +38,69 @@
         this.hapiServer.connection({ port: this.config.port });
 
         var swaggerMethods = {};
-        self.bus.importMethods(swaggerMethods, self.config.imports)
+        self.bus.importMethods(swaggerMethods, self.config.imports);
+        var rpcHandler = function (request, reply) {
+            var endReply = {
+                jsonrpc: '2.0',
+                id: request.payload.id,
+            };
+
+            try {
+                if(!request.payload.method){
+                    endReply.error = {
+                        code: '-1',
+                        message: 'Missing request method',
+                        errorPrint: 'Invalid request!'
+                    }
+
+                    return reply(endReply);
+                }
+
+                var method = methods[request.payload.method]
+                if (!method) {
+                    self.bus.importMethods(methods, [request.payload.method])
+                    method = methods[request.payload.method];
+                }
+                if(!request.payload.params){
+                    request.payload.params = {};
+                }
+                request.payload.params.$$ = {authentication: request.payload.authentication};
+                when(method(request.payload.params)).then(function (r) {
+                        if (r.$$) {
+                            delete r.$$;
+                        }
+                        if (r.authentication) {
+                            delete r.authentication;
+                        }
+                        endReply.result = r;
+                        reply(endReply);
+                    },
+                    function (erMsg) {
+                        if (erMsg.$$ && erMsg.$$.opcode == 'login') {
+                            res.status(401);
+                        }
+                        var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
+                        var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
+                        endReply.error =  {
+                            code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
+                            message: erMs,
+                            errorPrint: erPr
+                        }
+
+                        reply(endReply);
+                    }
+                )
+            } catch (err){
+                endReply.error = {
+                    code: '-1',
+                    message: err.message,
+                    errorPrint: err.message
+                }
+
+                return reply(endReply);
+            }
+        };
+
         var routes = [{
             method: 'POST',
             path: '/rpc',
@@ -47,67 +109,7 @@
                     output:'data',
                     parse: true
                 },
-                handler: function (request, reply) {
-                    var endReply = {
-                        jsonrpc: '2.0',
-                        id: request.payload.id,
-                    };
-
-                    try {
-                        if(!request.payload.method){
-                            endReply.error = {
-                                code: '-1',
-                                message: 'Missing request method',
-                                errorPrint: 'Invalid request!'
-                            }
-
-                            return reply(endReply);
-                        }
-
-                        var method = methods[request.payload.method]
-                        if (!method) {
-                            self.bus.importMethods(methods, [request.payload.method])
-                            method = methods[request.payload.method];
-                        }
-                        if(!request.payload.params){
-                            request.payload.params = {};
-                        }
-                        request.payload.params.$$ = {authentication: request.payload.authentication};
-                        when(method(request.payload.params)).then(function (r) {
-                                if (r.$$) {
-                                    delete r.$$;
-                                }
-                                if (r.authentication) {
-                                    delete r.authentication;
-                                }
-                                endReply.result = r;
-                                reply(endReply);
-                            },
-                            function (erMsg) {
-                                if (erMsg.$$ && erMsg.$$.opcode == 'login') {
-                                    res.status(401);
-                                }
-                                var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
-                                var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
-                                endReply.error =  {
-                                    code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
-                                    message: erMs,
-                                    errorPrint: erPr
-                                }
-
-                                reply(endReply);
-                            }
-                        )
-                    } catch (err){
-                        endReply.error = {
-                            code: '-1',
-                            message: err.message,
-                            errorPrint: err.message
-                        }
-
-                        return reply(endReply);
-                    }
-                }
+                handler: rpcHandler
             }
 
         }];
@@ -123,25 +125,29 @@
                     request.payload.method = key;
                     request.payload.jsonrpc = '2.0';
                     request.payload.id = '1';
-                    request.payload.authentication = payload;
-                    //// TODO Change this in the future
-                    //if (payload.username && payload.password) {
-                    //    request.payload.authentication = {
-                    //        username: payload.username,
-                    //        password: payload.password
-                    //    }
-                    //    delete payload.username;
-                    //    delete payload.password;
-                    //} else if (payload.fingerPrint) {
-                    //    request.payload.authentication = {
-                    //        fingerprint: payload.fingerPrint
-                    //    }
-                    //    delete payload.fingerPrint;
-                    //}
-                    //// TODO END
-                    //request.payload.params = payload;
 
-                    handler(request, function (result){
+                    // TODO Change this in the future
+                    if (payload.username && payload.password) {
+                        request.payload.authentication = {
+                            username: payload.username,
+                            password: payload.password
+                        }
+                        delete payload.username;
+                        delete payload.password;
+                    } else if (payload.fingerPrint) {
+                        request.payload.authentication = {
+                            fingerPrint: payload.fingerPrint
+                        }
+                        delete payload.fingerPrint;
+                    } else if (payload.sessionId) {
+                        request.payload.authentication = {
+                            sessionId: payload.sessionId
+                        }
+                    }
+                    // TODO END
+                    request.payload.params = payload;
+
+                    rpcHandler(request, function (result){
                         return reply(result.result || result.error);
                     })
                 }
@@ -170,7 +176,10 @@
             path: '/test' ,
             config: {
                 handler: function (request, reply) {
-                    reply(routes);
+                    var method = self.bus.importMethod('temp.getTest');
+                    method().then(function (res) {
+                        reply(res);
+                    });
                 }
             }
         })
