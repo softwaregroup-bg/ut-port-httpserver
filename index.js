@@ -6,7 +6,6 @@
     var hapi = require('hapi');
     var when = require('when');
     var swagger = require('hapi-swagger');
-    var Joi = require('joi');
     var packageJson = require('./package.json');
 
     function HttpServerPort() {
