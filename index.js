@@ -65,7 +65,8 @@
                     request.payload.params = {};
                 }
                 request.payload.params.$$ = {authentication: request.payload.authentication};
-                when(method(request.payload.params)).then(function (r) {
+                when(when.lift(method)(request.payload.params))
+                    .then(function (r) {
                         if (r.$$) {
                             delete r.$$;
                         }
@@ -74,22 +75,22 @@
                         }
                         endReply.result = r;
                         reply(endReply);
-                    },
-                    function (erMsg) {
+                    })
+                    .catch(function (erMsg) {
                         if (erMsg.$$ && erMsg.$$.opcode == 'login') {
                             res.status(401);
                         }
-                        var erMs = erMsg.$$ ? erMsg.$$.errorMessage : erMsg.message;
-                        var erPr = erMsg.$$ ? (erMsg.$$.errorPrint ? erMsg.$$.errorPrint : erMs) : (erMsg.errorPrint ? erMsg.errorPrint : erMs);
+                        var erMs = (erMsg.$$ && erMsg.$$.errorMessage) || erMsg.message;
+                        var erPr = (erMsg.$$ && erMsg.$$.errorPrint) || erMsg.errorPrint || erMs;
                         endReply.error =  {
-                            code: erMsg.$$ ? erMsg.$$.errorCode : (erMsg.code ? erMsg.code : '-1'),
+                            code: (erMsg.$$ && erMsg.$$.errorCode) || erMsg.code || -1,
                             message: erMs,
                             errorPrint: erPr
                         }
 
                         reply(endReply);
-                    }
-                )
+                    })
+                    .done()
             } catch (err){
                 endReply.error = {
                     code: '-1',
