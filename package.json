@@ -4,6 +4,7 @@
   "dependencies": {
     "hapi": "~8.3.1",
     "hapi-swagger": "~0.7.1",
+    "tv": "~4.1.0",
     "ut-bus": "~5.0.0",
     "when": "~3.7.2"
   },
