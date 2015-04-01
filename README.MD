@@ -33,3 +33,24 @@ This port exposes the following functionality:
 1. For WebSockets: https://www.npmjs.com/package/shoe
 1. For templates: our own module ut-template
 1. For API doc: https://www.npmjs.com/package/hapi-swagger
+
+## USAGE
+
+#### Configuration file required otions:
+
+```
+    id: '',
+    type: 'httpserver',
+    logLevel: '',
+    port: ''
+    
+```
+
+* `id`: unique identification of port 
+ 
+* `logLevel`: trace, debug or info. 
+ 
+* `port`: the port where the server will accept connections. 
+ 
+Optional configuration options:
+* `start`: function that will be called once on creation of port. It can be used for setting global variables and initialising objects.
