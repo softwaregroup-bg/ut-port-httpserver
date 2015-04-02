@@ -19,6 +19,7 @@
         };
 
         this.hapiServer = null;
+        this.hapiRoutes = [];
     }
 
     util.inherits(HttpServerPort, Port);
@@ -26,6 +27,7 @@
     HttpServerPort.prototype.init = function init() {
         Port.prototype.init.apply(this, arguments);
         this.hapiServer = new hapi.Server();
+        this.bus.registerLocal({'registerRequestHandler': this.registerRequestHandler.bind(this)}, 'internal');
     };
 
     HttpServerPort.prototype.start = function start() {
@@ -100,7 +102,7 @@
             }
         };
 
-        var routes = [{
+        this.hapiRoutes.push({
             method: 'POST',
             path: '/rpc',
             config: {
@@ -111,7 +113,7 @@
                 handler: rpcHandler
             }
 
-        }];
+        });
 
         Object.keys(swaggerMethods).forEach(function(key) {
             // create routes for all methods
@@ -166,11 +168,11 @@
                 }
             }
 
-            routes.push(route)
-        })
+            this.hapiRoutes.push(route)
+        });
 
         //TODO: delete this test
-        routes.push({
+        /*this.hapiRoutes.push({
             method: "GET",
             path: '/test' ,
             config: {
@@ -181,9 +183,9 @@
                     });
                 }
             }
-        })
+        });*/
 
-        this.hapiServer.route(routes);
+        this.hapiServer.route(this.hapiRoutes);
 
         this.hapiServer.register({
             register: swagger,
@@ -194,9 +196,13 @@
             } else {
                 self.hapiServer.start(function() {
                     console.log('swagger interface loaded');
-                })
+                });
             }
-        })
+        });
+    };
+
+    HttpServerPort.prototype.registerRequestHandler = function(options){
+        this.hapiRoutes.push(options);
     };
 
     HttpServerPort.prototype.stop = function stop() {
