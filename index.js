@@ -69,7 +69,7 @@
                 request.payload.params.$$ = {authentication: request.payload.authentication};
                 when(when.lift(method)(request.payload.params))
                     .then(function (r) {
-                        if (!r) throw new Error('Add return value of method ' + request.payload.method + ' for not returned promise');
+                        if (!r) throw new Error('Add return value of method ' + request.payload.method);
                         if (r.$$) {
                             delete r.$$;
                         }
