@@ -168,7 +168,7 @@
                 }
             }
 
-            this.hapiRoutes.push(route)
+            self.hapiRoutes.push(route)
         });
 
         //TODO: delete this test
