@@ -1,4 +1,4 @@
-# Documentinting Implementations #
+# Documenting Implementations #
 
 This document describes how to create automatic documentation and validation for
 HTTP requests in SG impl projects. The module [hapi-swagger](https://github.com/glennjones/hapi-swagger)
@@ -15,15 +15,15 @@ is used in the port-httpserver to do so.
 ### Usages ###
 
 1. Creating automatic HTTP API documentation for 
-1. `Documenting` URL paths based on the diffrent methods in each module
+1. `Documenting` URL paths based on the different methods in each module
     -  /{namespace}/{method} 
-    - e.g: "/securuty/login", "/customer/get"
+    - e.g: "/security/login", "/customer/get"
 1. `Documenting` and `Validating` request/response parameters:
     * `variable type`
     * `description` (optional)
     * whether the params are `optional/required`
 
-### Accesing the docs ###
+### Accessing the docs ###
 Go to: 
 
 ```
@@ -32,7 +32,7 @@ http://localhost:{port}/documentation
 
 where `port` is the http client port.
 
-### Creating documentation for a module  ###
+### Creating documentation for a module ###
 
 To create documentation and validation for a given module follow the steps below:
 
@@ -56,7 +56,7 @@ To create documentation and validation for a given module follow the steps below
         cashWithdraw: function(msg) {}, 
     };
     ```
-* The file `validation.js` should export object with the same property names for each method that needs validaiton.  
+* The file `validation.js` should export object with the same property names for each method that needs validation.  
 
     ```js
     module.exports = {
@@ -68,7 +68,7 @@ To create documentation and validation for a given module follow the steps below
     };
     ```
     
-* Documentaiton and validation for a given method is written in the following format:
+* Documentation and validation for a given method is written in the following format:
 
     ```js
     cashWithdraw: {
@@ -97,7 +97,7 @@ To create documentation and validation for a given module follow the steps below
     * `description` - short description 
     * `notes` - full length description
     * `tags: ['api']`: this should be added for the method to be shown in the
-    documentation page. If a given method should be validated but not documented this property can be ommited.
+    documentation page. If a given method should be validated but not documented this property can be omitted.
     Other tags like `'customer'` can be added in order to access only paths with specific tags: 
     
     ```
@@ -105,3 +105,4 @@ To create documentation and validation for a given module follow the steps below
     ```
     * `params` - HTTP request body (optional)
     * `returns` - HTTP response body 
+
