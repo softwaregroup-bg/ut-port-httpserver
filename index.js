@@ -37,8 +37,12 @@
         var swaggerOptions = {
             version: packageJson.version
         }
-        this.hapiServer.connection({ port: this.config.port });
-
+        var connectionOoptions = {port: this.config.port};
+        if(this.config.strictCookies === false){
+            connectionOoptions.state = {strictHeader: false};
+        }
+        this.hapiServer.connection(connectionOoptions);
+        //this.hapiServer.connections.routes.state.strictHeader = false;
         var swaggerMethods = {};
         self.bus.importMethods(swaggerMethods, self.config.imports);
         var rpcHandler = function (request, reply) {
