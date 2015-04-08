@@ -191,7 +191,6 @@
                 console.log('swagger interface loaded');
                 self.hapiServer.start(function(err) {
                     var _host = connectionOoptions.host || '*';
-                    console.log(self.hapiRoutes)
                     console.log('Http server started at http://'+_host+':' + connectionOoptions.port);
                 });
             }
