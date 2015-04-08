@@ -37,26 +37,29 @@
         var swaggerOptions = {
             version: packageJson.version
         }
-        this.hapiServer.connection({ port: this.config.port });
-
+        var connectionOoptions = {port: this.config.port};
+        if(this.config.strictCookies === false){
+            connectionOoptions.state = {strictHeader: false};
+        }
+        this.hapiServer.connection(connectionOoptions);
+        //this.hapiServer.connections.routes.state.strictHeader = false;
         var swaggerMethods = {};
         self.bus.importMethods(swaggerMethods, self.config.imports);
         var rpcHandler = function (request, reply) {
+            if(!request.payload || !request.payload.method || !request.payload.id){
+                return reply({
+                    jsonrpc: '2.0',
+                    id: '',
+                    code: '-1',
+                    message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
+                    errorPrint: 'Invalid request!'
+                });
+            }
             var endReply = {
                 jsonrpc: '2.0',
                 id: request.payload.id,
             };
-
             try {
-                if(!request.payload.method){
-                    endReply.error = {
-                        code: '-1',
-                        message: 'Missing request method',
-                        errorPrint: 'Invalid request!'
-                    }
-
-                    return reply(endReply);
-                }
 
                 var method = methods[request.payload.method]
                 if (!method) {
@@ -69,6 +72,7 @@
                 request.payload.params.$$ = {authentication: request.payload.authentication};
                 when(when.lift(method)(request.payload.params))
                     .then(function (r) {
+                        if (!r) throw new Error('Add return value of method ' + request.payload.method);
                         if (r.$$) {
                             delete r.$$;
                         }
@@ -102,8 +106,8 @@
             }
         };
 
-        this.hapiRoutes.push({
-            method: 'POST',
+        this.hapiRoutes.unshift({
+            method: '*',
             path: '/rpc',
             config: {
                 payload : {
@@ -168,7 +172,7 @@
                 }
             }
 
-            self.hapiRoutes.push(route)
+            self.hapiRoutes.unshift(route)
         });
 
         //TODO: delete this test

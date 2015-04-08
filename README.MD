@@ -54,3 +54,4 @@ This port exposes the following functionality:
  
 Optional configuration options:
 * `start`: function that will be called once on creation of port. It can be used for setting global variables and initialising objects.
+* `strictCookies`: boolean, if `false`, allows any cookie value including values in violation of [RFC 6265](https://tools.ietf.org/html/rfc6265). Defaults to `true`.
