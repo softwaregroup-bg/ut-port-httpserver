@@ -120,7 +120,7 @@
             var method = swaggerMethods[key]
             var route = {
                 method: "POST",
-                path: '/' + key.split('.').join('/'),
+                path: '/rpc/' + key.split('.').join('/'),
                 handler: function (request, reply) {
                     var payload = _.cloneDeep(request.payload);
                     request.payload.method = key;
