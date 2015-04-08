@@ -1,3 +1,5 @@
+'use strict';
+
 (function(define) {define(function(require) {
     //dependencies
 
@@ -8,6 +10,7 @@
     var swagger = require('hapi-swagger');
     var packageJson = require('./package.json');
     var _ = require('lodash');
+    var path = require('path');
 
     function HttpServerPort() {
         Port.call(this);
@@ -123,10 +126,11 @@
         Object.keys(swaggerMethods).forEach(function(key) {
             // create routes for all methods
             var method = swaggerMethods[key];
+
             if (Object.keys(method).length > 0) {//only documented methods will be added to the api
                 var route = {
-                    method: "POST",
-                    path: '/rpc/' + key.split('.').join('/'),
+                    method: 'POST',
+                    path: path.join('/rpc', key.split('.').join('/')),
                     handler: function (request, reply) {
                         var payload = _.cloneDeep(request.payload);
                         request.payload.method = key;
@@ -156,7 +160,7 @@
 
                         rpcHandler(request, function (result){
                             return reply(result.result || result.error);
-                        })
+                        });
                     }
                 };
 
@@ -175,20 +179,6 @@
             }
         });
 
-        //TODO: delete this test
-        /*this.hapiRoutes.push({
-         method: "GET",
-         path: '/test' ,
-         config: {
-         handler: function (request, reply) {
-         var method = self.bus.importMethod('temp.getTest');
-         method().then(function (res) {
-         reply(res);
-         });
-         }
-         }
-         });*/
-
         this.hapiServer.route(this.hapiRoutes);
 
         this.hapiServer.register({
@@ -201,6 +191,7 @@
                 console.log('swagger interface loaded');
                 self.hapiServer.start(function(err) {
                     var _host = connectionOoptions.host || '*';
+                    console.log(self.hapiRoutes)
                     console.log('Http server started at http://'+_host+':' + connectionOoptions.port);
                 });
             }
