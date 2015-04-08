@@ -35,7 +35,8 @@
         var self = this;
         var methods = {};
         var swaggerOptions = {
-            version: packageJson.version
+            version: packageJson.version,
+            pathPrefixSize:2 //this helps extracting the namespace from the second argument of the url
         }
         var connectionOoptions = {port: this.config.port};
         if(this.config.strictCookies === false){
@@ -121,44 +122,44 @@
 
         Object.keys(swaggerMethods).forEach(function(key) {
             // create routes for all methods
-            var method = swaggerMethods[key]
-            var route = {
-                method: "POST",
-                path: '/' + key.split('.').join('/'),
-                handler: function (request, reply) {
-                    var payload = _.cloneDeep(request.payload);
-                    request.payload.method = key;
-                    request.payload.jsonrpc = '2.0';
-                    request.payload.id = '1';
+            var method = swaggerMethods[key];
+            if (Object.keys(method).length > 0) {//only documented methods will be added to the api
+                var route = {
+                    method: "POST",
+                    path: '/rpc/' + key.split('.').join('/'),
+                    handler: function (request, reply) {
+                        var payload = _.cloneDeep(request.payload);
+                        request.payload.method = key;
+                        request.payload.jsonrpc = '2.0';
+                        request.payload.id = '1';
 
-                    // TODO Change this in the future
-                    if (payload.username && payload.password) {
-                        request.payload.authentication = {
-                            username: payload.username,
-                            password: payload.password
+                        // TODO Change this in the future
+                        if (payload.username && payload.password) {
+                            request.payload.authentication = {
+                                username: payload.username,
+                                password: payload.password
+                            }
+                            delete payload.username;
+                            delete payload.password;
+                        } else if (payload.fingerPrint) {
+                            request.payload.authentication = {
+                                fingerPrint: payload.fingerPrint
+                            }
+                            delete payload.fingerPrint;
+                        } else if (payload.sessionId) {
+                            request.payload.authentication = {
+                                sessionId: payload.sessionId
+                            }
                         }
-                        delete payload.username;
-                        delete payload.password;
-                    } else if (payload.fingerPrint) {
-                        request.payload.authentication = {
-                            fingerPrint: payload.fingerPrint
-                        }
-                        delete payload.fingerPrint;
-                    } else if (payload.sessionId) {
-                        request.payload.authentication = {
-                            sessionId: payload.sessionId
-                        }
+                        // TODO END
+                        request.payload.params = payload;
+
+                        rpcHandler(request, function (result){
+                            return reply(result.result || result.error);
+                        })
                     }
-                    // TODO END
-                    request.payload.params = payload;
+                };
 
-                    rpcHandler(request, function (result){
-                        return reply(result.result || result.error);
-                    })
-                }
-            };
-
-            if (Object.keys(method)) {
                 route.config = {
                     description: method.description,
                     notes: method.notes,
@@ -170,24 +171,23 @@
                         schema: method.returns
                     }
                 }
+                self.hapiRoutes.unshift(route);
             }
-
-            self.hapiRoutes.unshift(route)
         });
 
         //TODO: delete this test
         /*this.hapiRoutes.push({
-            method: "GET",
-            path: '/test' ,
-            config: {
-                handler: function (request, reply) {
-                    var method = self.bus.importMethod('temp.getTest');
-                    method().then(function (res) {
-                        reply(res);
-                    });
-                }
-            }
-        });*/
+         method: "GET",
+         path: '/test' ,
+         config: {
+         handler: function (request, reply) {
+         var method = self.bus.importMethod('temp.getTest');
+         method().then(function (res) {
+         reply(res);
+         });
+         }
+         }
+         });*/
 
         this.hapiServer.route(this.hapiRoutes);
 
@@ -198,8 +198,10 @@
             if (err) {
                 console.log('plugin swagger load error');
             } else {
-                self.hapiServer.start(function() {
-                    console.log('swagger interface loaded');
+                console.log('swagger interface loaded');
+                self.hapiServer.start(function(err) {
+                    var _host = connectionOoptions.host || '*';
+                    console.log('Http server started at http://'+_host+':' + connectionOoptions.port);
                 });
             }
         });
