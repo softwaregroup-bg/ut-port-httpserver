@@ -42,10 +42,11 @@
             connectionOoptions.state = {strictHeader: false};
         }
         this.hapiServer.connection(connectionOoptions);
-        //this.hapiServer.connections.routes.state.strictHeader = false;
+
         var swaggerMethods = {};
         self.bus.importMethods(swaggerMethods, self.config.imports);
         var rpcHandler = function (request, reply) {
+            self.log.trace && self.log.trace({payload:request.payload});
             if(!request.payload || !request.payload.method || !request.payload.id){
                 return reply({
                     jsonrpc: '2.0',
