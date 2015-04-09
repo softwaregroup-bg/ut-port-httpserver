@@ -43,6 +43,13 @@ To create documentation and validation for a given module follow the steps below
     var Joi = require('joi');
     ```
     
+* Add the following code to index.js in your http-server-port.
+
+    ```js
+    imports: ['module1', 'module2', 'module3'],
+    ```
+    Where module* are the names of your modules.
+    
 * Add the following code to `index.js` in the implementation's `httpserver port`.
 
     ```js
