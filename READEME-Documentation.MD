@@ -16,8 +16,8 @@ is used in the port-httpserver to do so.
 
 1. Creating automatic HTTP API documentation for 
 1. `Documenting` URL paths based on the different methods in each module
-    -  /{namespace}/{method} 
-    - e.g: "/security/login", "/customer/get"
+    -  /rpc/{namespace}/{method} 
+    - e.g: "`/rpc/security/login`", "`/rpc/customer/get`"
 1. `Documenting` and `Validating` request/response parameters:
     * `variable type`
     * `description` (optional)
