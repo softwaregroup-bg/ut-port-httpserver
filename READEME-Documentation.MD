@@ -43,6 +43,13 @@ To create documentation and validation for a given module follow the steps below
     var Joi = require('joi');
     ```
     
+* Add the following code to index.js in your http-server-port.
+
+    ```js
+    imports: ['module1', 'module2', 'module3'],
+    ```
+    Where module* are the names of your modules.
+    
 * Lets say the module `customer` exports some functions like those below:
 
     ```js
@@ -104,5 +111,4 @@ To create documentation and validation for a given module follow the steps below
     http://localhost:{port}/documentation/{tagName}
     ```
     * `params` - HTTP request body (optional)
-    * `returns` - HTTP response body 
-
+    * `returns` - HTTP response body
