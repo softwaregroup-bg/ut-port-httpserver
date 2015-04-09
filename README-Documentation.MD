@@ -16,8 +16,8 @@ is used in the port-httpserver to do so.
 
 1. Creating automatic HTTP API documentation for 
 1. `Documenting` URL paths based on the different methods in each module
-    -  /{namespace}/{method} 
-    - e.g: "/security/login", "/customer/get"
+    -  /rpc/{namespace}/{method} 
+    - e.g: "`/rpc/security/login`", "`/rpc/customer/get`"
 1. `Documenting` and `Validating` request/response parameters:
     * `variable type`
     * `description` (optional)
@@ -42,6 +42,13 @@ To create documentation and validation for a given module follow the steps below
     ```js
     var Joi = require('joi');
     ```
+    
+* Add the following code to `index.js` in the implementation's `httpserver port`.
+
+    ```js
+    imports: ['module1', 'module2', 'module3'],
+    ```
+    Where module* are the names of your modules.
     
 * Lets say the module `customer` exports some functions like those below:
 
@@ -105,5 +112,3 @@ To create documentation and validation for a given module follow the steps below
     ```
     * `params` - HTTP request body (optional)
     * `returns` - HTTP response body
-    
-* For more details how to use the diffrent propeties consider [Joi Documentation](https://github.com/hapijs/joi)    
