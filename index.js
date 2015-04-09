@@ -11,6 +11,7 @@
     var packageJson = require('./package.json');
     var _ = require('lodash');
     var path = require('path');
+    var rpcHandler;
 
     function HttpServerPort() {
         Port.call(this);
@@ -31,84 +32,26 @@
         Port.prototype.init.apply(this, arguments);
         this.hapiServer = new hapi.Server();
         this.bus.registerLocal({'registerRequestHandler': this.registerRequestHandler.bind(this)}, 'internal');
+        rpcHandler = require('./rpc-handler.js')(this.bus);
     };
 
     HttpServerPort.prototype.start = function start() {
         Port.prototype.start.apply(this, arguments);
         var self = this;
-        var methods = {};
+        var swaggerMethods = {};
+        var connectionOoptions = {
+            port: this.config.port,
+            state: {
+                strictHeader: !(this.config.strictCookies === false)
+            }
+        };
         var swaggerOptions = {
             version: packageJson.version,
             pathPrefixSize:2 //this helps extracting the namespace from the second argument of the url
-        }
-        var connectionOoptions = {port: this.config.port};
-        if(this.config.strictCookies === false){
-            connectionOoptions.state = {strictHeader: false};
-        }
-        this.hapiServer.connection(connectionOoptions);
-        //this.hapiServer.connections.routes.state.strictHeader = false;
-        var swaggerMethods = {};
-        self.bus.importMethods(swaggerMethods, self.config.imports);
-        var rpcHandler = function (request, reply) {
-            if(!request.payload || !request.payload.method || !request.payload.id){
-                return reply({
-                    jsonrpc: '2.0',
-                    id: '',
-                    code: '-1',
-                    message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
-                    errorPrint: 'Invalid request!'
-                });
-            }
-            var endReply = {
-                jsonrpc: '2.0',
-                id: request.payload.id,
-            };
-            try {
-
-                var method = methods[request.payload.method]
-                if (!method) {
-                    self.bus.importMethods(methods, [request.payload.method])
-                    method = methods[request.payload.method];
-                }
-                if(!request.payload.params){
-                    request.payload.params = {};
-                }
-                request.payload.params.$$ = {authentication: request.payload.authentication};
-                when(when.lift(method)(request.payload.params))
-                    .then(function (r) {
-                        if (!r) throw new Error('Add return value of method ' + request.payload.method);
-                        if (r.$$) {
-                            delete r.$$;
-                        }
-                        if (r.authentication) {
-                            delete r.authentication;
-                        }
-                        endReply.result = r;
-                        reply(endReply);
-                    })
-                    .catch(function (erMsg) {
-
-                        var erMs = (erMsg.$$ && erMsg.$$.errorMessage) || erMsg.message;
-                        var erPr = (erMsg.$$ && erMsg.$$.errorPrint) || erMsg.errorPrint || erMs;
-                        endReply.error =  {
-                            code: (erMsg.$$ && erMsg.$$.errorCode) || erMsg.code || -1,
-                            message: erMs,
-                            errorPrint: erPr
-                        }
-
-                        reply(endReply);
-                    })
-                    .done()
-            } catch (err){
-                endReply.error = {
-                    code: '-1',
-                    message: err.message,
-                    errorPrint: err.message
-                }
-
-                return reply(endReply);
-            }
         };
+
+        self.bus.importMethods(swaggerMethods, self.config.imports);
+        this.hapiServer.connection(connectionOoptions);
 
         this.hapiRoutes.unshift({
             method: '*',
@@ -133,32 +76,15 @@
                     path: path.join('/rpc', key.split('.').join('/')),
                     handler: function (request, reply) {
                         var payload = _.cloneDeep(request.payload);
-                        request.payload.method = key;
-                        request.payload.jsonrpc = '2.0';
-                        request.payload.id = '1';
-
-                        // TODO Change this in the future
-                        if (payload.username && payload.password) {
-                            request.payload.authentication = {
-                                username: payload.username,
-                                password: payload.password
-                            }
-                            delete payload.username;
-                            delete payload.password;
-                        } else if (payload.fingerPrint) {
-                            request.payload.authentication = {
-                                fingerPrint: payload.fingerPrint
-                            }
-                            delete payload.fingerPrint;
-                        } else if (payload.sessionId) {
-                            request.payload.authentication = {
-                                sessionId: payload.sessionId
-                            }
-                        }
-                        // TODO END
-                        request.payload.params = payload;
+                        request.payload = {
+                            method: key,
+                            jsonrpc: '2.0',
+                            id: '1',
+                            params: payload
+                        };
 
                         rpcHandler(request, function (result){
+                            console.log(result)
                             return reply(result.result || result.error);
                         });
                     }
@@ -181,20 +107,34 @@
 
         this.hapiServer.route(this.hapiRoutes);
 
-        this.hapiServer.register({
-            register: swagger,
-            options: swaggerOptions
-        }, function(err) {
-            if (err) {
-                console.log('plugin swagger load error');
-            } else {
-                console.log('swagger interface loaded');
-                self.hapiServer.start(function(err) {
-                    var _host = connectionOoptions.host || '*';
-                    console.log('Http server started at http://'+_host+':' + connectionOoptions.port);
-                });
-            }
-        });
+        var serverBootstrap = [];
+        serverBootstrap.push(when.promise(function(resolve,reject){
+            //register swagger
+            self.hapiServer.register({
+                register: swagger,
+                options: swaggerOptions
+            }, function(err) {
+                if (err)
+                    return reject({error:err, stage:'swagger loading'});
+                return resolve('swagger interface loaded');
+            });
+        }));
+        serverBootstrap.push(when.promise(function(resolve, reject){
+            self.hapiServer.start(function(err) {
+                if(err)
+                    return reject({error:err, stage:'starting hhtp server'});
+
+                return resolve('Http server started at http://' + ( connectionOoptions.host || '*' ) + ':' + connectionOoptions.port)
+            });
+        }));
+
+        when.all(serverBootstrap)
+            .then(function(res){
+                console.log(res);
+            })
+            .catch(function(err){
+                console.log(err);
+            });
     };
 
     HttpServerPort.prototype.registerRequestHandler = function(options){
