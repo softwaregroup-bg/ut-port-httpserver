@@ -10,7 +10,6 @@
     var swagger = require('hapi-swagger');
     var packageJson = require('./package.json');
     var _ = require('lodash');
-    var path = require('path');
 
     function HttpServerPort() {
         Port.call(this);
