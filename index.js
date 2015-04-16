@@ -131,7 +131,7 @@
             if (Object.keys(method).length > 0) {//only documented methods will be added to the api
                 var route = {
                     method: 'POST',
-                    path: path.join('/rpc', key.split('.').join('/')),
+                    path: '/rpc/' + key.split('.').join('/'),
                     handler: function (request, reply) {
                         var payload = _.cloneDeep(request.payload);
                         request.payload.method = key;
