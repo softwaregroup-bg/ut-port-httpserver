@@ -6,7 +6,6 @@ var hapi = require('hapi');
 var when = require('when');
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
-var _ = require('lodash');
 var handlerGenerator = require('./handlers.js');
 
 function HttpServerPort() {
@@ -32,14 +31,16 @@ HttpServerPort.prototype.init = function init() {
 HttpServerPort.prototype.start = function start() {
     Port.prototype.start.apply(this, arguments);
     var self = this;
-    var httpMethods = {};
     var serverBootstrap = [];
+
     var connectionOptions = {
-        port: this.config.port,
-        state: {
-            strictHeader: !(this.config.strictCookies === false)
-        }
+        'port':9999
     };
+
+    if (this.config.connectionOptions) {
+        connectionOptions = this.config.connectionOptions;
+    }
+
     var swaggerOptions = {
         version: packageJson.version,
         pathPrefixSize:2 //this helps extracting the namespace from the second argument of the url
@@ -47,49 +48,51 @@ HttpServerPort.prototype.start = function start() {
     this.hapiServer.connection(connectionOptions);
 
     serverBootstrap
-        .push(when.promise(function(resolve,reject){
-            //register ut5 handler generator
+        .push(when.promise(function(resolve, reject) {
+            //register ut5 handlers
             self.hapiServer.register({
                 register: handlerGenerator,
-                options: {'bus':self.bus,'imports':self.config.imports}
+                options: {'bus':self.bus, 'imports':self.config.imports}
             }, function(err) {
-                if (err)
-                    return reject({error:err, stage:'rpc-generator loading'});
+                if (err) {
+                    return reject({error: err, stage: 'ut5 handlers loading..'});
+                }
                 return resolve('rpc-generator interface loaded');
             });
         }));
     serverBootstrap
-        .push(when.promise(function(resolve,reject){
+        .push(when.promise(function(resolve, reject) {
             //register swagger
             self.hapiServer.register({
                 register: swagger,
                 options: swaggerOptions
             }, function(err) {
-                if (err)
-                    return reject({error:err, stage:'swagger loading'});
+                if (err) {
+                    return reject({error: err, stage: 'swagger loading'});
+                }
                 return resolve('swagger interface loaded');
             });
         }));
     serverBootstrap
-        .push(when.promise(function(resolve, reject){
+        .push(when.promise(function(resolve, reject) {
             self.hapiServer.start(function(err) {
-                if(err)
-                    return reject({error:err, stage:'starting hhtp server'});
-
-                return resolve('Http server started at http://' + ( connectionOptions.host || '*' ) + ':' + connectionOptions.port)
+                if (err) {
+                    return reject({error: err, stage: 'starting hhtp server'});
+                }
+                return resolve('Http server started at http://' + (connectionOptions.host || '*') + ':' + connectionOptions.port);
             });
         }));
 
     when.all(serverBootstrap)
-        .then(function(res){
+        .then(function(res) {
             console.log(res);
         })
-        .catch(function(err){
+        .catch(function(err) {
             console.log(err);
         });
 };
 
-HttpServerPort.prototype.registerRequestHandler = function(options){
+HttpServerPort.prototype.registerRequestHandler = function(options) {
     this.hapiServer.route(options);
 };
 
@@ -99,5 +102,3 @@ HttpServerPort.prototype.stop = function stop() {
 };
 
 module.exports = HttpServerPort;
-
-

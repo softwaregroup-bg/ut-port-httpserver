@@ -3,14 +3,23 @@
 var _ = require('lodash');
 var when = require('when');
 
-module.exports = function (server, options, next) {
+module.exports = function(server, options, next) {
     var methods = {};
     var httpMethods = {};
     var pendingRoutes = [];
     options.bus.importMethods(httpMethods, options.imports);
 
-    var rpcHandler = function (request, reply) {
-        if((request.route.path !== '/rpc') || (request.route.path !== '/rpc/')){
+    var rpcHandler = function(request, _reply) {
+        var isRPC = false;
+        var reply = function(resp) {
+            if (!isRPC) {
+                return _reply(resp.result || resp.error);
+            }
+            return _reply(resp);
+        };
+
+        if ((request.route.path !== '/rpc') || (request.route.path !== '/rpc/')) {
+            isRPC = true;
             request.payload = {
                 method: request.route.path.split('/').slice(-2).join('.'),
                 jsonrpc: '2.0',
@@ -21,10 +30,10 @@ module.exports = function (server, options, next) {
         var endReply = {
             jsonrpc: '2.0',
             id: '',
-            error:{code:0,message:''},
+            error:{code:0, message:''},
             result:undefined
         };
-        if(!request.payload || !request.payload.method || !request.payload.id){
+        if (!request.payload || !request.payload.method || !request.payload.id) {
             endReply.error = {
                 code: '-1',
                 message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
@@ -38,35 +47,32 @@ module.exports = function (server, options, next) {
             var method = methods[request.payload.method];
 
             if (!method) {
-                options.bus.importMethods(methods, [request.payload.method])
+                options.bus.importMethods(methods, [request.payload.method]);
                 method = methods[request.payload.method];
             }
             request.payload.params.$$ = {authentication: request.payload.authentication};
             when(when.lift(method)(request.payload.params))
-                .then(function (r) {
-                    if (!r) throw new Error('Add return value of method ' + request.payload.method);
+                .then(function(r) {
+                    if (!r) {
+                        throw new Error('Add return value of method ' + request.payload.method);
+                    }
                     if (r.$$) {
                         delete r.$$;
                     }
                     if (r.authentication) {
                         delete r.authentication;
                     }
-                    if(r.error){
-                        endReply.error.code = r.error.code;
-                        endReply.error.message = r.error.message;
-                        delete r.error;
-                        endReply.result = r;
-                    }
+                    endReply.result = r;
                     reply(endReply);
                 })
-                .catch(function (erMsg) {
+                .catch(function(erMsg) {
                     var erMs = (erMsg.$$ && erMsg.$$.errorMessage) || erMsg.message;
                     var erPr = (erMsg.$$ && erMsg.$$.errorPrint) || erMsg.errorPrint || erMs;
                     endReply.error =  {
                         code: (erMsg.$$ && erMsg.$$.errorCode) || erMsg.code || -1,
                         message: erMs,
                         errorPrint: erPr
-                    }
+                    };
 
                     reply(endReply);
                 })
@@ -113,7 +119,7 @@ module.exports = function (server, options, next) {
                 response: {
                     schema: method.returns
                 }
-            }
+            };
             pendingRoutes.unshift(route);
         }
     });
