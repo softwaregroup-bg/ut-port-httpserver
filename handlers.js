@@ -10,7 +10,7 @@ module.exports = function(server, options, next) {
     options.bus.importMethods(httpMethods, options.imports);
 
     var rpcHandler = function(request, _reply) {
-        var isRPC = false;
+        var isRPC = true;
         var reply = function(resp) {
             if (!isRPC) {
                 return _reply(resp.result || resp.error);
@@ -19,7 +19,7 @@ module.exports = function(server, options, next) {
         };
 
         if ((request.route.path !== '/rpc') || (request.route.path !== '/rpc/')) {
-            isRPC = true;
+            isRPC = false;
             request.payload = {
                 method: request.route.path.split('/').slice(-2).join('.'),
                 jsonrpc: '2.0',
