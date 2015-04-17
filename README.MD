@@ -14,25 +14,6 @@ This port exposes the following functionality:
     * **permission.check** - check if a permission for an action is granted
     * **permission.list** - list permitted actions
 
-## Server specific configuration
-server specific configuration can be passed as object with key `serverSpecific`.
-For instance if we have http server port implementation as follows: 
-```javascript
-module.exports = {
-    id: 'httpserver',
-    type: 'httpserver',
-    logLevel: 'trace',
-    port: 8003,
-    imports:[],
-    serverSpecific:{
-        /*.......*/
-    }
-
-    /*.......*/
-};
-```
-all properties from `serverSpecific` will be passed to server as configuration and will be merget with `host` and `port` properties 
-
 # Planned features
 
 1. Secure Remote Password protocol support, as defined in [RFC 2945](http://tools.ietf.org/html/rfc2945)
@@ -69,8 +50,28 @@ all properties from `serverSpecific` will be passed to server as configuration a
  
 * `logLevel`: trace, debug or info. 
  
-* `port`: the port where the server will accept connections. 
+* `port`: the port where the server will accept connections.
+
+* `serverSpecific`: Server specific configuration 
+
+server specific configuration can be passed as object with key `serverSpecific`.
+For instance if we have http server port implementation as follows: 
+```javascript
+module.exports = {
+    id: 'httpserver',
+    type: 'httpserver',
+    logLevel: 'trace',
+    port: 8003,
+    imports:[],
+    serverSpecific:{
+        /*.......*/
+    }
+
+    /*.......*/
+};
+```
+all properties from `serverSpecific` will be passed to server as configuration and will be merget with `host` and `port` properties 
+
  
 Optional configuration options:
 * `start`: function that will be called once on creation of port. It can be used for setting global variables and initialising objects.
-* `strictCookies`: boolean, if `false`, allows any cookie value including values in violation of [RFC 6265](https://tools.ietf.org/html/rfc6265). Defaults to `true`.
