@@ -14,6 +14,25 @@ This port exposes the following functionality:
     * **permission.check** - check if a permission for an action is granted
     * **permission.list** - list permitted actions
 
+## Server specific configuration
+server specific configuration can be passed as object with key `serverSpecific`.
+For instance if we have http server port implementation as follows: 
+```javascript
+module.exports = {
+    id: 'httpserver',
+    type: 'httpserver',
+    logLevel: 'trace',
+    port: 8003,
+    imports:[],
+    serverSpecific:{
+        /*.......*/
+    }
+
+    /*.......*/
+};
+```
+all properties from `serverSpecific` will be passed to server as configuration and will be merget with `host` and `port` properties 
+
 # Planned features
 
 1. Secure Remote Password protocol support, as defined in [RFC 2945](http://tools.ietf.org/html/rfc2945)

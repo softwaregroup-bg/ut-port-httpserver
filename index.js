@@ -4,6 +4,7 @@ var Port = require('ut-bus/port');
 var util = require('util');
 var hapi = require('hapi');
 var when = require('when');
+var _ = require('lodash');
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
 var handlerGenerator = require('./handlers.js');
@@ -14,7 +15,8 @@ function HttpServerPort() {
         id: null,
         logLevel: '',
         type: 'httpserver',
-        port: 8002
+        port: 8002,
+        serverSpecific:undefined
     };
 
     this.hapiServer = null;
@@ -32,27 +34,31 @@ HttpServerPort.prototype.start = function start() {
     Port.prototype.start.apply(this, arguments);
     var self = this;
     var serverBootstrap = [];
-
-    var connectionOptions = {
-        'port':9999
+    var httpProp = {
+        'port':this.config.port,
+        'host':this.config.host
     };
-
-    if (this.config.connectionOptions) {
-        connectionOptions = this.config.connectionOptions;
-    }
 
     var swaggerOptions = {
         version: packageJson.version,
         pathPrefixSize:2 //this helps extracting the namespace from the second argument of the url
     };
-    this.hapiServer.connection(connectionOptions);
+
+    if (this.config.serverSpecific) {
+        _.assign(httpProp, this.config.serverSpecific);
+    }
+
+    this.hapiServer.connection(httpProp);
 
     serverBootstrap
         .push(when.promise(function(resolve, reject) {
             //register ut5 handlers
             self.hapiServer.register({
                 register: handlerGenerator,
-                options: {'bus':self.bus, 'imports':self.config.imports}
+                options: {
+                    'bus':self.bus,
+                    'imports':self.config.imports
+                }
             }, function(err) {
                 if (err) {
                     return reject({error: err, stage: 'ut5 handlers loading..'});
@@ -79,7 +85,7 @@ HttpServerPort.prototype.start = function start() {
                 if (err) {
                     return reject({error: err, stage: 'starting hhtp server'});
                 }
-                return resolve('Http server started at http://' + (connectionOptions.host || '*') + ':' + connectionOptions.port);
+                return resolve('Http server started at http://' + (httpProp.host || '*') + ':' + httpProp.port);
             });
         }));
 
