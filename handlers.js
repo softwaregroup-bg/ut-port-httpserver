@@ -18,7 +18,7 @@ module.exports = function(server, options, next) {
             return _reply(resp);
         };
 
-        if ((request.route.path !== '/rpc') || (request.route.path !== '/rpc/')) {
+        if ((request.route.path !== '/rpc') && (request.route.path !== '/rpc/')) {
             isRPC = false;
             request.payload = {
                 method: request.route.path.split('/').slice(-2).join('.'),
