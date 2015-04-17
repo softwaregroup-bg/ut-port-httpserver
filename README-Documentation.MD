@@ -43,13 +43,6 @@ To create documentation and validation for a given module follow the steps below
     var Joi = require('joi');
     ```
     
-* Add the following code to index.js in your http-server-port.
-
-    ```js
-    imports: ['module1', 'module2', 'module3'],
-    ```
-    Where module* are the names of your modules.
-    
 * Add the following code to `index.js` in the implementation's `httpserver port`.
 
     ```js
@@ -70,7 +63,7 @@ To create documentation and validation for a given module follow the steps below
         cashWithdraw: function(msg) {}, 
     };
     ```
-* The file `validation.js` should export object with the same property names for each method that needs validation.  
+* The file `validation.js` should export an object with the same property names for each documented method.  
 
     ```js
     module.exports = {
@@ -81,6 +74,16 @@ To create documentation and validation for a given module follow the steps below
         cashWithdraw: {},
     };
     ```
+*  The file `server.js` should hold a `validations:{}` property for each documented module.
+
+    ```js
+    validations: {
+        customer: require('./customer/validation'),
+        security: require('./security/validation'),
+        dictionary: require('./dictionary/validation'),
+    }
+    ```
+    The property names in the `validations` should be the ame as the module names.
     
 * Documentation and validation for a given method is written in the following format:
 
