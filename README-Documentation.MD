@@ -16,8 +16,8 @@ is used in the port-httpserver to do so.
 
 1. Creating automatic HTTP API documentation for 
 1. `Documenting` URL paths based on the different methods in each module
-    -  /{namespace}/{method} 
-    - e.g: "/security/login", "/customer/get"
+    -  /rpc/{namespace}/{method} 
+    - e.g: "`/rpc/security/login`", "`/rpc/customer/get`"
 1. `Documenting` and `Validating` request/response parameters:
     * `variable type`
     * `description` (optional)
@@ -43,6 +43,13 @@ To create documentation and validation for a given module follow the steps below
     var Joi = require('joi');
     ```
     
+* Add the following code to `index.js` in the implementation's `httpserver port`.
+
+    ```js
+    imports: ['module1', 'module2', 'module3'],
+    ```
+    Where module* are the names of your modules.
+    
 * Lets say the module `customer` exports some functions like those below:
 
     ```js
@@ -56,7 +63,7 @@ To create documentation and validation for a given module follow the steps below
         cashWithdraw: function(msg) {}, 
     };
     ```
-* The file `validation.js` should export object with the same property names for each method that needs validation.  
+* The file `validation.js` should export an object with the same property names for each documented method.  
 
     ```js
     module.exports = {
@@ -67,6 +74,16 @@ To create documentation and validation for a given module follow the steps below
         cashWithdraw: {},
     };
     ```
+*  The file `server.js` should hold a `validations:{}` property for each documented module.
+
+    ```js
+    validations: {
+        customer: require('./customer/validation'),
+        security: require('./security/validation'),
+        dictionary: require('./dictionary/validation'),
+    }
+    ```
+    The property names in the `validations` should be the ame as the module names.
     
 * Documentation and validation for a given method is written in the following format:
 
@@ -104,5 +121,4 @@ To create documentation and validation for a given module follow the steps below
     http://localhost:{port}/documentation/{tagName}
     ```
     * `params` - HTTP request body (optional)
-    * `returns` - HTTP response body 
-
+    * `returns` - HTTP response body
