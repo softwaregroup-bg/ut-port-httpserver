@@ -115,6 +115,9 @@
                     output:'data',
                     parse: true
                 },
+                timeout: {
+                    server: self.config.serverTimeout ? self.config.serverTimeout : false
+                },
                 handler: rpcHandler
             }
 
