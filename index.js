@@ -57,6 +57,7 @@ HttpServerPort.prototype.start = function start() {
                 register: handlerGenerator,
                 options: {
                     'bus':self.bus,
+                    'log':self.log,
                     'imports':self.config.imports
                 }
             }, function(err) {
