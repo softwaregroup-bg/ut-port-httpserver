@@ -16,10 +16,12 @@ function HttpServerPort() {
         logLevel: '',
         type: 'httpserver',
         port: 8002,
-        serverSpecific:undefined
+        serverSpecific:undefined,
+        handlers:undefined
     };
 
     this.hapiServer = null;
+    this.routes = [];
 }
 
 util.inherits(HttpServerPort, Port);
@@ -49,7 +51,7 @@ HttpServerPort.prototype.start = function start() {
     }
 
     this.hapiServer.connection(httpProp);
-
+    this.hapiServer.route(this.routes);
     serverBootstrap
         .push(when.promise(function(resolve, reject) {
             //register ut5 handlers
@@ -58,7 +60,7 @@ HttpServerPort.prototype.start = function start() {
                 options: {
                     'bus':self.bus,
                     'log':self.log,
-                    'imports':self.config.imports
+                    'config':self.config
                 }
             }, function(err) {
                 if (err) {
@@ -99,8 +101,8 @@ HttpServerPort.prototype.start = function start() {
         });
 };
 
-HttpServerPort.prototype.registerRequestHandler = function(options) {
-    this.hapiServer.route(options);
+HttpServerPort.prototype.registerRequestHandler = function(handler) {
+    this.routes.push(handler);
 };
 
 HttpServerPort.prototype.stop = function stop() {

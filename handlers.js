@@ -7,7 +7,9 @@ module.exports = function(server, options, next) {
     var methods = {};
     var httpMethods = {};
     var pendingRoutes = [];
-    options.bus.importMethods(httpMethods, options.imports);
+    var imports = options.config.imports;
+
+    options.bus.importMethods(httpMethods, imports);
 
     var rpcHandler = function(request, _reply) {
         options.log.trace && options.log.trace({payload:request.payload});
@@ -88,7 +90,7 @@ module.exports = function(server, options, next) {
             return reply(endReply);
         }
     };
-    pendingRoutes.unshift({
+    var defRpcRoute = {
         method: '*',
         path: '/rpc',
         config: {
@@ -98,7 +100,14 @@ module.exports = function(server, options, next) {
             },
             handler: rpcHandler
         }
-    });
+    };
+    if(options.config.handlers) {//global config for handlers
+        if(options.config.handlers.rpc) {//for RPC handlers
+            //merge config with default handler only, because we can set per handler when is used with swagger
+            _.assign(defRpcRoute.config, options.config.handlers.rpc);
+        }
+    }
+    pendingRoutes.unshift(defRpcRoute);
 
     Object.keys(httpMethods).forEach(function(key) {
         // create routes for all methods
