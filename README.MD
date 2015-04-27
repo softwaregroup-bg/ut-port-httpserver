@@ -52,9 +52,9 @@ This port exposes the following functionality:
  
 * `port`: the port where the server will accept connections.
 
-* `serverSpecific`: Server specific configuration 
+* `server`: Server specific configuration 
 
-server specific configuration can be passed as object with key `serverSpecific`.
+server specific configuration can be passed as object with key `server`.
 For instance if we have http server port implementation as follows: 
 ```javascript
 module.exports = {
@@ -63,14 +63,14 @@ module.exports = {
     logLevel: 'trace',
     port: 8003,
     imports:[],
-    serverSpecific:{
+    server:{
         /*.......*/
     }
 
     /*.......*/
 };
 ```
-all properties from `serverSpecific` will be passed to server as configuration and will be merget with `host` and `port` properties 
+all properties from `server` will be passed to server as configuration and will be merget with `host` and `port` properties 
 
  
 Optional configuration options:

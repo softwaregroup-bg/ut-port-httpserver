@@ -32,9 +32,7 @@ module.exports = function(server, options, next) {
         }
         var endReply = {
             jsonrpc: '2.0',
-            id: '',
-            error:{code:0, message:''},
-            result:undefined
+            id: ''
         };
         if (!request.payload || !request.payload.method || !request.payload.id) {
             endReply.error = {

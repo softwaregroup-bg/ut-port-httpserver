@@ -16,7 +16,7 @@ function HttpServerPort() {
         logLevel: '',
         type: 'httpserver',
         port: 8002,
-        serverSpecific:undefined,
+        server:undefined,
         handlers:undefined
     };
 
@@ -46,8 +46,8 @@ HttpServerPort.prototype.start = function start() {
         pathPrefixSize:2 //this helps extracting the namespace from the second argument of the url
     };
 
-    if (this.config.serverSpecific) {
-        _.assign(httpProp, this.config.serverSpecific);
+    if (this.config.server) {
+        _.assign(httpProp, this.config.server);
     }
 
     this.hapiServer.connection(httpProp);
