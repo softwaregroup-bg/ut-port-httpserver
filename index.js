@@ -102,7 +102,11 @@ HttpServerPort.prototype.start = function start() {
 };
 
 HttpServerPort.prototype.registerRequestHandler = function(handler) {
-    this.routes.push(handler);
+    if(this.hapiServer.route) {
+        this.hapiServer.route(handler);
+    } else {
+        this.routes.push(handler);
+    }
 };
 
 HttpServerPort.prototype.stop = function stop() {
