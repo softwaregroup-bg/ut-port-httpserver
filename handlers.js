@@ -78,7 +78,9 @@ module.exports = function(server, options, next) {
                         errorPrint: erPr
                     };
                     //dispaly unhandled exeption before they are returned to response
+                    console.dir('unhandled exeption');
                     console.dir(endReply);
+                    console.dir('unhandled exeption end');
                     reply(endReply);
                 })
                 .done();
