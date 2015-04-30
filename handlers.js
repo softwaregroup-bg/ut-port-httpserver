@@ -15,10 +15,13 @@ module.exports = function(server, options, next) {
         options.log.trace && options.log.trace({payload:request.payload});
         var isRPC = true;
         var reply = function(resp) {
+            var _resp;
             if (!isRPC) {
-                return _reply(resp.result || resp.error);
+                _resp = resp.result || {error:resp.error};
+            } else {
+                _resp = resp;
             }
-            return _reply(resp);
+            return _reply(_resp);
         };
 
         if ((request.route.path !== '/rpc') && (request.route.path !== '/rpc/')) {
@@ -75,7 +78,7 @@ module.exports = function(server, options, next) {
                         errorPrint: erPr
                     };
                     //dispaly unhandled exeption before they are returned to response
-                    console.dir(endReply.error);
+                    console.dir(endReply);
                     reply(endReply);
                 })
                 .done();
