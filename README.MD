@@ -50,8 +50,28 @@ This port exposes the following functionality:
  
 * `logLevel`: trace, debug or info. 
  
-* `port`: the port where the server will accept connections. 
+* `port`: the port where the server will accept connections.
+
+* `server`: Server specific configuration 
+
+server specific configuration can be passed as object with key `server`.
+For instance if we have http server port implementation as follows: 
+```javascript
+module.exports = {
+    id: 'httpserver',
+    type: 'httpserver',
+    logLevel: 'trace',
+    port: 8003,
+    imports:[],
+    server:{
+        /*.......*/
+    }
+
+    /*.......*/
+};
+```
+all properties from `server` will be passed to server as configuration and will be merget with `host` and `port` properties 
+
  
 Optional configuration options:
 * `start`: function that will be called once on creation of port. It can be used for setting global variables and initialising objects.
-* `strictCookies`: boolean, if `false`, allows any cookie value including values in violation of [RFC 6265](https://tools.ietf.org/html/rfc6265). Defaults to `true`.
