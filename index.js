@@ -8,6 +8,7 @@ var _ = require('lodash');
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
 var handlerGenerator = require('./handlers.js');
+var through2 = require('through2');
 
 function HttpServerPort() {
     Port.call(this);
@@ -20,8 +21,9 @@ function HttpServerPort() {
         handlers:undefined
     };
 
-    this.hapiServer = null;
+    this.hapiServer = {};
     this.routes = [];
+    this.stream = {};
 }
 
 util.inherits(HttpServerPort, Port);
@@ -34,6 +36,9 @@ HttpServerPort.prototype.init = function init() {
 
 HttpServerPort.prototype.start = function start() {
     Port.prototype.start.apply(this, arguments);
+    this.stream = through2.obj();
+    this.pipeReverse(this.stream, {trace:0, callbacks:{}});
+
     var self = this;
     var serverBootstrap = [];
     var httpProp = {
@@ -60,7 +65,8 @@ HttpServerPort.prototype.start = function start() {
                 options: {
                     'bus':self.bus,
                     'log':self.log,
-                    'config':self.config
+                    'config':self.config,
+                    stream: self.stream
                 }
             }, function(err) {
                 if (err) {

@@ -54,38 +54,37 @@ module.exports = function(server, options, next) {
                 options.bus.importMethods(methods, [request.payload.method]);
                 method = methods[request.payload.method];
             }
-            request.payload.params.$$ = {authentication: request.payload.authentication};
-            when(when.lift(method)(request.payload.params))
-                .then(function(r) {
-                    if (!r) {
-                        throw new Error('Add return value of method ' + request.payload.method);
-                    }
-                    if (r.$$) {
-                        delete r.$$;
-                    }
-                    if (r.authentication) {
-                        delete r.authentication;
-                    }
-                    endReply.result = r;
-                    reply(endReply);
-                })
-                .catch(function(erMsg) {
-                    var erMs = (erMsg.$$ && erMsg.$$.errorMessage) || erMsg.message;
-                    var erPr = (erMsg.$$ && erMsg.$$.errorPrint) || erMsg.errorPrint || erMs;
-                    var flEr = (erMsg.$$ && erMsg.$$.fieldErrors) || erMsg.fieldErrors || {};
+            var incMsg = {params: request.payload.params};
+            incMsg.$$ = {authentication: request.payload.authentication, opcode: request.payload.method, mtid: 'request'};
+            var methodData = request.payload.method.split(".");
+            incMsg.$$.destination = methodData[0];
+            incMsg.$$.callback = function(r){
+                if (!r) {
+                    throw new Error('Add return value of method ' + request.payload.method);
+                }
+                if(!r.$$ || r.$$.mtid == 'error'){
+                    var erMs = (r.$$ && r.$$.errorMessage) || r.message;
+                    var erPr = (r.$$ && r.$$.errorPrint) || r.errorPrint;
+                    var flEr = r.$$ && r.$$.fieldErrors;
                     endReply.error =  {
-                        code: (erMsg.$$ && erMsg.$$.errorCode) || erMsg.code || -1,
+                        code: (r.$$ && r.$$.errorCode) || r.code || -1,
                         message: erMs,
                         errorPrint: erPr,
                         fieldErrors: flEr
                     };
-                    //dispaly unhandled exeption before they are returned to response
-                    console.dir('unhandled exeption');
-                    console.dir(endReply);
-                    console.dir('unhandled exeption end');
-                    reply(endReply);
-                })
-                .done();
+                    return reply(endReply);
+                }
+                if (r.$$) {
+                    delete r.$$;
+                }
+                if (r.authentication) {
+                    delete r.authentication;
+                }
+                endReply.result = r;
+                reply(endReply);
+            };
+            options.stream.write(incMsg);
+
         } catch (err) {
             endReply.error = {
                 code: '-1',
