@@ -54,7 +54,7 @@ module.exports = function(server, options, next) {
                 options.bus.importMethods(methods, [request.payload.method]);
                 method = methods[request.payload.method];
             }
-            request.payload.params.$$ = {authentication: request.payload.authentication};
+            request.payload.params.$$ = {authentication: request.payload.authentication, request: request};
             when(when.lift(method)(request.payload.params))
                 .then(function(r) {
                     if (!r) {

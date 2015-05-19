@@ -3,6 +3,7 @@
 var Port = require('ut-bus/port');
 var util = require('util');
 var hapi = require('hapi');
+var hapiYar = require('yar');
 var when = require('when');
 var _ = require('lodash');
 var swagger = require('hapi-swagger');
@@ -80,6 +81,24 @@ HttpServerPort.prototype.start = function start() {
                     return reject({error: err, stage: 'swagger loading'});
                 }
                 return resolve('swagger interface loaded');
+            });
+        }));
+    serverBootstrap
+        .push(when.promise(function (resolve, reject) {
+            self.hapiServer.register({
+                register: hapiYar,
+                options: {
+                    maxCookieSize: 0,
+                    cookieOptions: {
+                        password: 'secret',
+                        isSecure: false
+                    }
+                }
+            }, function (err) {
+                if (err) {
+                    return reject({error: err, stage: 'http-auth-cookie loading'});
+                }
+                return resolve('yar loaded');
             });
         }));
     serverBootstrap
