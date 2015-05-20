@@ -85,6 +85,9 @@ HttpServerPort.prototype.start = function start() {
         }));
     serverBootstrap
         .push(when.promise(function (resolve, reject) {
+            if (!self.config.hasOwnProperty('yar')) {
+                return;
+            }
             var yarConfig = self.config.yar || {};
             if (!yarConfig.hasOwnProperty('maxCookieSize')) {
                 yarConfig.maxCookieSize = 0;
