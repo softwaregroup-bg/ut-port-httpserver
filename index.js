@@ -85,15 +85,17 @@ HttpServerPort.prototype.start = function start() {
         }));
     serverBootstrap
         .push(when.promise(function (resolve, reject) {
+            var yarConfig = self.config.yar || {};
+            if (!yarConfig.hasOwnProperty('maxCookieSize')) {
+                yarConfig.maxCookieSize = 0;
+            }
+            yarConfig.cookieOptions = yarConfig.cookieOptions || {};
+            if (!yarConfig.cookieOptions.password) {
+                yarConfig.cookieOptions.password = 'secret';
+            }
             self.hapiServer.register({
                 register: hapiYar,
-                options: {
-                    maxCookieSize: 0,
-                    cookieOptions: {
-                        password: 'secret',
-                        isSecure: false
-                    }
-                }
+                options: yarConfig
             }, function (err) {
                 if (err) {
                     return reject({error: err, stage: 'http-auth-cookie loading'});
