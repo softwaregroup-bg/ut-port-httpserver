@@ -58,29 +58,29 @@ module.exports = function(server, options, next) {
             incMsg.$$ = {authentication: request.payload.authentication, opcode: request.payload.method, mtid: 'request'};
             var methodData = request.payload.method.split(".");
             incMsg.$$.destination = methodData[0];
-            incMsg.$$.callback = function(r){
-                if (!r) {
+            incMsg.$$.callback = function(response){
+                if (!response) {
                     throw new Error('Add return value of method ' + request.payload.method);
                 }
-                if(!r.$$ || r.$$.mtid == 'error'){
-                    var erMs = (r.$$ && r.$$.errorMessage) || r.message;
-                    var erPr = (r.$$ && r.$$.errorPrint) || r.errorPrint;
-                    var flEr = r.$$ && r.$$.fieldErrors;
+                if(!response.$$ || response.$$.mtid == 'error'){
+                    var erMs = (response.$$ && response.$$.errorMessage) || response.message;
+                    var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint || erMs;
+                    var flEr = response.$$ && response.$$.fieldErrors;
                     endReply.error =  {
-                        code: (r.$$ && r.$$.errorCode) || r.code || -1,
+                        code: (response.$$ && response.$$.errorCode) || response.code || -1,
                         message: erMs,
                         errorPrint: erPr,
                         fieldErrors: flEr
                     };
                     return reply(endReply);
                 }
-                if (r.$$) {
-                    delete r.$$;
+                if (response.$$) {
+                    delete response.$$;
                 }
-                if (r.authentication) {
-                    delete r.authentication;
+                if (response.authentication) {
+                    delete response.authentication;
                 }
-                endReply.result = r;
+                endReply.result = response;
                 reply(endReply);
             };
             options.stream.write(incMsg);
