@@ -64,7 +64,7 @@ module.exports = function(server, options, next) {
                 }
                 if(!response.$$ || response.$$.mtid == 'error'){
                     var erMs = (response.$$ && response.$$.errorMessage) || response.message;
-                    var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint || erMs;
+                    var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint;
                     var flEr = response.$$ && response.$$.fieldErrors;
                     endReply.error =  {
                         code: (response.$$ && response.$$.errorCode) || response.code || -1,
