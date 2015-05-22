@@ -72,10 +72,12 @@ module.exports = function(server, options, next) {
                 .catch(function(erMsg) {
                     var erMs = (erMsg.$$ && erMsg.$$.errorMessage) || erMsg.message;
                     var erPr = (erMsg.$$ && erMsg.$$.errorPrint) || erMsg.errorPrint || erMs;
+                    var flEr = (erMsg.$$ && erMsg.$$.fieldErrors) || erMsg.fieldErrors || {};
                     endReply.error =  {
                         code: (erMsg.$$ && erMsg.$$.errorCode) || erMsg.code || -1,
                         message: erMs,
-                        errorPrint: erPr
+                        errorPrint: erPr,
+                        fieldErrors: flEr
                     };
                     //dispaly unhandled exeption before they are returned to response
                     console.dir('unhandled exeption');
