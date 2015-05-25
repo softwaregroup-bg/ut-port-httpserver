@@ -11,7 +11,7 @@ module.exports = function(server, options, next) {
 
     options.bus.importMethods(httpMethods, imports);
 
-    var rpcHandler = function(request, _reply) {
+    var rpcHandler = function rpcHandler(request, _reply) {
         options.log.trace && options.log.trace({payload:request.payload});
         var isRPC = true;
         var reply = function(resp) {
