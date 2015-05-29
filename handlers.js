@@ -4,7 +4,6 @@ var _ = require('lodash');
 var when = require('when');
 
 module.exports = function(server, options, next) {
-    var methods = {};
     var httpMethods = {};
     var pendingRoutes = [];
     var imports = options.config.imports;
@@ -48,13 +47,7 @@ module.exports = function(server, options, next) {
         request.payload.params = request.payload.params || {};
         endReply.id = request.payload.id;
         try {
-            var method = methods[request.payload.method];
-
-            if (!method) {
-                options.bus.importMethods(methods, [request.payload.method]);
-                method = methods[request.payload.method];
-            }
-            var incMsg = {params: request.payload.params};
+            var incMsg = request.payload.params;
             incMsg.$$ = {authentication: request.payload.authentication, opcode: request.payload.method, mtid: 'request'};
             var methodData = request.payload.method.split(".");
             incMsg.$$.destination = methodData[0];
@@ -82,6 +75,7 @@ module.exports = function(server, options, next) {
                 }
                 endReply.result = response;
                 reply(endReply);
+                return true;
             };
             options.stream.write(incMsg);
 
