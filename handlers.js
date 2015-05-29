@@ -4,7 +4,6 @@ var _ = require('lodash');
 var when = require('when');
 
 module.exports = function(server, options, next) {
-    var methods = {};
     var httpMethods = {};
     var pendingRoutes = [];
     var imports = options.config.imports;
@@ -48,44 +47,38 @@ module.exports = function(server, options, next) {
         request.payload.params = request.payload.params || {};
         endReply.id = request.payload.id;
         try {
-            var method = methods[request.payload.method];
-
-            if (!method) {
-                options.bus.importMethods(methods, [request.payload.method]);
-                method = methods[request.payload.method];
-            }
-            request.payload.params.$$ = {authentication: request.payload.authentication};
-            when(when.lift(method)(request.payload.params))
-                .then(function(r) {
-                    if (!r) {
-                        throw new Error('Add return value of method ' + request.payload.method);
-                    }
-                    if (r.$$) {
-                        delete r.$$;
-                    }
-                    if (r.authentication) {
-                        delete r.authentication;
-                    }
-                    endReply.result = r;
-                    reply(endReply);
-                })
-                .catch(function(erMsg) {
-                    var erMs = (erMsg.$$ && erMsg.$$.errorMessage) || erMsg.message;
-                    var erPr = (erMsg.$$ && erMsg.$$.errorPrint) || erMsg.errorPrint || erMs;
-                    var flEr = (erMsg.$$ && erMsg.$$.fieldErrors) || erMsg.fieldErrors || {};
+            var incMsg = request.payload.params;
+            incMsg.$$ = {authentication: request.payload.authentication, opcode: request.payload.method, mtid: 'request'};
+            var methodData = request.payload.method.split(".");
+            incMsg.$$.destination = methodData[0];
+            incMsg.$$.callback = function(response){
+                if (!response) {
+                    throw new Error('Add return value of method ' + request.payload.method);
+                }
+                if(!response.$$ || response.$$.mtid == 'error'){
+                    var erMs = (response.$$ && response.$$.errorMessage) || response.message;
+                    var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint;
+                    var flEr = response.$$ && response.$$.fieldErrors;
                     endReply.error =  {
-                        code: (erMsg.$$ && erMsg.$$.errorCode) || erMsg.code || -1,
+                        code: (response.$$ && response.$$.errorCode) || response.code || -1,
                         message: erMs,
                         errorPrint: erPr,
                         fieldErrors: flEr
                     };
-                    //dispaly unhandled exeption before they are returned to response
-                    console.dir('unhandled exeption');
-                    console.dir(endReply);
-                    console.dir('unhandled exeption end');
-                    reply(endReply);
-                })
-                .done();
+                    return reply(endReply);
+                }
+                if (response.$$) {
+                    delete response.$$;
+                }
+                if (response.authentication) {
+                    delete response.authentication;
+                }
+                endReply.result = response;
+                reply(endReply);
+                return true;
+            };
+            options.stream.write(incMsg);
+
         } catch (err) {
             endReply.error = {
                 code: '-1',
