@@ -55,6 +55,10 @@ HttpServerPort.prototype.start = function start() {
         _.assign(httpProp, this.config.server);
     }
 
+    if (this.config.swagger) {
+        _.assign(swaggerOptions, this.config.swagger);
+    }
+
     this.hapiServer.connection(httpProp);
     this.hapiServer.route(this.routes);
     serverBootstrap
