@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "dependencies": {},
   "publishConfig": {
     "registry": "http://npm.softwaregroup-bg.com:5001"
