@@ -48,7 +48,7 @@ module.exports = function(server, options, next) {
         endReply.id = request.payload.id;
         try {
             var incMsg = request.payload.params;
-            incMsg.$$ = {authentication: request.payload.authentication, opcode: request.payload.method, mtid: 'request'};
+            incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request'};
             var methodData = request.payload.method.split(".");
             incMsg.$$.destination = methodData[0];
             incMsg.$$.callback = function(response){
@@ -70,8 +70,8 @@ module.exports = function(server, options, next) {
                 if (response.$$) {
                     delete response.$$;
                 }
-                if (response.authentication) {
-                    delete response.authentication;
+                if (response.auth) {
+                    delete response.auth;
                 }
                 endReply.result = response;
                 reply(endReply);
