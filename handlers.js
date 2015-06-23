@@ -1,5 +1,6 @@
 'use strict';
 
+var fs = require('fs');
 var _ = require('lodash');
 var when = require('when');
 
@@ -132,7 +133,51 @@ module.exports = function(server, options, next) {
             pendingRoutes.unshift(route);
         }
     });
+
+    var staticRoute = {
+        method: 'GET',
+        path: '/s/{module}/{path*}',
+        config: {
+            handler: function(request, reply) {
+                var module = 'ut-' + (request.params.module ? request.params.module : 'user');
+                var file = '../' + module + '/' + request.params.path;
+                fs.exists(file, function(valid) {
+                    if (!valid) {
+                        file = '../ut-user/' + request.params.path;
+                    }
+                    fs.readFile(file, function(err, data) {
+                        if (err) throw err;
+                        reply(data.toString());
+                    });
+                });
+            }
+        }
+    };
+
+    var angularRoute = {
+        method: 'GET',
+        path: '/{module}/{p*}',
+        config: {
+            handler: function(request, reply) {
+                var module = 'ut-' + (request.params.module ? request.params.module : 'user');
+                var file = '../' + module + '/browser/html/index.html';
+                fs.exists(file, function(valid) {
+                    if (!valid) {
+                        file = '../ut-user/browser/html/index.html';
+                    }
+                    fs.readFile(file, function(err, data) {
+                        if (err) throw err;
+                        reply(data.toString());
+                    });
+                });
+            }
+        }
+    };
+
+    pendingRoutes.unshift(staticRoute);
+    pendingRoutes.unshift(angularRoute);
     server.route(pendingRoutes);
+
     return next();
 };
 module.exports.attributes = {
