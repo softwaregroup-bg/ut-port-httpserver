@@ -139,6 +139,7 @@ module.exports = function(server, options, next) {
         path: '/s/{module}/{path*}',
         config: {
             handler: function(request, reply) {
+
                 var module = 'ut-' + (request.params.module ? request.params.module : 'user');
                 var file = '../' + module + '/' + request.params.path;
                 fs.exists(file, function(valid) {
@@ -156,9 +157,10 @@ module.exports = function(server, options, next) {
 
     var angularRoute = {
         method: 'GET',
-        path: '/{module}/{p*}',
+        path: '/ut/{module}/{p*}',
         config: {
             handler: function(request, reply) {
+
                 var module = 'ut-' + (request.params.module ? request.params.module : 'user');
                 var file = '../' + module + '/browser/html/index.html';
                 fs.exists(file, function(valid) {
