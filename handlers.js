@@ -62,7 +62,7 @@ module.exports = function(server, options, next) {
                     endReply.error =  {
                         code: (response.$$ && response.$$.errorCode) || response.code || -1,
                         message: erMs,
-                        errorPrint: erPr,
+                        errorPrint: erPr ? erPr : erMs,
                         fieldErrors: flEr
                     };
                     return reply(endReply);
