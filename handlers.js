@@ -44,10 +44,9 @@ module.exports = function(server, options, next) {
             };
             return reply(endReply);
         }
-        request.payload.params = request.payload.params || {};
         endReply.id = request.payload.id;
         try {
-            var incMsg = request.payload.params;
+            var incMsg = request.payload.params || {};
             incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request'};
             var methodData = request.payload.method.split(".");
             incMsg.$$.destination = methodData[0];
