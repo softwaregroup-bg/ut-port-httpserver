@@ -73,6 +73,9 @@ module.exports = function(server, options, next) {
                 if (response.auth) {
                     delete response.auth;
                 }
+                if(Array.isArray(response)){
+                    endReply.resultLength = response.length;
+                }
                 endReply.result = response;
                 reply(endReply);
                 return true;
