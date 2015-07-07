@@ -44,10 +44,9 @@ module.exports = function(server, options, next) {
             };
             return reply(endReply);
         }
-        request.payload.params = request.payload.params || {};
         endReply.id = request.payload.id;
         try {
-            var incMsg = request.payload.params;
+            var incMsg = request.payload.params || {};
             incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request'};
             var methodData = request.payload.method.split(".");
             incMsg.$$.destination = methodData[0];
@@ -62,7 +61,7 @@ module.exports = function(server, options, next) {
                     endReply.error =  {
                         code: (response.$$ && response.$$.errorCode) || response.code || -1,
                         message: erMs,
-                        errorPrint: erPr,
+                        errorPrint: erPr ? erPr : erMs,
                         fieldErrors: flEr
                     };
                     return reply(endReply);
@@ -135,6 +134,7 @@ module.exports = function(server, options, next) {
             pendingRoutes.unshift(route);
         }
     });
+
     server.route(pendingRoutes);
     return next();
 };
