@@ -75,6 +75,10 @@ module.exports = function(server, options, next) {
                 if(Array.isArray(response)){
                     endReply.resultLength = response.length;
                 }
+                if (response.session) {
+                    endReply.session = response.session;
+                    delete response.session;
+                }
                 endReply.result = response;
                 reply(endReply);
                 return true;
