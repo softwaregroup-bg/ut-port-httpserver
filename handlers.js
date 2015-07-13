@@ -75,9 +75,12 @@ module.exports = function(server, options, next) {
                 if(Array.isArray(response)){
                     endReply.resultLength = response.length;
                 }
-                if (response.session) {
-                    endReply.session = response.session;
-                    delete response.session;
+                if (request.payload && request.payload.auth && request.payload.auth.session) {
+                    endReply.session = {
+                        id: request.payload.auth.session.id || null,
+                        userId: request.payload.auth.userId || null,
+                        language: request.payload.auth.session.language || null
+                    };
                 }
                 endReply.result = response;
                 reply(endReply);
