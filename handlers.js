@@ -75,7 +75,7 @@ module.exports = function(server, options, next) {
                 if(Array.isArray(response)){
                     endReply.resultLength = response.length;
                 }
-                if (request.payload && request.payload.auth && request.payload.auth.session) {
+                if (request.payload && request.payload.auth && request.payload.auth.session && request.payload.method == 'identity.check') {
                     endReply.session = {
                         id: request.payload.auth.session.id || null,
                         userId: request.payload.auth.userId || null,
