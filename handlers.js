@@ -22,11 +22,14 @@ module.exports = function(server, options, next) {
             }
             return _reply(_resp);
         };
-
-        if ((request.route.path !== '/rpc') && (request.route.path !== '/rpc/')) {
+        var pathComponents = request.route.path.split('/').filter(function(x) {// normalize array
+             // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
+            return x !== '';
+        });
+        if (pathComponents.length > 1 && pathComponents[0] === 'rpc') {
             isRPC = false;
             request.payload = {
-                method: request.route.path.split('/').slice(-2).join('.'),
+                method: pathComponents.slice(1).join('.'),
                 jsonrpc: '2.0',
                 id: '1',
                 params: _.cloneDeep(request.payload)
