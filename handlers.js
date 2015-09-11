@@ -33,11 +33,14 @@ module.exports = function(server, options, next) {
             }
             return repl;
         };
-
-        if ((request.route.path !== '/rpc') && (request.route.path !== '/rpc/')) {
+        var pathComponents = request.route.path.split('/').filter(function(x) {// normalize array
+             // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
+            return x !== '';
+        });
+        if (pathComponents.length > 1 && pathComponents[0] === 'rpc') {
             isRPC = false;
             request.payload = {
-                method: request.route.path.split('/').slice(-2).join('.'),
+                method: pathComponents.slice(1).join('.'),
                 jsonrpc: '2.0',
                 id: '1',
                 params: _.cloneDeep(request.payload)
@@ -59,13 +62,15 @@ module.exports = function(server, options, next) {
         try {
             var incMsg = request.payload.params || {};
             incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request'};
-            var methodData = request.payload.method.split(".");
-            incMsg.$$.destination = methodData[0];
-            incMsg.$$.callback = function(response){
+            incMsg.$$.destination = request.payload.method.split('.').slice(0, -1).join('.');
+            if(options.config && options.config.yar) {
+                incMsg.$$.request = request;
+            }
+            incMsg.$$.callback = function(response) {
                 if (!response) {
                     throw new Error('Add return value of method ' + request.payload.method);
                 }
-                if(!response.$$ || response.$$.mtid == 'error'){
+                if (!response.$$ || response.$$.mtid == 'error') {
                     var erMs = (response.$$ && response.$$.errorMessage) || response.message;
                     var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint;
                     var flEr = (response.$$ && response.$$.fieldErrors) || response.fieldErrors;
@@ -83,12 +88,15 @@ module.exports = function(server, options, next) {
                 if (response.auth) {
                     delete response.auth;
                 }
-                if(Array.isArray(response)){
+                if (Array.isArray(response)) {
                     endReply.resultLength = response.length;
                 }
-                if (response.session) {
-                    endReply.session = response.session;
-                    delete response.session;
+                if (request.payload && request.payload.auth && request.payload.auth.session && request.payload.method == 'identity.check') {
+                    endReply.session = {
+                        id: request.payload.auth.session.id || null,
+                        userId: request.payload.auth.userId || null,
+                        language: request.payload.auth.session.language || null
+                    };
                 }
                 endReply.result = response;
                 reply(endReply);
@@ -116,8 +124,8 @@ module.exports = function(server, options, next) {
             handler: rpcHandler
         }
     };
-    if(options.config.handlers) {//global config for handlers
-        if(options.config.handlers.rpc) {//for RPC handlers
+    if (options.config.handlers) {//global config for handlers
+        if (options.config.handlers.rpc) {//for RPC handlers
             //merge config with default handler only, because we can set per handler when is used with swagger
             _.assign(defRpcRoute.config, options.config.handlers.rpc);
         }

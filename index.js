@@ -93,6 +93,29 @@ HttpServerPort.prototype.start = function start() {
             });
         }));
     serverBootstrap
+        .push(when.promise(function (resolve, reject) {
+            if (!self.config.hasOwnProperty('yar')) {
+                return;
+            }
+            var yarConfig = self.config.yar || {};
+            if (!yarConfig.hasOwnProperty('maxCookieSize')) {
+                yarConfig.maxCookieSize = 0;
+            }
+            yarConfig.cookieOptions = yarConfig.cookieOptions || {};
+            if (!yarConfig.cookieOptions.password) {
+                yarConfig.cookieOptions.password = 'secret';
+            }
+            self.hapiServer.register({
+                register: require('yar'),
+                options: yarConfig
+            }, function (err) {
+                if (err) {
+                    return reject({error: err, stage: 'http-auth-cookie loading'});
+                }
+                return resolve('yar loaded');
+            });
+        }));
+    serverBootstrap
         .push(when.promise(function(resolve, reject) {
             self.hapiServer.start(function(err) {
                 if (err) {
