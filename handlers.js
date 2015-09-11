@@ -50,6 +50,9 @@ module.exports = function(server, options, next) {
             incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request'};
             var methodData = request.payload.method.split(".");
             incMsg.$$.destination = methodData[0];
+            if(options.config && options.config.hasOwnProperty('yar')) {
+                incMsg.$$.request = request;
+            }
             incMsg.$$.callback = function(response){
                 if (!response) {
                     throw new Error('Add return value of method ' + request.payload.method);
