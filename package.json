@@ -11,5 +11,8 @@
   "repository": {
     "type": "git",
     "url": "git@git.softwaregroup-bg.com:ut5/ut-port-httpserver.git"
+  },
+  "publishConfig": {
+    "registry": "http://npm.softwaregroup-bg.com:5001/"
   }
 }
