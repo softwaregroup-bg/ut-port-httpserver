@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "5.0.3",
+  "version": "5.0.6",
   "dependencies": {
     "yar": "^3.0.3"
   },
