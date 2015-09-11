@@ -2,6 +2,11 @@
   "name": "ut-port-httpserver",
   "version": "5.0.6",
   "dependencies": {
+    "hapi": "~8.3.1",
+    "hapi-swagger": "~0.7.1",
+    "lodash": "^3.10.1",
+    "ut-bus": "~5.0.0",
+    "when": "~3.7.2",
     "yar": "^3.0.3"
   },
   "publishConfig": {
