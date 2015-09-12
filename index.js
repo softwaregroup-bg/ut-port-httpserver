@@ -3,6 +3,8 @@
 var Port = require('ut-bus/port');
 var util = require('util');
 var hapi = require('hapi');
+var Inert = require('inert');
+var Vision = require('vision');
 var when = require('when');
 var _ = require('lodash');
 var swagger = require('hapi-swagger');
@@ -60,6 +62,7 @@ HttpServerPort.prototype.start = function start() {
     }
 
     this.hapiServer.connection(httpProp);
+    this.hapiServer.register([Inert, Vision], function () {});
     this.hapiServer.route(this.routes);
     serverBootstrap
         .push(when.promise(function(resolve, reject) {
