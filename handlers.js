@@ -15,12 +15,20 @@ module.exports = function(server, options, next) {
         var isRPC = true;
         var reply = function(resp) {
             var _resp;
+            var headers = [];
             if (!isRPC) {
                 _resp = resp.result || {error:resp.error};
+                if (resp.headers) {
+                    headers = Object.keys(resp.headers);
+                }
             } else {
                 _resp = resp;
             }
-            return _reply(_resp);
+            var repl = _reply(_resp);
+            for (var i = 0; i < headers.length; i++) {
+                repl.header(headers[i], resp.headers[headers[i]]);
+            }
+            return repl;
         };
         var pathComponents = request.route.path.split('/').filter(function(x) {// normalize array
              // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
