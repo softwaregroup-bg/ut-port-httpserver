@@ -9,8 +9,12 @@ module.exports = function(server, options, next) {
     var imports = options.config.imports;
 
     options.bus.importMethods(httpMethods, imports);
+    var checkPermission = options.config && options.config.checkPermission && options.bus.importMethod('permission.check');
 
     var rpcHandler = function rpcHandler(request, _reply) {
+        if (request.payload &&  request.payload.method == 'identity.closeSession') {
+            request.session.reset();
+        }
         options.log.trace && options.log.trace({payload:request.payload});
         var isRPC = true;
         var reply = function(resp) {
@@ -56,59 +60,84 @@ module.exports = function(server, options, next) {
             return reply(endReply);
         }
         endReply.id = request.payload.id;
-        try {
-            var incMsg = request.payload.params || {};
-            incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request'};
-            incMsg.$$.destination = request.payload.method.split('.').slice(0, -1).join('.');
-            if(options.config && options.config.yar) {
-                incMsg.$$.request = request;
+
+        var procesMessage = function() {
+            try {
+                var incMsg = request.payload.params || {};
+                incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request', session:request.session && request.session.get('session')};
+                incMsg.$$.destination = request.payload.method.split('.').slice(0, -1).join('.');
+                //if(options.config && options.config.yar) {
+                //    incMsg.$$.request = request;
+                //}
+                incMsg.$$.callback = function (response) {
+                    if (!response) {
+                        throw new Error('Add return value of method ' + request.payload.method);
+                    }
+                    if (!response.$$ || response.$$.mtid == 'error') {
+                        var erMs = (response.$$ && response.$$.errorMessage) || response.message;
+                        var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint;
+                        var flEr = (response.$$ && response.$$.fieldErrors) || response.fieldErrors;
+                        endReply.error = {
+                            code: (response.$$ && response.$$.errorCode) || response.code || -1,
+                            message: erMs,
+                            errorPrint: erPr ? erPr : erMs,
+                            fieldErrors: flEr
+                        };
+                        return reply(endReply);
+                    }
+                    if (response.$$) {
+                        delete response.$$;
+                    }
+                    if (response.auth) {
+                        delete response.auth;
+                    }
+                    if (Array.isArray(response)) {
+                        endReply.resultLength = response.length;
+                    }
+                    if (request.payload && request.payload.auth && request.payload.auth.session && request.payload.method == 'identity.check') {
+                        endReply.session = {
+                            id: request.payload.auth.session.id || null,
+                            userId: request.payload.auth.userId || null,
+                            language: request.payload.auth.session.language || null
+                        };
+                    }
+                    if (request.payload && request.payload.params && request.payload.params.sessionData && request.payload.method == 'identity.check') {
+                        request.session.set('session', response);
+                    }
+                    endReply.result = response;
+                    reply(endReply);
+                    return true;
+                };
+                options.stream.write(incMsg);
+
+            } catch (err) {
+                endReply.error = {
+                    code: '-1',
+                    message: err.message,
+                    errorPrint: err.message
+                };
+                return reply(endReply);
             }
-            incMsg.$$.callback = function(response) {
-                if (!response) {
-                    throw new Error('Add return value of method ' + request.payload.method);
-                }
-                if (!response.$$ || response.$$.mtid == 'error') {
-                    var erMs = (response.$$ && response.$$.errorMessage) || response.message;
-                    var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint;
-                    var flEr = (response.$$ && response.$$.fieldErrors) || response.fieldErrors;
-                    endReply.error =  {
-                        code: (response.$$ && response.$$.errorCode) || response.code || -1,
-                        message: erMs,
-                        errorPrint: erPr ? erPr : erMs,
-                        fieldErrors: flEr
+        }
+        if (checkPermission && request.payload.method !== 'identity.check'){
+            console.log(request.session.get('session'));
+            when(checkPermission(request.session.get('session'), request.payload.method))
+                .then(procesMessage)
+                .catch(function(err){
+                    endReply.error = {
+                        code: '-1',
+                        message: err.message,
+                        errorPrint: err.message
                     };
                     return reply(endReply);
-                }
-                if (response.$$) {
-                    delete response.$$;
-                }
-                if (response.auth) {
-                    delete response.auth;
-                }
-                if (Array.isArray(response)) {
-                    endReply.resultLength = response.length;
-                }
-                if (request.payload && request.payload.auth && request.payload.auth.session && request.payload.method == 'identity.check') {
-                    endReply.session = {
-                        id: request.payload.auth.session.id || null,
-                        userId: request.payload.auth.userId || null,
-                        language: request.payload.auth.session.language || null
-                    };
-                }
-                endReply.result = response;
-                reply(endReply);
-                return true;
-            };
-            options.stream.write(incMsg);
+                })
+                .done();
 
-        } catch (err) {
-            endReply.error = {
-                code: '-1',
-                message: err.message,
-                errorPrint: err.message
-            };
-            return reply(endReply);
+        } else {
+            return procesMessage()
         }
+
+
     };
     var defRpcRoute = {
         method: '*',
