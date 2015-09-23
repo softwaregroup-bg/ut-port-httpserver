@@ -121,8 +121,19 @@ module.exports = function(server, options, next) {
         }
         if (checkPermission && request.payload.method !== 'identity.check'){
             when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
+                .then(function(resp){
+                    var session = request.session.get('session');
+                    session.permissions = resp.permissions;
+                    request.session.set('session', session);
+                    return resp;
+                })
                 .then(procesMessage)
                 .catch(function(err){
+                    if(err.permissions) {
+                        var session = request.session.get('session');
+                        session.permissions = err.permissions;
+                        request.session.set('session', session);
+                    }
                     endReply.error = {
                         code: err.code || '-1',
                         message: err.message,
