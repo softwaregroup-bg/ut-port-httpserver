@@ -63,9 +63,6 @@ module.exports = function(server, options, next) {
 
         var procesMessage = function() {
             try {
-                if(arguments[0] && arguments[0].error) {
-                    throw arguments[0].error;
-                }
                 var incMsg = request.payload.params || {};
                 incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request', session:request.session && request.session.get('session')};
                 incMsg.$$.destination = request.payload.method.split('.').slice(0, -1).join('.');
@@ -125,12 +122,18 @@ module.exports = function(server, options, next) {
         if (checkPermission && request.payload.method !== 'identity.check'){
             when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
                 .then(function(resp){
-                    var session = _.merge({}, request.session.get('session'), resp.session );
+                    var session = request.session.get('session');
+                    session.permissions = resp.permissions;
                     request.session.set('session', session);
                     return resp;
                 })
                 .then(procesMessage)
                 .catch(function(err){
+                    if(err.permissions) {
+                        var session = request.session.get('session');
+                        session.permissions = err.permissions;
+                        request.session.set('session', session);
+                    }
                     endReply.error = {
                         code: err.code || '-1',
                         message: err.message,
