@@ -9,7 +9,7 @@ module.exports = function(server, options, next) {
     var imports = options.config.imports;
 
     options.bus.importMethods(httpMethods, imports);
-    var checkPermission = options.config && options.config.checkPermission && options.bus.importMethod('permission.check');
+    var checkPermission = options.config && options.config.checkPermission;
 
     var rpcHandler = function rpcHandler(request, _reply) {
         if (request.payload &&  request.payload.method == 'identity.closeSession') {
@@ -120,24 +120,20 @@ module.exports = function(server, options, next) {
             }
         }
         if (checkPermission && request.payload.method !== 'identity.check'){
-            console.log(request.session.get('session'));
-            when(checkPermission(request.session.get('session'), request.payload.method))
+            when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
                 .then(procesMessage)
                 .catch(function(err){
                     endReply.error = {
-                        code: '-1',
+                        code: err.code || '-1',
                         message: err.message,
-                        errorPrint: err.message
+                        errorPrint: err.errorPrint || err.message
                     };
                     return reply(endReply);
                 })
                 .done();
-
         } else {
             return procesMessage()
         }
-
-
     };
     var defRpcRoute = {
         method: '*',
