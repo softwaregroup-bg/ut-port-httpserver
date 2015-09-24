@@ -137,11 +137,11 @@ HttpServerPort.prototype.start = function start() {
         });
 };
 
-HttpServerPort.prototype.registerRequestHandler = function(handler) {
+HttpServerPort.prototype.registerRequestHandler = function(handlers) {
     if (this.hapiServer.route && this.hapiServer.connections.length) {
-        this.hapiServer.route(handler);
+        this.hapiServer.route(handlers);
     } else {
-        this.routes.push(handler);
+        Array.prototype.push.apply(this.routes, handlers)
     }
 };
 
