@@ -19,8 +19,8 @@ function HttpServerPort() {
         logLevel: '',
         type: 'httpserver',
         port: 8002,
-        server:undefined,
-        handlers:undefined
+        server: undefined,
+        handlers: undefined
     };
 
     this.hapiServer = {};
@@ -39,18 +39,18 @@ HttpServerPort.prototype.init = function init() {
 HttpServerPort.prototype.start = function start() {
     Port.prototype.start.apply(this, arguments);
     this.stream = through2.obj();
-    this.pipeReverse(this.stream, {trace:0, callbacks:{}});
+    this.pipeReverse(this.stream, {trace: 0, callbacks: {}});
 
     var self = this;
     var serverBootstrap = [];
     var httpProp = {
-        'port':this.config.port,
-        'host':this.config.host
+        'port': this.config.port,
+        'host': this.config.host
     };
 
     var swaggerOptions = {
         version: packageJson.version,
-        pathPrefixSize:2 //this helps extracting the namespace from the second argument of the url
+        pathPrefixSize: 2 //this helps extracting the namespace from the second argument of the url
     };
 
     if (this.config.server) {
@@ -65,17 +65,17 @@ HttpServerPort.prototype.start = function start() {
     this.hapiServer.register([Inert, Vision], function () {});
     this.hapiServer.route(this.routes);
     serverBootstrap
-        .push(when.promise(function(resolve, reject) {
+        .push(when.promise(function (resolve, reject) {
             //register ut5 handlers
             self.hapiServer.register({
                 register: handlerGenerator,
                 options: {
-                    'bus':self.bus,
-                    'log':self.log,
-                    'config':self.config,
+                    'bus': self.bus,
+                    'log': self.log,
+                    'config': self.config,
                     stream: self.stream
                 }
-            }, function(err) {
+            }, function (err) {
                 if (err) {
                     return reject({error: err, stage: 'ut5 handlers loading..'});
                 }
@@ -83,12 +83,12 @@ HttpServerPort.prototype.start = function start() {
             });
         }));
     serverBootstrap
-        .push(when.promise(function(resolve, reject) {
+        .push(when.promise(function (resolve, reject) {
             //register swagger
             self.hapiServer.register({
                 register: swagger,
                 options: swaggerOptions
-            }, function(err) {
+            }, function (err) {
                 if (err) {
                     return reject({error: err, stage: 'swagger loading'});
                 }
@@ -119,8 +119,8 @@ HttpServerPort.prototype.start = function start() {
             });
         }));
     serverBootstrap
-        .push(when.promise(function(resolve, reject) {
-            self.hapiServer.start(function(err) {
+        .push(when.promise(function (resolve, reject) {
+            self.hapiServer.start(function (err) {
                 if (err) {
                     return reject({error: err, stage: 'starting hhtp server'});
                 }
@@ -129,19 +129,19 @@ HttpServerPort.prototype.start = function start() {
         }));
 
     when.all(serverBootstrap)
-        .then(function(res) {
+        .then(function (res) {
             console.log(res);
         })
-        .catch(function(err) {
+        .catch(function (err) {
             console.log(err);
         });
 };
 
-HttpServerPort.prototype.registerRequestHandler = function(handlers) {
+HttpServerPort.prototype.registerRequestHandler = function (handlers) {
     if (this.hapiServer.route && this.hapiServer.connections.length) {
         this.hapiServer.route(handlers);
     } else {
-        Array.prototype.push.apply(this.routes, handlers)
+        Array.prototype.push.apply(this.routes, (handlers instanceof Array) ? handlers : [handlers])
     }
 };
 
