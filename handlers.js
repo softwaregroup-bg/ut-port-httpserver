@@ -137,7 +137,7 @@ module.exports = function(server, options, next) {
                         if(request.session){
                             var session = request.session.get('session');
                             if(session) {
-                                session.permissions = resp.permissions;
+                                session.permissions = err.permissions;
                                 request.session.set('session', session);
                             }
                         }
