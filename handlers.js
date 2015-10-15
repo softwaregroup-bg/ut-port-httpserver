@@ -9,7 +9,7 @@ module.exports = function(server, options, next) {
     var imports = options.config.imports;
 
     options.bus.importMethods(httpMethods, imports);
-    var checkPermission = options.config && options.config.checkPermission;
+    var checkPermission = options.bus.config && options.bus.config.checkPermission;
 
     var rpcHandler = function rpcHandler(request, _reply) {
         if (request.payload &&  request.payload.method == 'identity.closeSession') {
@@ -121,15 +121,15 @@ module.exports = function(server, options, next) {
         }
         if (checkPermission && request.payload.method !== 'identity.check'){
             when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
-                .then(function(resp){
+                .then(function(permissions){
                     if(request.session){
                         var session = request.session.get('session');
                         if(session) {
-                            session.permissions = resp.permissions;
+                            session.permissions = permissions;
                             request.session.set('session', session);
                         }
                     }
-                    return resp;
+                    return permissions;
                 })
                 .then(procesMessage)
                 .catch(function(err){
