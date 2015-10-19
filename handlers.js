@@ -63,30 +63,26 @@ module.exports = function(server, options, next) {
 
         var procesMessage = function() {
             try {
-                var incMsg = request.payload.params || {};
-                incMsg.$$ = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request', session:request.session && request.session.get('session')};
-                incMsg.$$.destination = request.payload.method.split('.').slice(0, -1).join('.');
+                var $meta = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request', session:request.session && request.session.get('session')};
+                $meta.destination = request.payload.method.split('.').slice(0, -1).join('.');
                 //if(options.config && options.config.yar) {
                 //    incMsg.$$.request = request;
                 //}
-                incMsg.$$.callback = function (response) {
+                $meta.callback = function (response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
                     }
-                    if (!response.$$ || response.$$.mtid == 'error') {
-                        var erMs = (response.$$ && response.$$.errorMessage) || response.message;
-                        var erPr = (response.$$ && response.$$.errorPrint) || response.errorPrint;
-                        var flEr = (response.$$ && response.$$.fieldErrors) || response.fieldErrors;
+                    if (!$meta || $meta.mtid == 'error') {
+                        var erMs = $meta.errorMessage || response.message;
+                        var erPr = $meta.errorPrint || response.errorPrint;
+                        var flEr = $meta.fieldErrors || response.fieldErrors;
                         endReply.error = {
-                            code: (response.$$ && response.$$.errorCode) || response.code || -1,
+                            code: $meta.errorCode || response.code || -1,
                             message: erMs,
                             errorPrint: erPr ? erPr : erMs,
                             fieldErrors: flEr
                         };
                         return reply(endReply);
-                    }
-                    if (response.$$) {
-                        delete response.$$;
                     }
                     if (response.auth) {
                         delete response.auth;
@@ -108,7 +104,7 @@ module.exports = function(server, options, next) {
                     reply(endReply);
                     return true;
                 };
-                options.stream.write(incMsg);
+                options.stream.write([request.payload.params || {}, $meta]);
 
             } catch (err) {
                 endReply.error = {

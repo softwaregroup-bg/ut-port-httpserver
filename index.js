@@ -22,7 +22,6 @@ function HttpServerPort() {
         server: undefined,
         handlers: undefined
     };
-
     this.hapiServer = {};
     this.routes = [];
     this.stream = {};
