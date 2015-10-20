@@ -7,13 +7,12 @@
     "inert": "~3.0.1",
     "lodash": "^3.10.1",
     "through2": "~1.1.1",
-    "ut-bus": "git@git.softwaregroup-bg.com:ut5/ut-run.git#meta",
     "when": "~3.7.2",
     "vision": "^3.0.0",
     "yar": "^4.2.0"
   },
   "peerDependencies": {
-    "ut-bus": "~5.2.0"
+    "ut-bus": "~5.3.0"
   },
   "publishConfig": {
     "registry": "http://npm.softwaregroup-bg.com:5001/"
