@@ -6,6 +6,8 @@
     "hapi-swagger": "~1.3.0",
     "inert": "~3.0.1",
     "lodash": "^3.10.1",
+    "through2": "~1.1.1",
+    "ut-bus": "git@git.softwaregroup-bg.com:ut5/ut-run.git#meta",
     "when": "~3.7.2",
     "vision": "^3.0.0",
     "yar": "^4.2.0"
