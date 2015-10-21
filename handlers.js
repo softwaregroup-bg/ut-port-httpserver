@@ -87,6 +87,13 @@ module.exports = function(server, options, next) {
                     if (response.auth) {
                         delete response.auth;
                     }
+
+                    //todo find a better way to return static file
+                    if ($meta && $meta.staticFileName){
+                        _reply.file($meta.staticFileName);
+                        return true;
+                    }
+
                     if (Array.isArray(response)) {
                         endReply.resultLength = response.length;
                     }
