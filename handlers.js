@@ -63,8 +63,14 @@ module.exports = function(server, options, next) {
 
         var procesMessage = function() {
             try {
-                var $meta = {auth: request.payload.auth, opcode: request.payload.method, mtid: 'request', session:request.session && request.session.get('session')};
-                $meta.destination = request.payload.method.split('.').slice(0, -1).join('.');
+                var $meta = {
+                    auth: request.payload.auth,
+                    method:request.payload.method,
+                    opcode: request.payload.method.split('.').pop(),
+                    destination : request.payload.method.split('.').slice(0, -1).join('.'),
+                    mtid: 'request',
+                    session:request.session && request.session.get('session')
+                };
                 //if(options.config && options.config.yar) {
                 //    incMsg.$$.request = request;
                 //}
