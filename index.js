@@ -31,6 +31,7 @@ util.inherits(HttpServerPort, Port);
 
 HttpServerPort.prototype.init = function init() {
     Port.prototype.init.apply(this, arguments);
+    this.latency = this.counter && this.counter('average', 'lt', 'Latency');
     this.hapiServer = new hapi.Server();
     this.bus.registerLocal({'registerRequestHandler': this.registerRequestHandler.bind(this)}, 'internal');
 };
@@ -68,12 +69,7 @@ HttpServerPort.prototype.start = function start() {
             //register ut5 handlers
             self.hapiServer.register({
                 register: handlerGenerator,
-                options: {
-                    'bus': self.bus,
-                    'log': self.log,
-                    'config': self.config,
-                    stream: self.stream
-                }
+                options: self
             }, function (err) {
                 if (err) {
                     return reject({error: err, stage: 'ut5 handlers loading..'});

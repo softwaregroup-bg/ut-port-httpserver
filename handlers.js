@@ -12,11 +12,18 @@ module.exports = function(server, options, next) {
     var checkPermission = options.bus.config && options.bus.config.checkPermission;
 
     var rpcHandler = function rpcHandler(request, _reply) {
+        var startTime = process.hrtime();
         if (request.payload &&  request.payload.method == 'identity.closeSession') {
             request.session.reset();
         }
         options.log.trace && options.log.trace({payload:request.payload});
         var isRPC = true;
+        function addTime(){
+            if (options.latency){
+                var diff = process.hrtime(startTime);
+                options.latency(diff[0] * 1000 + diff[1] / 1000000, 1);
+            }
+        }
         var reply = function(resp) {
             var _resp;
             var headers = [];
@@ -28,6 +35,7 @@ module.exports = function(server, options, next) {
             } else {
                 _resp = resp;
             }
+            addTime();
             var repl = _reply(_resp);
             for (var i = 0; i < headers.length; i++) {
                 repl.header(headers[i], resp.headers[headers[i]]);
@@ -96,6 +104,7 @@ module.exports = function(server, options, next) {
 
                     //todo find a better way to return static file
                     if ($meta && $meta.staticFileName){
+                        addTime();
                         _reply.file($meta.staticFileName);
                         return true;
                     }
