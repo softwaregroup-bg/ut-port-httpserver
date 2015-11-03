@@ -137,7 +137,7 @@ module.exports = function(server, options, next) {
                 return reply(endReply);
             }
         }
-        if (checkPermission && request.payload.method !== 'identity.check'){
+        if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.check'){
             when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
                 .then(function(permissions){
                     if(request.session){
