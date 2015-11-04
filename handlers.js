@@ -13,22 +13,24 @@ module.exports = function(server, options, next) {
 
     var rpcHandler = function rpcHandler(request, _reply) {
         var startTime = process.hrtime();
-        if (request.payload &&  request.payload.method == 'identity.closeSession') {
+        if (request.payload && request.payload.method === 'identity.closeSession') {
             request.session.reset();
         }
-        options.log.trace && options.log.trace({payload:request.payload});
+        options.log.trace && options.log.trace({payload: request.payload});
         var isRPC = true;
-        function addTime(){
-            if (options.latency){
+
+        function addTime() {
+            if (options.latency) {
                 var diff = process.hrtime(startTime);
                 options.latency(diff[0] * 1000 + diff[1] / 1000000, 1);
             }
         }
+
         var reply = function(resp) {
             var _resp;
             var headers = [];
             if (!isRPC) {
-                _resp = resp.result || {error:resp.error};
+                _resp = resp.result || {error: resp.error};
                 if (resp.headers) {
                     headers = Object.keys(resp.headers);
                 }
@@ -37,13 +39,13 @@ module.exports = function(server, options, next) {
             }
             addTime();
             var repl = _reply(_resp);
-            for (var i = 0; i < headers.length; i++) {
+            for (var i = 0; i < headers.length; i += 1) {
                 repl.header(headers[i], resp.headers[headers[i]]);
             }
             return repl;
         };
         var pathComponents = request.route.path.split('/').filter(function(x) {// normalize array
-             // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
+            // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
             return x !== '';
         });
         if (pathComponents.length > 1 && pathComponents[0] === 'rpc') {
@@ -73,20 +75,20 @@ module.exports = function(server, options, next) {
             try {
                 var $meta = {
                     auth: request.payload.auth,
-                    method:request.payload.method,
+                    method: request.payload.method,
                     opcode: request.payload.method.split('.').pop(),
-                    destination : request.payload.method.split('.').slice(0, -1).join('.'),
+                    destination: request.payload.method.split('.').slice(0, -1).join('.'),
                     mtid: 'request',
-                    session:request.session && request.session.get('session')
+                    session: request.session && request.session.get('session')
                 };
                 //if(options.config && options.config.yar) {
                 //    incMsg.$$.request = request;
                 //}
-                $meta.callback = function (response) {
+                $meta.callback = function(response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
                     }
-                    if (!$meta || $meta.mtid == 'error') {
+                    if (!$meta || $meta.mtid === 'error') {
                         var erMs = $meta.errorMessage || response.message;
                         var erPr = $meta.errorPrint || response.errorPrint;
                         var flEr = $meta.fieldErrors || response.fieldErrors;
@@ -103,7 +105,7 @@ module.exports = function(server, options, next) {
                     }
 
                     //todo find a better way to return static file
-                    if ($meta && $meta.staticFileName){
+                    if ($meta && $meta.staticFileName) {
                         addTime();
                         _reply.file($meta.staticFileName);
                         return true;
@@ -112,14 +114,16 @@ module.exports = function(server, options, next) {
                     if (Array.isArray(response)) {
                         endReply.resultLength = response.length;
                     }
-                    if (request.payload && request.payload.auth && request.payload.auth.session && request.payload.method == 'identity.check') {
+                    if (request.payload && request.payload.auth && request.payload.auth.session && request.payload.method === 'identity.check') {
                         endReply.session = {
-                            id: request.payload.auth.session.id || null,
-                            userId: request.payload.auth.userId || null,
-                            language: request.payload.auth.session.language || null
+                            id: (response && response.session && response.session.id) || null,
+                            userId: (response && response.userId) || null,
+                            language: (response && response.session && response.session.language) || 'en'
                         };
+                        delete response.userId;
+                        delete response.session;
                     }
-                    if (request.payload && request.payload.params && request.payload.params.sessionData && request.payload.method == 'identity.check') {
+                    if (request.payload && request.payload.params && request.payload.params.sessionData && request.payload.method === 'identity.check') {
                         request.session.set('session', response);
                     }
                     endReply.result = response;
@@ -136,13 +140,13 @@ module.exports = function(server, options, next) {
                 };
                 return reply(endReply);
             }
-        }
-        if (checkPermission && request.payload.method !== 'identity.check'){
+        };
+        if (checkPermission && request.payload.method !== 'identity.check') {
             when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
-                .then(function(permissions){
-                    if(request.session){
+                .then(function(permissions) {
+                    if (request.session) {
                         var session = request.session.get('session');
-                        if(session) {
+                        if (session) {
                             session.permissions = permissions;
                             request.session.set('session', session);
                         }
@@ -150,11 +154,11 @@ module.exports = function(server, options, next) {
                     return permissions;
                 })
                 .then(procesMessage)
-                .catch(function(err){
-                    if(err.permissions) {
-                        if(request.session){
+                .catch(function(err) {
+                    if (err.permissions) {
+                        if (request.session) {
                             var session = request.session.get('session');
-                            if(session) {
+                            if (session) {
                                 session.permissions = err.permissions;
                                 request.session.set('session', session);
                             }
@@ -176,8 +180,8 @@ module.exports = function(server, options, next) {
         method: '*',
         path: '/rpc',
         config: {
-            payload : {
-                output:'data',
+            payload: {
+                output: 'data',
                 parse: true
             },
             handler: rpcHandler
