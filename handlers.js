@@ -138,7 +138,7 @@ module.exports = function(server, options, next) {
             }
         }
         if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.check'){
-            when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
+            when(options.bus.importMethod('permission.check')(request.payload.method))
                 .then(function(permissions){
                     if(request.session){
                         var session = request.session.get('session');
