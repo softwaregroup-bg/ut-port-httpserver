@@ -16,7 +16,7 @@
   "publishConfig": {
     "registry": "http://npm.softwaregroup-bg.com:5001"
   },
-  "description": "UT port httpserver module",
+  "description": "UT port httpserver module.",
   "repository": {
     "type": "git",
     "url": "git@git.softwaregroup-bg.com:ut5/ut-port-httpserver.git"
