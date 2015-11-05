@@ -140,11 +140,11 @@ module.exports = function(server, options, next) {
                 };
                 return reply(endReply);
             }
-        };
-        if (checkPermission && request.payload.method !== 'identity.check') {
-            when(options.bus.importMethod('permission.check')(request.session.get('session'), request.payload.method))
-                .then(function(permissions) {
-                    if (request.session) {
+        }
+        if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.check'){
+            when(options.bus.importMethod('permission.check')(request.payload.method))
+                .then(function(permissions){
+                    if(request.session){
                         var session = request.session.get('session');
                         if (session) {
                             session.permissions = permissions;
@@ -180,8 +180,8 @@ module.exports = function(server, options, next) {
         method: '*',
         path: '/rpc',
         config: {
-            payload: {
-                output: 'data',
+            payload : {
+                output:'data',
                 parse: true
             },
             handler: rpcHandler
