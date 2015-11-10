@@ -90,13 +90,12 @@ module.exports = function(server, options, next) {
                     }
                     if (!$meta || $meta.mtid === 'error') {
                         var erMs = $meta.errorMessage || response.message;
-                        var erPr = $meta.errorPrint || response.errorPrint;
-                        var flEr = $meta.fieldErrors || response.fieldErrors;
                         endReply.error = {
                             code: $meta.errorCode || response.code || -1,
                             message: erMs,
-                            errorPrint: erPr ? erPr : erMs,
-                            fieldErrors: flEr
+                            errorPrint: $meta.errorPrint || response.print || erMs,
+                            type: $meta.errorType || response.type,
+                            fieldErrors: $meta.fieldErrors || response.fieldErrors
                         };
                         return reply(endReply);
                     }
