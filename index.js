@@ -34,7 +34,7 @@ HttpServerPort.prototype.init = function init() {
     Port.prototype.init.apply(this, arguments);
     this.latency = this.counter && this.counter('average', 'lt', 'Latency');
     this.hapiServer = new hapi.Server();
-    this.bus.registerLocal({'registerRequestHandler': this.registerRequestHandler.bind(this)}, 'internal');
+    this.bus.registerLocal({registerRequestHandler: this.registerRequestHandler.bind(this)}, this.config.id);
 };
 
 HttpServerPort.prototype.start = function start() {
