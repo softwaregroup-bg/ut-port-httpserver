@@ -43,21 +43,20 @@ This port exposes the following functionality:
     type: 'httpserver',
     logLevel: '',
     port: ''
-    
 ```
 
-* `id`: unique identification of port 
- 
-* `logLevel`: trace, debug or info. 
- 
+* `id`: unique identification of port
+
+* `logLevel`: trace, debug or info.
+
 * `port`: the port where the server will accept connections.
 
 * `ports`: same as port but sets multiple listening ports
 
-* `server`: Server specific configuration 
+* `server`: Server specific configuration
 
 server specific configuration can be passed as object with key `server`.
-For instance if we have http server port implementation as follows: 
+For instance if we have http server port implementation as follows:
 ```javascript
 module.exports = {
     id: 'httpserver',
@@ -73,8 +72,8 @@ module.exports = {
     /*.......*/
 };
 ```
-all properties from `server` will be passed to server as configuration and will be merget with `host` and `port` properties 
+all properties from `server` will be passed to server as configuration and will be merget with `host` and `port` properties
 
- 
+
 Optional configuration options:
 * `start`: function that will be called once on creation of port. It can be used for setting global variables and initialising objects.
