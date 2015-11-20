@@ -19,6 +19,7 @@ function HttpServerPort() {
         logLevel: '',
         type: 'httpserver',
         port: 8002,
+        ports: [],
         server: undefined,
         handlers: undefined
     };
@@ -43,10 +44,12 @@ HttpServerPort.prototype.start = function start() {
 
     var self = this;
     var serverBootstrap = [];
-    var httpProp = {
-        'port': this.config.port,
-        'host': this.config.host
-    };
+    var ports = this.config.ports;
+    var httpProp = {host: this.config.host};
+
+    if (!ports || (ports.length < 1)) {
+        ports = [this.config.port];
+    }
 
     var swaggerOptions = {
         version: packageJson.version,
@@ -61,7 +64,9 @@ HttpServerPort.prototype.start = function start() {
         _.assign(swaggerOptions, this.config.swagger);
     }
 
-    this.hapiServer.connection(httpProp);
+    for (var i = 0, portsLen = ports.length; i < portsLen; i = i + 1) {
+        this.hapiServer.connection(Object.assign({}, httpProp, {port: ports[i]}));
+    }
     this.hapiServer.register([Inert, Vision], function () {});
     this.hapiServer.route(this.routes);
     serverBootstrap
@@ -119,7 +124,7 @@ HttpServerPort.prototype.start = function start() {
                 if (err) {
                     return reject({error: err, stage: 'starting hhtp server'});
                 }
-                return resolve('Http server started at http://' + (httpProp.host || '*') + ':' + httpProp.port);
+                return resolve('Http server started at http://' + (httpProp.host || '*') + ':[' + ports.join(',') + ']');
             });
         }));
 
