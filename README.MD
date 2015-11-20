@@ -52,6 +52,8 @@ This port exposes the following functionality:
  
 * `port`: the port where the server will accept connections.
 
+* `ports`: same as port but sets multiple listening ports
+
 * `server`: Server specific configuration 
 
 server specific configuration can be passed as object with key `server`.
@@ -61,7 +63,8 @@ module.exports = {
     id: 'httpserver',
     type: 'httpserver',
     logLevel: 'trace',
-    port: 8003,
+    port: 8003,//or use property ports, see below
+    ports: [8003, 8004],
     imports:[],
     server:{
         /*.......*/
