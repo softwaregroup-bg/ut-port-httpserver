@@ -6,7 +6,7 @@ var when = require('when');
 module.exports = function(server, options, next) {
     var httpMethods = {};
     var pendingRoutes = [];
-    var imports = options.config.imports;
+    var imports = options.config.api;
 
     options.bus.importMethods(httpMethods, imports);
     var checkPermission = options.bus.config && options.bus.config.checkPermission;

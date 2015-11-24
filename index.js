@@ -38,6 +38,7 @@ HttpServerPort.prototype.init = function init() {
 };
 
 HttpServerPort.prototype.start = function start() {
+    this.bus && this.bus.importMethods(this.config, this.config.imports, undefined, this);
     Port.prototype.start.apply(this, arguments);
     this.stream = through2.obj();
     this.pipeReverse(this.stream, {trace: 0, callbacks: {}});
@@ -67,15 +68,16 @@ HttpServerPort.prototype.start = function start() {
     for (var i = 0, portsLen = ports.length; i < portsLen; i = i + 1) {
         this.hapiServer.connection(Object.assign({}, httpProp, {port: ports[i]}));
     }
-    this.hapiServer.register([Inert, Vision], function () {});
+    this.hapiServer.register([Inert, Vision], function() {
+    });
     this.hapiServer.route(this.routes);
     serverBootstrap
-        .push(when.promise(function (resolve, reject) {
+        .push(when.promise(function(resolve, reject) {
             //register ut5 handlers
             self.hapiServer.register({
                 register: handlerGenerator,
                 options: self
-            }, function (err) {
+            }, function(err) {
                 if (err) {
                     return reject({error: err, stage: 'ut5 handlers loading..'});
                 }
@@ -83,12 +85,12 @@ HttpServerPort.prototype.start = function start() {
             });
         }));
     serverBootstrap
-        .push(when.promise(function (resolve, reject) {
+        .push(when.promise(function(resolve, reject) {
             //register swagger
             self.hapiServer.register({
                 register: swagger,
                 options: swaggerOptions
-            }, function (err) {
+            }, function(err) {
                 if (err) {
                     return reject({error: err, stage: 'swagger loading'});
                 }
@@ -96,7 +98,7 @@ HttpServerPort.prototype.start = function start() {
             });
         }));
     serverBootstrap
-        .push(when.promise(function (resolve, reject) {
+        .push(when.promise(function(resolve, reject) {
             if (!self.config.hasOwnProperty('yar')) {
                 return;
             }
@@ -111,7 +113,7 @@ HttpServerPort.prototype.start = function start() {
             self.hapiServer.register({
                 register: require('yar'),
                 options: yarConfig
-            }, function (err) {
+            }, function(err) {
                 if (err) {
                     return reject({error: err, stage: 'http-auth-cookie loading'});
                 }
@@ -119,8 +121,8 @@ HttpServerPort.prototype.start = function start() {
             });
         }));
     serverBootstrap
-        .push(when.promise(function (resolve, reject) {
-            self.hapiServer.start(function (err) {
+        .push(when.promise(function(resolve, reject) {
+            self.hapiServer.start(function(err) {
                 if (err) {
                     return reject({error: err, stage: 'starting hhtp server'});
                 }
@@ -129,19 +131,19 @@ HttpServerPort.prototype.start = function start() {
         }));
 
     when.all(serverBootstrap)
-        .then(function (res) {
+        .then(function(res) {
             console.log(res);
         })
-        .catch(function (err) {
+        .catch(function(err) {
             console.log(err);
         });
 };
 
-HttpServerPort.prototype.registerRequestHandler = function (handlers) {
+HttpServerPort.prototype.registerRequestHandler = function(handlers) {
     if (this.hapiServer.route && this.hapiServer.connections.length) {
         this.hapiServer.route(handlers);
     } else {
-        Array.prototype.push.apply(this.routes, (handlers instanceof Array) ? handlers : [handlers])
+        Array.prototype.push.apply(this.routes, (handlers instanceof Array) ? handlers : [handlers]);
     }
 };
 
