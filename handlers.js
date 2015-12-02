@@ -44,7 +44,7 @@ module.exports = function(server, options, next) {
             }
             return repl;
         };
-        var pathComponents = request.route.path.split('/').filter(function(x) {// normalize array
+        var pathComponents = request.route.path.split('/').filter(function(x) { // normalize array
             // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
             return x !== '';
         });
@@ -81,9 +81,9 @@ module.exports = function(server, options, next) {
                     mtid: 'request',
                     session: request.session && request.session.get('session')
                 };
-                //if(options.config && options.config.yar) {
+                // if(options.config && options.config.yar) {
                 //    incMsg.$$.request = request;
-                //}
+                // }
                 $meta.callback = function(response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
@@ -103,7 +103,7 @@ module.exports = function(server, options, next) {
                         delete response.auth;
                     }
 
-                    //todo find a better way to return static file
+                    // todo find a better way to return static file
                     if ($meta && $meta.staticFileName) {
                         addTime();
                         _reply.file($meta.staticFileName);
@@ -130,7 +130,6 @@ module.exports = function(server, options, next) {
                     return true;
                 };
                 options.stream.write([request.payload.params || {}, $meta]);
-
             } catch (err) {
                 endReply.error = {
                     code: '-1',
@@ -186,9 +185,9 @@ module.exports = function(server, options, next) {
             handler: rpcHandler
         }
     };
-    if (options.config.handlers) {//global config for handlers
-        if (options.config.handlers.rpc) {//for RPC handlers
-            //merge config with default handler only, because we can set per handler when is used with swagger
+    if (options.config.handlers) { // global config for handlers
+        if (options.config.handlers.rpc) { // for RPC handlers
+            // merge config with default handler only, because we can set per handler when is used with swagger
             _.assign(defRpcRoute.config, options.config.handlers.rpc);
         }
     }
@@ -198,7 +197,7 @@ module.exports = function(server, options, next) {
         // create routes for all methods
         var method = httpMethods[key];
 
-        if (Object.keys(method).length > 0) {//only documented methods will be added to the api
+        if (Object.keys(method).length > 0) { // only documented methods will be added to the api
             var route = {
                 method: 'POST',
                 path: '/rpc/' + key.split('.').join('/'),

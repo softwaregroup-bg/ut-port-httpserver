@@ -54,7 +54,7 @@ HttpServerPort.prototype.start = function start() {
 
     var swaggerOptions = {
         version: packageJson.version,
-        pathPrefixSize: 2 //this helps extracting the namespace from the second argument of the url
+        pathPrefixSize: 2 // this helps extracting the namespace from the second argument of the url
     };
 
     if (this.config.server) {
@@ -73,7 +73,7 @@ HttpServerPort.prototype.start = function start() {
     this.hapiServer.route(this.routes);
     serverBootstrap
         .push(when.promise(function(resolve, reject) {
-            //register ut5 handlers
+            // register ut5 handlers
             self.hapiServer.register({
                 register: handlerGenerator,
                 options: self
@@ -86,7 +86,7 @@ HttpServerPort.prototype.start = function start() {
         }));
     serverBootstrap
         .push(when.promise(function(resolve, reject) {
-            //register swagger
+            // register swagger
             self.hapiServer.register({
                 register: swagger,
                 options: swaggerOptions
