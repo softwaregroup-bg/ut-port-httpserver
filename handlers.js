@@ -1,6 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
+var assign = require('lodash/object/assign');
+var cloneDeep = require('lodash/lang/cloneDeep');
 var when = require('when');
 
 module.exports = function(server, options, next) {
@@ -54,7 +55,7 @@ module.exports = function(server, options, next) {
                 method: pathComponents.slice(1).join('.'),
                 jsonrpc: '2.0',
                 id: '1',
-                params: _.cloneDeep(request.payload)
+                params: cloneDeep(request.payload)
             };
         }
         var endReply = {
@@ -97,6 +98,7 @@ module.exports = function(server, options, next) {
                             type: $meta.errorType || response.type,
                             fieldErrors: $meta.fieldErrors || response.fieldErrors
                         };
+                        options.config.debug || (options.config.debug == null && options.bus.config && options.bus.config.debug) && (endReply.debug = response);
                         return reply(endReply);
                     }
                     if (response.auth) {
@@ -188,7 +190,7 @@ module.exports = function(server, options, next) {
     if (options.config.handlers) { // global config for handlers
         if (options.config.handlers.rpc) { // for RPC handlers
             // merge config with default handler only, because we can set per handler when is used with swagger
-            _.assign(defRpcRoute.config, options.config.handlers.rpc);
+            assign(defRpcRoute.config, options.config.handlers.rpc);
         }
     }
     pendingRoutes.unshift(defRpcRoute);
