@@ -125,6 +125,7 @@ module.exports = function(server, options, next) {
                         delete response.session;
                     }
                     if (request.payload && request.payload.params && request.payload.params.sessionData && request.payload.method === 'identity.check') {
+                        response.remoteAddress = request.info.remoteAddress;
                         request.session.set('session', response);
                     }
                     endReply.result = response;
