@@ -10,7 +10,7 @@ module.exports = function(server, options, next) {
     var imports = options.config.api;
 
     options.bus.importMethods(httpMethods, imports);
-    var checkPermission = options.bus.config && options.bus.config.checkPermission;
+    var checkPermission = (options.config && options.config.checkPermission) || (options.bus.config && options.bus.config.checkPermission);
 
     var rpcHandler = function rpcHandler(request, _reply) {
         var startTime = process.hrtime();
