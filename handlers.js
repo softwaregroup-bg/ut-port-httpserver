@@ -30,11 +30,11 @@ module.exports = function(server, options, next) {
         var reply = function(resp) {
             var _resp;
             var headers = [];
+            if (resp.headers) {
+                headers = Object.keys(resp.headers);
+            }
             if (!isRPC) {
                 _resp = resp.result || {error: resp.error};
-                if (resp.headers) {
-                    headers = Object.keys(resp.headers);
-                }
             } else {
                 _resp = resp;
             }
@@ -80,6 +80,7 @@ module.exports = function(server, options, next) {
                     opcode: request.payload.method.split('.').pop(),
                     destination: request.payload.method.split('.').slice(0, -1).join('.'),
                     mtid: 'request',
+                    requestHeaders: request.headers,
                     session: request.session && request.session.get('session')
                 };
                 // if(options.config && options.config.yar) {
@@ -129,6 +130,7 @@ module.exports = function(server, options, next) {
                         request.session.set('session', response);
                     }
                     endReply.result = response;
+                    endReply.headers = $meta.responseHeaders;
                     reply(endReply);
                     return true;
                 };
