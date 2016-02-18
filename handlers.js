@@ -27,12 +27,8 @@ module.exports = function(server, options, next) {
             }
         }
 
-        var reply = function(resp) {
+        var reply = function(resp, headers) {
             var _resp;
-            var headers = [];
-            if (resp.headers) {
-                headers = Object.keys(resp.headers);
-            }
             if (!isRPC) {
                 _resp = resp.result || {error: resp.error};
             } else {
@@ -40,9 +36,9 @@ module.exports = function(server, options, next) {
             }
             addTime();
             var repl = _reply(_resp);
-            for (var i = 0; i < headers.length; i += 1) {
-                repl.header(headers[i], resp.headers[headers[i]]);
-            }
+            headers && Object.keys(headers).forEach(function(header) {
+                repl.header(header, headers[header]);
+            });
             return repl;
         };
         var pathComponents = request.route.path.split('/').filter(function(x) { // normalize array
@@ -130,8 +126,7 @@ module.exports = function(server, options, next) {
                         request.session.set('session', response);
                     }
                     endReply.result = response;
-                    endReply.headers = $meta.responseHeaders;
-                    reply(endReply);
+                    reply(endReply, $meta.responseHeaders);
                     return true;
                 };
                 options.stream.write([request.payload.params || {}, $meta]);
