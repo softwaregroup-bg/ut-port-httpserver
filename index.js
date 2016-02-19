@@ -100,6 +100,7 @@ HttpServerPort.prototype.start = function start() {
     serverBootstrap
         .push(when.promise(function(resolve, reject) {
             if (!self.config.hasOwnProperty('yar')) {
+                resolve('yar not enabled');
                 return;
             }
             var yarConfig = self.config.yar || {};
@@ -130,13 +131,9 @@ HttpServerPort.prototype.start = function start() {
             });
         }));
 
-    when.all(serverBootstrap)
-        .then(function(res) {
-            console.log(res);
-        })
-        .catch(function(err) {
-            console.log(err);
-        });
+    return when.all(serverBootstrap).then(function(result) {
+        self.log.info && self.log.info({message: result, $meta: {opcode: 'port.started'}});
+    });
 };
 
 HttpServerPort.prototype.registerRequestHandler = function(handlers) {
@@ -148,8 +145,12 @@ HttpServerPort.prototype.registerRequestHandler = function(handlers) {
 };
 
 HttpServerPort.prototype.stop = function stop() {
-    this.hapiServer.stop();
-    Port.prototype.stop.apply(this, arguments);
+    var self = this;
+    return when.promise(function(resolve, reject) {
+        self.hapiServer.stop(function() {
+            when(Port.prototype.stop.apply(self, arguments)).then(resolve).catch(reject);
+        });
+    });
 };
 
 module.exports = HttpServerPort;
