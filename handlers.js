@@ -41,6 +41,24 @@ module.exports = function(server, options, next) {
             });
             return repl;
         };
+
+        function handleError(error, response) {
+            var $meta = {};
+            var msg = {
+                jsonrpc: '2.0',
+                id: '',
+                error: error
+            };
+            response && options.config.debug || (options.config.debug == null && options.bus.config && options.bus.config.debug) && (msg.debug = response);
+            if (options.config.receive instanceof Function) {
+                return when(options.config.receive(msg, $meta)).then(function(result) {
+                    reply(result, $meta.responseHeaders);
+                });
+            } else {
+                return reply(msg);
+            }
+        };
+
         var pathComponents = request.route.path.split('/').filter(function(x) { // normalize array
             // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
             return x !== '';
@@ -59,12 +77,11 @@ module.exports = function(server, options, next) {
             id: ''
         };
         if (!request.payload || !request.payload.method || !request.payload.id) {
-            endReply.error = {
+            return handleError({
                 code: '-1',
                 message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
                 errorPrint: 'Invalid request!'
-            };
-            return reply(endReply);
+            });
         }
         endReply.id = request.payload.id;
 
@@ -95,8 +112,7 @@ module.exports = function(server, options, next) {
                             type: $meta.errorType || response.type,
                             fieldErrors: $meta.fieldErrors || response.fieldErrors
                         };
-                        options.config.debug || (options.config.debug == null && options.bus.config && options.bus.config.debug) && (endReply.debug = response);
-                        return reply(endReply);
+                        return handleError(endReply, response);
                     }
                     if (response.auth) {
                         delete response.auth;
@@ -131,12 +147,11 @@ module.exports = function(server, options, next) {
                 };
                 options.stream.write([request.payload.params || {}, $meta]);
             } catch (err) {
-                endReply.error = {
+                return handleError({
                     code: '-1',
                     message: err.message,
                     errorPrint: err.message
-                };
-                return reply(endReply);
+                }, err);
             }
         };
         if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.check') {
@@ -162,12 +177,11 @@ module.exports = function(server, options, next) {
                             }
                         }
                     }
-                    endReply.error = {
+                    return handleError({
                         code: err.code || '-1',
                         message: err.message,
                         errorPrint: err.errorPrint || err.message
-                    };
-                    return reply(endReply);
+                    }, err);
                 })
                 .done();
         } else {
