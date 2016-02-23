@@ -113,7 +113,7 @@ module.exports = function(server, options, next) {
                             type: $meta.errorType || response.type,
                             fieldErrors: $meta.fieldErrors || response.fieldErrors
                         };
-                        return handleError(endReply, request, response);
+                        return handleError(endReply.error, request, response);
                     }
                     if (response.auth) {
                         delete response.auth;
