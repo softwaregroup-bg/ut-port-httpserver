@@ -1,3 +1,4 @@
+/* global process */
 'use strict';
 
 var assign = require('lodash/object/assign');
@@ -42,11 +43,11 @@ module.exports = function(server, options, next) {
             return repl;
         };
 
-        function handleError(error, response) {
+        function handleError(error, request, response) {
             var $meta = {};
             var msg = {
                 jsonrpc: '2.0',
-                id: '',
+                id: (request.payload && request.payload.id) || '',
                 error: error
             };
             response && options.config.debug || (options.config.debug == null && options.bus.config && options.bus.config.debug) && (msg.debug = response);
@@ -81,7 +82,7 @@ module.exports = function(server, options, next) {
                 code: '-1',
                 message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
                 errorPrint: 'Invalid request!'
-            });
+            }, {});
         }
         endReply.id = request.payload.id;
 
@@ -112,7 +113,7 @@ module.exports = function(server, options, next) {
                             type: $meta.errorType || response.type,
                             fieldErrors: $meta.fieldErrors || response.fieldErrors
                         };
-                        return handleError(endReply, response);
+                        return handleError(endReply, request, response);
                     }
                     if (response.auth) {
                         delete response.auth;
@@ -151,7 +152,7 @@ module.exports = function(server, options, next) {
                     code: '-1',
                     message: err.message,
                     errorPrint: err.message
-                }, err);
+                }, request, err);
             }
         };
         if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.check') {
@@ -181,7 +182,7 @@ module.exports = function(server, options, next) {
                         code: err.code || '-1',
                         message: err.message,
                         errorPrint: err.errorPrint || err.message
-                    }, err);
+                    }, request, err);
                 })
                 .done();
         } else {
