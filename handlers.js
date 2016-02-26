@@ -122,7 +122,7 @@ module.exports = function(server, options, next) {
                     // todo find a better way to return static file
                     if ($meta && $meta.staticFileName) {
                         addTime();
-                        _reply.file($meta.staticFileName);
+                        _reply.file($meta.staticFileName, $meta.staticFileOptions);
                         return true;
                     }
 
