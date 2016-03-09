@@ -92,7 +92,6 @@ module.exports = function(server, options, next) {
                     auth: request.payload.auth,
                     method: request.payload.method,
                     opcode: request.payload.method.split('.').pop(),
-                    destination: request.payload.method.split('.').slice(0, -1).join('.'),
                     mtid: 'request',
                     requestHeaders: request.headers,
                     session: request.session && request.session.get('session')
