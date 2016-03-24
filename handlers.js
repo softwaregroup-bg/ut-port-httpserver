@@ -4,6 +4,7 @@
 var assign = require('lodash/object/assign');
 var cloneDeep = require('lodash/lang/cloneDeep');
 var when = require('when');
+var fs = require('fs');
 
 module.exports = function(server, options, next) {
     var httpMethods = {};
@@ -232,7 +233,45 @@ module.exports = function(server, options, next) {
             pendingRoutes.unshift(route);
         }
     });
-
+    pendingRoutes.push({
+        method: 'POST',
+        path: '/file-upload',
+        config: {
+            payload: {
+                maxBytes: 209715200, // default is 1048576 (1MB)
+                output: 'stream',
+                parse: true,
+                allow: 'multipart/form-data'
+            },
+            handler: function(request, reply) {
+                var file = request.payload.file;
+                if (file) {
+                    var fileName = (new Date()).getTime() + '_' + file.hapi.filename;
+                    var path = options.bus.config.workDir + '/uploads/' + fileName;
+                    var ws = fs.createWriteStream(path);
+                    ws.on('error', function(err) {
+                        options.log.error && options.log.error(err);
+                        reply('');
+                    });
+                    file.pipe(ws);
+                    file.on('end', function(err) {
+                        if (err) {
+                            options.log.error && options.log.error(err);
+                            reply('');
+                        } else {
+                            reply(JSON.stringify({
+                                filename: fileName,
+                                headers: file.hapi.headers
+                            }));
+                        }
+                    });
+                } else {
+                    // no file
+                    reply('');
+                }
+            }
+        }
+    });
     server.route(pendingRoutes);
     return next();
 };

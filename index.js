@@ -6,11 +6,14 @@ var hapi = require('hapi');
 var Inert = require('inert');
 var Vision = require('vision');
 var when = require('when');
-var _ = require('lodash');
+var _ = {
+    assign: require('lodash/object/assign')
+};
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
 var handlerGenerator = require('./handlers.js');
 var through2 = require('through2');
+var fs = require('fs');
 
 function HttpServerPort() {
     Port.call(this);
@@ -130,7 +133,27 @@ HttpServerPort.prototype.start = function start() {
                 return resolve('Http server started at http://' + (httpProp.host || '*') + ':[' + ports.join(',') + ']');
             });
         }));
-
+    serverBootstrap
+        .push(when.promise(function(resolve, reject) {
+            var fileUploadTempDir = self.bus.config.workDir + '/uploads';
+            fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
+                if (err) {
+                    if (err.code === 'ENOENT') {
+                        fs.mkdir(fileUploadTempDir, function(err) {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve('Temp dir for file uploads has been created: ' + fileUploadTempDir);
+                            }
+                        });
+                    } else {
+                        reject(err);
+                    }
+                } else {
+                    resolve('Temp dir for file uploads has been verified: ' + fileUploadTempDir);
+                }
+            });
+        }));
     return when.all(serverBootstrap).then(function(result) {
         self.log.info && self.log.info({message: result, $meta: {opcode: 'port.started'}});
     });
