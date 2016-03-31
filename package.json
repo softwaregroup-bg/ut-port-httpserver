@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "5.3.23",
+  "version": "5.3.24",
   "dependencies": {
     "hapi": "9.5.1",
     "hapi-swagger": "1.3.0",
