@@ -212,7 +212,7 @@ module.exports = function(server, options, next) {
         // create routes for all methods
         var method = httpMethods[key];
 
-        if (Object.keys(method).length > 0) { // only documented methods will be added to the api
+        if (typeof method === 'function' && Object.keys(method).length > 0) { // only documented methods will be added to the api
             var route = {
                 method: 'POST',
                 path: '/rpc/' + key.split('.').join('/'),
