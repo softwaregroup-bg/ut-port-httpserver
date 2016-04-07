@@ -1,4 +1,3 @@
-/* global process */
 'use strict';
 
 var assign = require('lodash/object/assign');
@@ -67,12 +66,14 @@ module.exports = function(server, options, next) {
         });
         if (pathComponents.length > 1 && pathComponents[0] === 'rpc') {
             isRPC = false;
-            request.payload = {
-                method: pathComponents.slice(1).join('.'),
-                jsonrpc: '2.0',
-                id: '1',
-                params: cloneDeep(request.payload)
-            };
+            if (!request.payload.jsonrpc) {
+                request.payload = {
+                    method: pathComponents.slice(1).join('.'),
+                    jsonrpc: '2.0',
+                    id: '1',
+                    params: cloneDeep(request.payload)
+                };
+            }
         }
         var endReply = {
             jsonrpc: '2.0',
@@ -191,7 +192,7 @@ module.exports = function(server, options, next) {
     };
     var defRpcRoute = {
         method: '*',
-        path: '/rpc',
+        path: '/rpc/{method?}',
         config: {
             payload: {
                 output: 'data',
