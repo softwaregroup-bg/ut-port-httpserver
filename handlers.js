@@ -64,16 +64,14 @@ module.exports = function(server, options, next) {
             // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
             return x !== '';
         });
-        if (pathComponents.length > 1 && pathComponents[0] === 'rpc') {
+        if (pathComponents.length > 1 && pathComponents[0] === 'rpc' && !request.payload.jsonrpc) {
+            request.payload = {
+                method: pathComponents.slice(1).join('.'),
+                jsonrpc: '2.0',
+                id: '1',
+                params: cloneDeep(request.payload)
+            };
             isRPC = false;
-            if (!request.payload.jsonrpc) {
-                request.payload = {
-                    method: pathComponents.slice(1).join('.'),
-                    jsonrpc: '2.0',
-                    id: '1',
-                    params: cloneDeep(request.payload)
-                };
-            }
         }
         var endReply = {
             jsonrpc: '2.0',
