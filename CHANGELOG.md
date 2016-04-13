@@ -1,3 +1,13 @@
+<a name="5.3.26"></a>
+## [5.3.26](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.25...v5.3.26) (2016-04-13)
+
+
+### Bug Fixes
+
+* fix /rpc/method handling for json-rpc ([24ac9c6](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/24ac9c6))
+
+
+
 <a name="5.3.25"></a>
 ## [5.3.25](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.24...v5.3.25) (2016-04-07)
 
