@@ -7,7 +7,10 @@ var Inert = require('inert');
 var Vision = require('vision');
 var when = require('when');
 var _ = {
-    assign: require('lodash/object/assign')
+    assign: require('lodash/object/assign'),
+    isArray: require('lodash/lang/isArray'),
+    isObject: require('lodash/lang/isObject'),
+    isString: require('lodash/lang/isString')
 };
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
@@ -165,6 +168,65 @@ HttpServerPort.prototype.registerRequestHandler = function(handlers) {
     } else {
         Array.prototype.push.apply(this.routes, (handlers instanceof Array) ? handlers : [handlers]);
     }
+};
+
+HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
+    var self = this;
+    return when.promise(function(resolve, reject) {
+        if (self.hotReload) {
+            resolve(true);
+        } else if (self.config.packer === 'webpack') {
+            var webpack = require('webpack');
+            if (!_.isObject(config.output)) {
+                return reject(new Error('config.output must be an Object'));
+            }
+            if (!_.isString(config.output.publicPath)) {
+                return reject(new Error('config.output.publicPath must be a String'));
+            }
+            if (!_.isObject(config.entry)) {
+                return reject(new Error('config.entry must be an Object'));
+            }
+            for (var name in config.entry) {
+                if (config.entry.hasOwnProperty(name)) {
+                    if (!_.isArray(config.entry[name])) {
+                        return reject(new Error(config.entry[name] + ' should be an Array'));
+                    }
+                    config.entry[name].unshift('webpack-hot-middleware/client');
+                }
+            }
+            if (!_.isArray(config.plugins)) {
+                return reject(new Error('config.plugins must be an Array'));
+            }
+            config.plugins.push(new webpack.HotModuleReplacementPlugin());
+            var compiler = webpack(config);
+            var assets = {
+                noInfo: true,
+                publicPath: config.output.publicPath,
+                stats: {
+                    colors: true
+                }/*,
+                watchOptions: {
+                    aggregateTimeout: 300,
+                    poll: true,
+                    watch: true
+                }*/
+            };
+            var hot = {publicPath: config.output.publicPath};
+            self.hapiServer.register({
+                register: require('hapi-webpack-plugin'),
+                options: {compiler, assets, hot}
+            }, function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                  self.hotReload = true;
+                  resolve(true);
+                }
+            });
+        } else {
+            // imlement lasso hot reload
+        }
+    });
 };
 
 HttpServerPort.prototype.stop = function stop() {
