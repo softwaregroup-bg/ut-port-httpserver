@@ -219,8 +219,8 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                 if (err) {
                     reject(err);
                 } else {
-                  self.hotReload = true;
-                  resolve(true);
+                    self.hotReload = true;
+                    resolve(true);
                 }
             });
         } else {
