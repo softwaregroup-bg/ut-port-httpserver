@@ -1,3 +1,13 @@
+<a name="5.3.27"></a>
+## [5.3.27](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.26...v5.3.27) (2016-04-15)
+
+
+### Features
+
+* add Gitlab-ci and Jenkins scripts ([9077f18](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/9077f18))
+
+
+
 <a name="5.3.26"></a>
 ## [5.3.26](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.25...v5.3.26) (2016-04-13)
 
