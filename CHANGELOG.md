@@ -1,3 +1,15 @@
+<a name="5.3.28"></a>
+## [5.3.28](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.27...v5.3.28) (2016-04-15)
+
+
+### Bug Fixes
+
+* linting ([9d9a404](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/9d9a404))
+* remove dev dependency ([89a67b2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/89a67b2))
+* return dependencies, as linting otherwise fails ([92112b6](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/92112b6))
+
+
+
 <a name="5.3.27"></a>
 ## [5.3.27](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.26...v5.3.27) (2016-04-15)
 
