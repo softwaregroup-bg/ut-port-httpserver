@@ -1,37 +1,38 @@
-'use strict';
-
 var assign = require('lodash/object/assign');
 var cloneDeep = require('lodash/lang/cloneDeep');
 var when = require('when');
 var fs = require('fs');
+var jwt = require('jsonwebtoken');
 
-module.exports = function(server, options, next) {
+module.exports = function(port) {
     var httpMethods = {};
     var pendingRoutes = [];
-    var imports = options.config.api;
 
-    options.bus.importMethods(httpMethods, imports);
-    var checkPermission = (options.config && options.config.checkPermission) || (options.bus.config && options.bus.config.checkPermission);
+    var checkPermission = (port.config && port.config.checkPermission) || (port.bus.config && port.bus.config.checkPermission);
 
     var rpcHandler = function rpcHandler(request, _reply) {
         var startTime = process.hrtime();
         if (request.payload && request.payload.method === 'identity.closeSession') {
             request.session.reset();
         }
-        options.log.trace && options.log.trace({payload: request.payload});
+        port.log.trace && port.log.trace({
+            payload: request.payload
+        });
         var isRPC = true;
 
         function addTime() {
-            if (options.latency) {
+            if (port.latency) {
                 var diff = process.hrtime(startTime);
-                options.latency(diff[0] * 1000 + diff[1] / 1000000, 1);
+                port.latency(diff[0] * 1000 + diff[1] / 1000000, 1);
             }
         }
 
         var reply = function(resp, headers) {
             var _resp;
             if (!isRPC) {
-                _resp = resp.result || {error: resp.error};
+                _resp = resp.result || {
+                    error: resp.error
+                };
             } else {
                 _resp = resp;
             }
@@ -50,9 +51,9 @@ module.exports = function(server, options, next) {
                 id: (request.payload && request.payload.id) || '',
                 error: error
             };
-            response && options.config.debug || (options.config.debug == null && options.bus.config && options.bus.config.debug) && (msg.debug = response);
-            if (options.config.receive instanceof Function) {
-                return when(options.config.receive(msg, $meta)).then(function(result) {
+            response && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = response);
+            if (port.config.receive instanceof Function) {
+                return when(port.config.receive(msg, $meta)).then(function(result) {
                     reply(result, $meta.responseHeaders);
                 });
             } else {
@@ -128,24 +129,21 @@ module.exports = function(server, options, next) {
                     if (Array.isArray(response)) {
                         endReply.resultLength = response.length;
                     }
-                    if (request.payload && request.payload.auth && request.payload.auth.session && request.payload.method === 'identity.check') {
-                        endReply.session = {
-                            id: (response && response.session && response.session.id) || null,
-                            userId: (response && response.userId) || null,
-                            language: (response && response.session && response.session.language) || 'en'
-                        };
-                        delete response.userId;
-                        delete response.session;
-                    }
-                    if (request.payload && request.payload.params && request.payload.params.sessionData && request.payload.method === 'identity.check') {
-                        response.remoteAddress = request.info.remoteAddress;
-                        request.session.set('session', response);
-                    }
                     endReply.result = response;
-                    reply(endReply, $meta.responseHeaders);
+                    if (request.payload.method === 'identity.check') {
+                        reply(endReply, $meta.responseHeaders)
+                            .state(
+                                port.config.jwt.cookieKey,
+                                jwt.sign({
+                                    userId: response.userId
+                                }, port.config.jwt.key),
+                                port.config.cookie);
+                    } else {
+                        reply(endReply, $meta.responseHeaders);
+                    }
                     return true;
                 };
-                options.stream.write([request.payload.params || {}, $meta]);
+                port.stream.write([request.payload.params || {}, $meta]);
             } catch (err) {
                 return handleError({
                     code: '-1',
@@ -155,81 +153,77 @@ module.exports = function(server, options, next) {
             }
         };
         if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.check') {
-            when(options.bus.importMethod('permission.check')(request.payload.method, {session: request.session.get('session')}))
-                .then(function(permissions) {
+            when(port.bus.importMethod('permission.check')(request.payload.method, {
+                session: request.session.get('session')
+            }))
+            .then(function(permissions) {
+                if (request.session) {
+                    var session = request.session.get('session');
+                    if (session) {
+                        session.permissions = permissions;
+                        request.session.set('session', session);
+                    }
+                }
+                return permissions;
+            })
+            .then(procesMessage)
+            .catch(function(err) {
+                if (err.permissions) {
                     if (request.session) {
                         var session = request.session.get('session');
                         if (session) {
-                            session.permissions = permissions;
+                            session.permissions = err.permissions;
                             request.session.set('session', session);
                         }
                     }
-                    return permissions;
-                })
-                .then(procesMessage)
-                .catch(function(err) {
-                    if (err.permissions) {
-                        if (request.session) {
-                            var session = request.session.get('session');
-                            if (session) {
-                                session.permissions = err.permissions;
-                                request.session.set('session', session);
-                            }
-                        }
-                    }
-                    return handleError({
-                        code: err.code || '-1',
-                        message: err.message,
-                        errorPrint: err.errorPrint || err.message
-                    }, request, err);
-                })
-                .done();
+                }
+                return handleError({
+                    code: err.code || '-1',
+                    message: err.message,
+                    errorPrint: err.errorPrint || err.message
+                }, request, err);
+            })
+            .done();
         } else {
             return procesMessage();
         }
     };
-    var defRpcRoute = {
-        method: '*',
-        path: '/rpc/{method?}',
-        config: {
-            payload: {
-                output: 'data',
-                parse: true
-            },
-            handler: rpcHandler
-        }
-    };
-    if (options.config.handlers) { // global config for handlers
-        if (options.config.handlers.rpc) { // for RPC handlers
-            // merge config with default handler only, because we can set per handler when is used with swagger
-            assign(defRpcRoute.config, options.config.handlers.rpc);
-        }
-    }
-    pendingRoutes.unshift(defRpcRoute);
 
+    pendingRoutes.unshift(assign({
+        handler: rpcHandler
+    }, port.config.routes.rpc));
+
+    pendingRoutes.unshift(assign({
+        handler: rpcHandler
+    }, port.config.routes.rpc, {
+        path: '/rpc/identity.check',
+        config: {
+            auth: false
+        }
+    }));
+
+    port.bus.importMethods(httpMethods, port.config.api);
     Object.keys(httpMethods).forEach(function(key) {
         // create routes for all methods
         var method = httpMethods[key];
 
         if (typeof method === 'function' && Object.keys(method).length > 0) { // only documented methods will be added to the api
-            var route = {
+            pendingRoutes.unshift({
                 method: 'POST',
                 path: '/rpc/' + key.split('.').join('/'),
-                handler: rpcHandler
-            };
-
-            route.config = {
-                description: method.description,
-                notes: method.notes,
-                tags: method.tags,
-                validate: {
-                    payload: method.params
+                config: {
+                    description: method.description,
+                    notes: method.notes,
+                    tags: method.tags,
+                    validate: {
+                        payload: method.params
+                    },
+                    response: {
+                        schema: method.returns
+                    }
                 },
-                response: {
-                    schema: method.returns
-                }
-            };
-            pendingRoutes.unshift(route);
+                handler: rpcHandler
+            });
         }
     });
     pendingRoutes.push({
@@ -246,16 +240,16 @@ module.exports = function(server, options, next) {
                 var file = request.payload.file;
                 if (file) {
                     var fileName = (new Date()).getTime() + '_' + file.hapi.filename;
-                    var path = options.bus.config.workDir + '/uploads/' + fileName;
+                    var path = port.bus.config.workDir + '/uploads/' + fileName;
                     var ws = fs.createWriteStream(path);
                     ws.on('error', function(err) {
-                        options.log.error && options.log.error(err);
+                        port.log.error && port.log.error(err);
                         reply('');
                     });
                     file.pipe(ws);
                     file.on('end', function(err) {
                         if (err) {
-                            options.log.error && options.log.error(err);
+                            port.log.error && port.log.error(err);
                             reply('');
                         } else {
                             reply(JSON.stringify({
@@ -271,10 +265,5 @@ module.exports = function(server, options, next) {
             }
         }
     });
-    server.route(pendingRoutes);
-    return next();
-};
-module.exports.attributes = {
-    name: 'ut-route-generato',
-    version: '0.0.1'
+    return pendingRoutes;
 };

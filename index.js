@@ -1,10 +1,10 @@
-'use strict';
-
+var path = require('path');
 var Port = require('ut-bus/port');
 var util = require('util');
 var hapi = require('hapi');
-var Inert = require('inert');
-var Vision = require('vision');
+var inert = require('inert');
+var vision = require('vision');
+var jwt = require('hapi-auth-jwt2');
 var when = require('when');
 var _ = {
     assign: require('lodash/object/assign'),
@@ -14,9 +14,9 @@ var _ = {
 };
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
-var handlerGenerator = require('./handlers.js');
+var handlers = require('./handlers.js');
 var through2 = require('through2');
-var fs = require('fs');
+var fs = require('fs-plus');
 
 function HttpServerPort() {
     Port.call(this);
@@ -24,10 +24,41 @@ function HttpServerPort() {
         id: null,
         logLevel: '',
         type: 'httpserver',
-        port: 8002,
-        ports: [],
-        server: undefined,
-        handlers: undefined
+        port: 8080,
+        connections: [],
+        routes: {
+            rpc: {
+                method: '*',
+                path: '/rpc/{method?}',
+                config: {
+                    auth: 'jwt',
+                    payload: {
+                        output: 'data',
+                        parse: true
+                    }
+                }
+            }
+        },
+        cookie: {
+            ttl: 100 * 60 * 1000, // expires a year from today
+            encoding: 'none', // we already used JWT to encode
+            isSecure: true, // warm & fuzzy feelings
+            isHttpOnly: true, // prevent client alteration
+            clearInvalid: false, // remove invalid cookies
+            strictHeader: true // don't allow violations of RFC 6265
+        },
+        swagger: {
+            version: packageJson.version,
+            pathPrefixSize: 2 // this helps extracting the namespace from the second argument of the url
+        },
+        jwt: {
+            cookieKey: 'ut5-cookie',
+            key: 'ut5-secret',
+            verifyOptions: {
+                ignoreExpiration: true,
+                algorithms: ['HS256']
+            }
+        }
     };
     this.hapiServer = {};
     this.routes = [];
@@ -40,125 +71,80 @@ HttpServerPort.prototype.init = function init() {
     Port.prototype.init.apply(this, arguments);
     this.latency = this.counter && this.counter('average', 'lt', 'Latency');
     this.hapiServer = new hapi.Server();
-    this.bus.registerLocal({registerRequestHandler: this.registerRequestHandler.bind(this)}, this.config.id);
+    this.bus.registerLocal({
+        registerRequestHandler: this.registerRequestHandler.bind(this)
+    }, this.config.id);
 };
 
 HttpServerPort.prototype.start = function start() {
     this.bus && this.bus.importMethods(this.config, this.config.imports, undefined, this);
     Port.prototype.start.apply(this, arguments);
     this.stream = through2.obj();
-    this.pipeReverse(this.stream, {trace: 0, callbacks: {}});
-
-    var self = this;
-    var serverBootstrap = [];
-    var ports = this.config.ports;
-    var httpProp = {host: this.config.host};
-
-    if (!ports || (ports.length < 1)) {
-        ports = [this.config.port];
-    }
-
-    var swaggerOptions = {
-        version: packageJson.version,
-        pathPrefixSize: 2 // this helps extracting the namespace from the second argument of the url
-    };
-
-    if (this.config.server) {
-        _.assign(httpProp, this.config.server);
-    }
-
-    if (this.config.swagger) {
-        _.assign(swaggerOptions, this.config.swagger);
-    }
-
-    for (var i = 0, portsLen = ports.length; i < portsLen; i = i + 1) {
-        this.hapiServer.connection(Object.assign({}, httpProp, {port: ports[i]}));
-    }
-    this.hapiServer.register([Inert, Vision], function() {
+    this.pipeReverse(this.stream, {
+        trace: 0,
+        callbacks: {}
     });
-    this.hapiServer.route(this.routes);
-    serverBootstrap
-        .push(when.promise(function(resolve, reject) {
-            // register ut5 handlers
-            self.hapiServer.register({
-                register: handlerGenerator,
-                options: self
-            }, function(err) {
-                if (err) {
-                    return reject({error: err, stage: 'ut5 handlers loading..'});
-                }
-                return resolve('rpc-generator interface loaded');
-            });
-        }));
-    serverBootstrap
-        .push(when.promise(function(resolve, reject) {
-            // register swagger
-            self.hapiServer.register({
-                register: swagger,
-                options: swaggerOptions
-            }, function(err) {
-                if (err) {
-                    return reject({error: err, stage: 'swagger loading'});
-                }
-                return resolve('swagger interface loaded');
-            });
-        }));
-    serverBootstrap
-        .push(when.promise(function(resolve, reject) {
-            if (!self.config.hasOwnProperty('yar')) {
-                resolve('yar not enabled');
-                return;
-            }
-            var yarConfig = self.config.yar || {};
-            if (!yarConfig.hasOwnProperty('maxCookieSize')) {
-                yarConfig.maxCookieSize = 0;
-            }
-            yarConfig.cookieOptions = yarConfig.cookieOptions || {};
-            if (!yarConfig.cookieOptions.password) {
-                yarConfig.cookieOptions.password = 'secret';
-            }
-            self.hapiServer.register({
-                register: require('yar'),
-                options: yarConfig
-            }, function(err) {
-                if (err) {
-                    return reject({error: err, stage: 'http-auth-cookie loading'});
-                }
-                return resolve('yar loaded');
-            });
-        }));
-    serverBootstrap
-        .push(when.promise(function(resolve, reject) {
-            self.hapiServer.start(function(err) {
-                if (err) {
-                    return reject({error: err, stage: 'starting hhtp server'});
-                }
-                return resolve('Http server started at http://' + (httpProp.host || '*') + ':[' + ports.join(',') + ']');
-            });
-        }));
-    serverBootstrap
-        .push(when.promise(function(resolve, reject) {
-            var fileUploadTempDir = self.bus.config.workDir + '/uploads';
-            fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
-                if (err) {
-                    if (err.code === 'ENOENT') {
-                        fs.mkdir(fileUploadTempDir, function(err) {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve('Temp dir for file uploads has been created: ' + fileUploadTempDir);
-                            }
-                        });
-                    } else {
-                        reject(err);
-                    }
+
+    if (this.config.connections && this.config.connections.length) {
+        this.config.connections.forEach((connection) => {
+            this.hapiServer.connection(connection);
+        });
+    } else {
+        this.hapiServer.connection({
+            port: this.config.port || 8080
+        });
+    }
+
+    return new Promise((resolve, reject) => {
+        var fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
+        fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
+            if (err) {
+                if (err.code === 'ENOENT') {
+                    fs.makeTree(fileUploadTempDir, function(err) {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve('Temp dir for file uploads has been created: ' + fileUploadTempDir);
+                        }
+                    });
                 } else {
-                    resolve('Temp dir for file uploads has been verified: ' + fileUploadTempDir);
+                    reject(err);
                 }
-            });
-        }));
-    return when.all(serverBootstrap).then(function(result) {
-        self.log.info && self.log.info({message: result, $meta: {opcode: 'port.started'}});
+            } else {
+                resolve('Temp dir for file uploads has been verified: ' + fileUploadTempDir);
+            }
+        });
+    }).then((dir) => {
+        return this.hapiServer.register([
+            jwt,
+            inert,
+            vision, {
+                register: swagger,
+                options: this.config.swagger
+            }
+        ]);
+    }).then(() => {
+        this.hapiServer.auth.strategy('jwt', 'jwt', true, _.assign({
+            validateFunc: (decoded, request, cb) => {
+                this.bus.importMethod('identity.check')(decoded)
+                    .then((res) => {
+                        cb(null, true);
+                    })
+                    .catch((err) => {
+                        cb(err, false);
+                    });
+            }
+        }, this.config.jwt));
+        this.hapiServer.route(this.routes);
+        this.hapiServer.route(handlers(this));
+        return this.hapiServer.start();
+    }).then(() => {
+        this.log.info && this.log.info({
+            message: 'HTTP server started',
+            $meta: {
+                opcode: 'port.started'
+            }
+        });
     });
 };
 
@@ -204,17 +190,24 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                 publicPath: config.output.publicPath,
                 stats: {
                     colors: true
-                }/*,
-                watchOptions: {
-                    aggregateTimeout: 300,
-                    poll: true,
-                    watch: true
-                }*/
+                }
+                /*,
+                                watchOptions: {
+                                    aggregateTimeout: 300,
+                                    poll: true,
+                                    watch: true
+                                }*/
             };
-            var hot = {publicPath: config.output.publicPath};
+            var hot = {
+                publicPath: config.output.publicPath
+            };
             self.hapiServer.register({
                 register: require('hapi-webpack-plugin'),
-                options: {compiler, assets, hot}
+                options: {
+                    compiler,
+                    assets,
+                    hot
+                }
             }, function(err) {
                 if (err) {
                     reject(err);
