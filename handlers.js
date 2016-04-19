@@ -135,7 +135,8 @@ module.exports = function(port) {
                             .state(
                                 port.config.jwt.cookieKey,
                                 jwt.sign({
-                                    userId: response.userId
+                                    userId: response[0][0].userId,
+                                    sessionId: response[0][0].sessionId
                                 }, port.config.jwt.key),
                                 port.config.cookie);
                     } else {
