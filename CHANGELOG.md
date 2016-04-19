@@ -1,3 +1,17 @@
+<a name="6.0.1"></a>
+## [6.0.1](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.28...v6.0.1) (2016-04-19)
+
+
+### Bug Fixes
+
+* **cookie:** correct data to be set ([0fb5dd8](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/0fb5dd8))
+
+### Features
+
+* add jwt ([b17aeaa](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/b17aeaa))
+
+
+
 <a name="5.3.28"></a>
 ## [5.3.28](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.27...v5.3.28) (2016-04-15)
 
