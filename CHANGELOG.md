@@ -1,3 +1,13 @@
+<a name="6.0.2"></a>
+## [6.0.2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.1...v6.0.2) (2016-04-21)
+
+
+### Bug Fixes
+
+* **permission.get:** added object id as constraint ([8ff5316](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/8ff5316))
+
+
+
 <a name="6.0.1"></a>
 ## [6.0.1](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v5.3.28...v6.0.1) (2016-04-19)
 
