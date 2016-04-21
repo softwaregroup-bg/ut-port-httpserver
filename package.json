@@ -11,6 +11,7 @@
     "lodash": "3.10.1",
     "through2": "2.0.1",
     "when": "3.7.7",
+    "ut-error": "~5.3.6",
     "vision": "4.1.0"
   },
   "devDependencies": {
