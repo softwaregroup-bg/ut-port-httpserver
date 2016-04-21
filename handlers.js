@@ -156,6 +156,7 @@ module.exports = function(port) {
         if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.get') {
             when(port.bus.importMethod('permission.get')({
                 actionId: request.payload.method,
+                objectId: '%',
                 userId: request.auth.credentials.userId
             }))
             .then(procesMessage)
