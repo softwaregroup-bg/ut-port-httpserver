@@ -153,37 +153,19 @@ module.exports = function(port) {
                 }, request, err);
             }
         };
-        if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.check') {
-            when(port.bus.importMethod('permission.check')(request.payload.method, {
-                session: request.session.get('session')
+        if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.get') {
+            when(port.bus.importMethod('permission.get')({
+                actionId: request.payload.method,
+                userId: request.auth.credentials.userId
             }))
-            .then(function(permissions) {
-                if (request.session) {
-                    var session = request.session.get('session');
-                    if (session) {
-                        session.permissions = permissions;
-                        request.session.set('session', session);
-                    }
-                }
-                return permissions;
-            })
             .then(procesMessage)
-            .catch(function(err) {
-                if (err.permissions) {
-                    if (request.session) {
-                        var session = request.session.get('session');
-                        if (session) {
-                            session.permissions = err.permissions;
-                            request.session.set('session', session);
-                        }
-                    }
-                }
-                return handleError({
+            .catch((err) => (
+                handleError({
                     code: err.code || '-1',
                     message: err.message,
                     errorPrint: err.errorPrint || err.message
-                }, request, err);
-            })
+                }, request, err)
+            ))
             .done();
         } else {
             return procesMessage();
