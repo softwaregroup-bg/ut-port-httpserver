@@ -161,7 +161,7 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
     return when.promise(function(resolve, reject) {
         if (self.hotReload) {
             resolve(true);
-        } else if (self.config.packer === 'webpack') {
+        } else if (self.config.packer && self.config.packer.name === 'webpack') {
             var webpack = require('webpack');
             if (!_.isObject(config.output)) {
                 return reject(new Error('config.output must be an Object'));
