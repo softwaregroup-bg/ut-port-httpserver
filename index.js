@@ -157,11 +157,10 @@ HttpServerPort.prototype.registerRequestHandler = function(handlers) {
 };
 
 HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
-    var self = this;
-    return when.promise(function(resolve, reject) {
-        if (self.hotReload) {
+    return when.promise((resolve, reject) => {
+        if (this.hotReload) {
             resolve(true);
-        } else if (self.config.packer && self.config.packer.name === 'webpack') {
+        } else if (this.config.packer && this.config.packer.name === 'webpack') {
             var webpack = require('webpack');
             if (!_.isObject(config.output)) {
                 return reject(new Error('config.output must be an Object'));
@@ -185,23 +184,24 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
             }
             config.plugins.push(new webpack.HotModuleReplacementPlugin());
             var compiler = webpack(config);
-            var assets = {
+            var assets = _.assign({
                 noInfo: true,
                 publicPath: config.output.publicPath,
                 stats: {
                     colors: true
+                },
+                watchOptions: {
+                    aggregateTimeout: 300,
+                    poll: true,
+                    watch: true
                 }
-                /*,
-                                watchOptions: {
-                                    aggregateTimeout: 300,
-                                    poll: true,
-                                    watch: true
-                                }*/
-            };
-            var hot = {
+            }, (this.config.packer && this.config.packer.devMiddleware) || {});
+
+            var hot = _.assign({
                 publicPath: config.output.publicPath
-            };
-            self.hapiServer.register({
+            }, (this.config.packer && this.config.packer.hotMiddleware) || {});
+
+            this.hapiServer.register({
                 register: require('hapi-webpack-plugin'),
                 options: {
                     compiler,
@@ -212,7 +212,7 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                 if (err) {
                     reject(err);
                 } else {
-                    self.hotReload = true;
+                    this.hotReload = true;
                     resolve(true);
                 }
             });
