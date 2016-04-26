@@ -1,3 +1,13 @@
+<a name="6.0.4"></a>
+## [6.0.4](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.3...v6.0.4) (2016-04-26)
+
+
+### Bug Fixes
+
+* **hotReload:** additional configuration allowed ([3d74d13](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/3d74d13))
+
+
+
 <a name="6.0.3"></a>
 ## [6.0.3](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.2...v6.0.3) (2016-04-26)
 
