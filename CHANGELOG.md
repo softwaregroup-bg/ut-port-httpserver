@@ -1,3 +1,13 @@
+<a name="6.0.3"></a>
+## [6.0.3](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.2...v6.0.3) (2016-04-26)
+
+
+### Bug Fixes
+
+* change packer to packer.name as per latest http server config spec ([3cde81c](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/3cde81c))
+
+
+
 <a name="6.0.2"></a>
 ## [6.0.2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.1...v6.0.2) (2016-04-21)
 
