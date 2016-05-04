@@ -128,9 +128,11 @@ HttpServerPort.prototype.start = function start() {
             validateFunc: (decoded, request, cb) => {
                 this.bus.importMethod('identity.check')(decoded)
                     .then((res) => {
+                        this.log.info && this.log.info('identity.check passed');
                         cb(null, true);
                     })
                     .catch((err) => {
+                        this.log.error && this.log.error(`identity.check didn\'t pass: ${JSON.stringify(err)} ${JSON.stringify(decoded)}`);
                         cb(err, false);
                     });
             }

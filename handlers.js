@@ -157,7 +157,8 @@ module.exports = function(port) {
             when(port.bus.importMethod('permission.get')({
                 actionId: request.payload.method,
                 objectId: '%',
-                userId: request.auth.credentials.userId
+                requesterUserId: request.auth.credentials.userId,
+                requestedUserId: request.auth.credentials.userId
             }))
             .then(procesMessage)
             .catch((err) => (
