@@ -61,18 +61,20 @@ module.exports = function(port) {
             }
         };
 
-        var pathComponents = request.route.path.split('/').filter(function(x) { // normalize array
-            // '/rpc' ---> ['', 'rpc'] , '/rpc/' ---> ['', 'rpc', '']
-            return x !== '';
-        });
-        if (pathComponents.length > 1 && pathComponents[0] === 'rpc' && !request.payload.jsonrpc) {
+        if (request.params.method && !request.payload.jsonrpc) {
             request.payload = {
-                method: pathComponents.slice(1).join('.'),
+                method: request.params.method,
                 jsonrpc: '2.0',
                 id: '1',
                 params: cloneDeep(request.payload)
             };
             isRPC = false;
+        } else if (request.params.method && request.payload.jsonrpc && request.params.method !== request.payload.method) {
+            return handleError({
+                code: '-1',
+                message: 'Invalid request method, url method and jsonRpc method should be the same',
+                errorPrint: 'Invalid request method, url method and jsonRpc method should be the same'
+            }, {});
         }
         var endReply = {
             jsonrpc: '2.0',
@@ -90,7 +92,7 @@ module.exports = function(port) {
         var procesMessage = function() {
             try {
                 var $meta = {
-                    auth: request.payload.auth,
+                    auth: request.auth.credentials,
                     method: request.payload.method,
                     opcode: request.payload.method.split('.').pop(),
                     mtid: 'request',
@@ -153,25 +155,22 @@ module.exports = function(port) {
                 }, request, err);
             }
         };
-        if (checkPermission && request.payload.method !== 'identity.check' && request.payload.method !== 'permission.get') {
-            when(port.bus.importMethod('permission.get')({
-                actionId: request.payload.method,
-                objectId: '%',
-                requesterUserId: request.auth.credentials.userId,
-                requestedUserId: request.auth.credentials.userId
-            }))
-            .then(procesMessage)
-            .catch((err) => (
-                handleError({
-                    code: err.code || '-1',
-                    message: err.message,
-                    errorPrint: err.errorPrint || err.message
-                }, request, err)
-            ))
-            .done();
-        } else {
-            return procesMessage();
-        }
+        port.bus.importMethod('identity.check')(assign({}, request.auth.credentials, request.payload.params))
+        .then((res) => {
+            if (request.payload.method === 'identity.check') {
+                endReply.result = res;
+                return reply(endReply);
+            } else {
+                return procesMessage();
+            }
+        })
+        .catch((err) => (
+            handleError({
+                code: err.code || '-1',
+                message: err.message,
+                errorPrint: err.errorPrint || err.message
+            }, request, err)
+        ));
     };
 
     pendingRoutes.unshift(assign({
@@ -179,7 +178,10 @@ module.exports = function(port) {
     }, port.config.routes.rpc));
 
     pendingRoutes.unshift(assign({
-        handler: rpcHandler
+        handler: (req, repl) => {
+            req.params.method = 'identity.check';
+            return rpcHandler(req, repl);
+        }
     }, port.config.routes.rpc, {
         path: '/rpc/identity.check',
         config: {

@@ -125,17 +125,7 @@ HttpServerPort.prototype.start = function start() {
         ]);
     }).then(() => {
         this.hapiServer.auth.strategy('jwt', 'jwt', true, _.assign({
-            validateFunc: (decoded, request, cb) => {
-                this.bus.importMethod('identity.check')(decoded)
-                    .then((res) => {
-                        this.log.info && this.log.info('identity.check passed');
-                        cb(null, true);
-                    })
-                    .catch((err) => {
-                        this.log.error && this.log.error(`identity.check didn\'t pass: ${JSON.stringify(err)} ${JSON.stringify(decoded)}`);
-                        cb(err, false);
-                    });
-            }
+            validateFunc: (decoded, request, cb) => (cb(null, true)) // errors will be matched in the rpc handler
         }, this.config.jwt));
         this.hapiServer.route(this.routes);
         this.hapiServer.route(handlers(this));
