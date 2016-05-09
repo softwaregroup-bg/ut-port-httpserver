@@ -8,8 +8,6 @@ module.exports = function(port) {
     var httpMethods = {};
     var pendingRoutes = [];
 
-    var checkPermission = (port.config && port.config.checkPermission) || (port.bus.config && port.bus.config.checkPermission);
-
     var rpcHandler = function rpcHandler(request, _reply) {
         var startTime = process.hrtime();
         if (request.payload && request.payload.method === 'identity.closeSession') {
