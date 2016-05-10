@@ -1,3 +1,13 @@
+<a name="6.0.9"></a>
+## [6.0.9](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.8...v6.0.9) (2016-05-10)
+
+
+### Bug Fixes
+
+* dead code removed([57b5847](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/57b5847))
+
+
+
 <a name="6.0.8"></a>
 ## [6.0.8](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.7...v6.0.8) (2016-05-10)
 
