@@ -95,7 +95,8 @@ module.exports = function(port) {
                     opcode: request.payload.method.split('.').pop(),
                     mtid: 'request',
                     requestHeaders: request.headers,
-                    session: request.session && request.session.get('session')
+                    ipAddress: request.info && request.info.remoteAddress,
+                    frontEnd: request.headers && request.headers['user-agent']
                 };
                 // if(options.config && options.config.yar) {
                 //    incMsg.$$.request = request;
@@ -150,7 +151,7 @@ module.exports = function(port) {
                     .state(
                     port.config.jwt.cookieKey,
                     jwt.sign({
-                        userId: res['identity.check'][0].userId,
+                        actorId: res['identity.check'][0].actorId,
                         sessionId: res['identity.check'][0].sessionId
                     }, port.config.jwt.key),
                     port.config.cookie);
