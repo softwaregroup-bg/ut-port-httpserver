@@ -10,9 +10,6 @@ module.exports = function(port) {
 
     var rpcHandler = function rpcHandler(request, _reply) {
         var startTime = process.hrtime();
-        if (request.payload && request.payload.method === 'identity.closeSession') {
-            request.session.reset();
-        }
         port.log.trace && port.log.trace({
             payload: request.payload
         });
