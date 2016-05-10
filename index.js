@@ -176,19 +176,21 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
             }
             config.plugins.push(new webpack.HotModuleReplacementPlugin());
             var compiler = webpack(config);
-            var assets = _.assign({
+            var assetsConfig = {
                 noInfo: true,
                 publicPath: config.output.publicPath,
                 stats: {
                     colors: true
-                },
-                watchOptions: {
+                }
+            };
+            if (process.platform !== 'win32') {
+                assetsConfig.watchOptions = {
                     aggregateTimeout: 300,
                     poll: true,
                     watch: true
-                }
-            }, (this.config.packer && this.config.packer.devMiddleware) || {});
-
+                };
+            }
+            var assets = _.assign(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
             var hot = _.assign({
                 publicPath: config.output.publicPath
             }, (this.config.packer && this.config.packer.hotMiddleware) || {});
