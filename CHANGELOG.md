@@ -1,3 +1,13 @@
+<a name="6.0.7"></a>
+## [6.0.7](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.6...v6.0.7) (2016-05-10)
+
+
+### Bug Fixes
+
+* **cookie:** return correct cookie when identity check is called([b8532ec](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/b8532ec))
+
+
+
 <a name="6.0.6"></a>
 ## [6.0.6](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.5...v6.0.6) (2016-05-10)
 
