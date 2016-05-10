@@ -130,18 +130,7 @@ module.exports = function(port) {
                         endReply.resultLength = response.length;
                     }
                     endReply.result = response;
-                    if (request.payload.method === 'identity.check') {
-                        reply(endReply, $meta.responseHeaders)
-                            .state(
-                                port.config.jwt.cookieKey,
-                                jwt.sign({
-                                    userId: response[0][0].userId,
-                                    sessionId: response[0][0].sessionId
-                                }, port.config.jwt.key),
-                                port.config.cookie);
-                    } else {
-                        reply(endReply, $meta.responseHeaders);
-                    }
+                    reply(endReply, $meta.responseHeaders);
                     return true;
                 };
                 port.stream.write([request.payload.params || {}, $meta]);
@@ -157,7 +146,14 @@ module.exports = function(port) {
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
-                return reply(endReply);
+                return reply(endReply)
+                    .state(
+                    port.config.jwt.cookieKey,
+                    jwt.sign({
+                        userId: res['identity.check'][0].userId,
+                        sessionId: res['identity.check'][0].sessionId
+                    }, port.config.jwt.key),
+                    port.config.cookie);
             } else {
                 return procesMessage();
             }
