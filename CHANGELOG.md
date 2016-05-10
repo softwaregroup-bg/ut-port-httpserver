@@ -1,3 +1,13 @@
+<a name="6.0.5"></a>
+## [6.0.5](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.4...v6.0.5) (2016-05-10)
+
+
+### Bug Fixes
+
+* **cleanup:** remove unused([98c5bae](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/98c5bae))
+
+
+
 <a name="6.0.4"></a>
 ## [6.0.4](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.3...v6.0.4) (2016-04-26)
 
