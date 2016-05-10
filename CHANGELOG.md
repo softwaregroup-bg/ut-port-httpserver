@@ -1,3 +1,13 @@
+<a name="6.0.6"></a>
+## [6.0.6](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.5...v6.0.6) (2016-05-10)
+
+
+### Bug Fixes
+
+* don't add watchOptions if platform is windows([b7d9bc5](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/b7d9bc5))
+
+
+
 <a name="6.0.5"></a>
 ## [6.0.5](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.4...v6.0.5) (2016-05-10)
 
