@@ -1,3 +1,13 @@
+<a name="6.0.8"></a>
+## [6.0.8](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.7...v6.0.8) (2016-05-10)
+
+
+### Features
+
+* pass IP address and user agent in $meta([69daae2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/69daae2))
+
+
+
 <a name="6.0.7"></a>
 ## [6.0.7](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.6...v6.0.7) (2016-05-10)
 
