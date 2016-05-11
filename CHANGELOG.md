@@ -1,3 +1,13 @@
+<a name="6.0.10"></a>
+## [6.0.10](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.9...v6.0.10) (2016-05-11)
+
+
+### Bug Fixes
+
+* **permission:** check for action permission ([1b2fd00](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/1b2fd00))
+
+
+
 <a name="6.0.9"></a>
 ## [6.0.9](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.8...v6.0.9) (2016-05-10)
 
