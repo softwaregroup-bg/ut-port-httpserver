@@ -153,7 +153,17 @@ module.exports = function(port) {
                     }, port.config.jwt.key),
                     port.config.cookie);
             } else {
-                return procesMessage();
+                var permit = res['permission.get'].filter((val) => {
+                    return val.actionId === request.payload.method && val.objectId === '%';
+                }).length > 0;
+                if (permit) {
+                    return procesMessage();
+                }
+                return handleError({
+                    code: '-1',
+                    message: `Missing Pemission for ${request.payload.method}`,
+                    errorPrint: `Missing Pemission for ${request.payload.method}`
+                }, {});
             }
         })
         .catch((err) => (
