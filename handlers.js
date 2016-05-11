@@ -153,9 +153,7 @@ module.exports = function(port) {
                     }, port.config.jwt.key),
                     port.config.cookie);
             } else {
-                var permit = res['permission.get'].filter((val) => {
-                    return val.actionId === request.payload.method && val.objectId === '%';
-                }).length > 0;
+                var permit = (res['permission.get'] || []).filter((val) => (val.actionId === request.payload.method && val.objectId === '%')).length > 0;
                 if (permit) {
                     return procesMessage();
                 }
