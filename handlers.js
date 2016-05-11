@@ -152,6 +152,8 @@ module.exports = function(port) {
                         sessionId: res['identity.check'][0].sessionId
                     }, port.config.jwt.key),
                     port.config.cookie);
+            } else if (request.payload.method === 'permission.get') {
+                return procesMessage();
             } else {
                 var permit = (res['permission.get'] || []).filter((val) => (val.actionId === request.payload.method && val.objectId === '%')).length > 0;
                 if (permit) {
