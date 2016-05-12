@@ -8,6 +8,7 @@ var jwt = require('hapi-auth-jwt2');
 var when = require('when');
 var _ = {
     assign: require('lodash/object/assign'),
+    merge: require('lodash/object/merge'),
     isArray: require('lodash/lang/isArray'),
     isObject: require('lodash/lang/isObject'),
     isString: require('lodash/lang/isString')
@@ -190,6 +191,7 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                     watch: true
                 };
             }
+            assetsConfig = _.merge(assetsConfig, this.config.packer.assets);
             var assets = _.assign(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
             var hot = _.assign({
                 publicPath: config.output.publicPath
