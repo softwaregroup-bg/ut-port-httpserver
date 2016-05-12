@@ -140,7 +140,8 @@ module.exports = function(port) {
                 }, request, err);
             }
         };
-        port.bus.importMethod('identity.check')(assign({}, request.auth.credentials, request.payload.params))
+
+        port.bus.importMethod('identity.check')(request.payload.method === 'identity.check' ? request.payload.params : request.auth.credentials)
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
