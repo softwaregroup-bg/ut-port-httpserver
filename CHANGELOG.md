@@ -1,3 +1,13 @@
+<a name="6.0.11"></a>
+## [6.0.11](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.10...v6.0.11) (2016-05-12)
+
+
+### Bug Fixes
+
+* do we need a permission to get permissions? ([b29254b](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/b29254b))
+
+
+
 <a name="6.0.10"></a>
 ## [6.0.10](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.9...v6.0.10) (2016-05-11)
 
