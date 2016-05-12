@@ -1,3 +1,13 @@
+<a name="6.0.13"></a>
+## [6.0.13](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.12...v6.0.13) (2016-05-12)
+
+
+### Bug Fixes
+
+* **config:** passing the config ([9034977](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/9034977))
+
+
+
 <a name="6.0.12"></a>
 ## [6.0.12](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.11...v6.0.12) (2016-05-12)
 
