@@ -134,9 +134,10 @@ module.exports = function(port) {
                 port.stream.write([request.payload.params || {}, $meta]);
             } catch (err) {
                 return handleError({
-                    code: '-1',
+                    code: err.code || '-1',
                     message: err.message,
-                    errorPrint: err.message
+                    errorPrint: err.message,
+                    type: err.type
                 }, request, err);
             }
         };
@@ -171,7 +172,8 @@ module.exports = function(port) {
             handleError({
                 code: err.code || '-1',
                 message: err.message,
-                errorPrint: err.errorPrint || err.message
+                errorPrint: err.errorPrint || err.message,
+                type: err.type
             }, request, err)
         ));
     };
