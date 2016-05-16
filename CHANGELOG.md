@@ -1,3 +1,13 @@
+<a name="6.0.14"></a>
+## [6.0.14](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.13...v6.0.14) (2016-05-16)
+
+
+### Bug Fixes
+
+* return error type ([2a385a0](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/2a385a0))
+
+
+
 <a name="6.0.13"></a>
 ## [6.0.13](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.12...v6.0.13) (2016-05-12)
 
