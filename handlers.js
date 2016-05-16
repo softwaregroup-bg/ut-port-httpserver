@@ -142,7 +142,7 @@ module.exports = function(port) {
             }
         };
 
-        port.bus.importMethod('identity.check')(request.payload.method === 'identity.check' ? request.payload.params : request.auth.credentials)
+        port.bus.importMethod('identity.check')(request.payload.method === 'identity.check' ? assign({}, request.payload.params, request.auth.credentials) : request.auth.credentials)
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
@@ -188,7 +188,7 @@ module.exports = function(port) {
             return rpcHandler(req, repl);
         }
     }, port.config.routes.rpc, {
-        path: '/rpc/identity.check',
+        path: '/login',
         config: {
             auth: false
         }
