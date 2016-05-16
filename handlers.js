@@ -150,8 +150,8 @@ module.exports = function(port) {
                     .state(
                     port.config.jwt.cookieKey,
                     jwt.sign({
-                        actorId: res['identity.check'][0].actorId,
-                        sessionId: res['identity.check'][0].sessionId
+                        actorId: res['identity.check'].actorId,
+                        sessionId: res['identity.check'].sessionId
                     }, port.config.jwt.key),
                     port.config.cookie);
             } else if (request.payload.method === 'permission.get') {
