@@ -1,3 +1,14 @@
+<a name="6.0.15"></a>
+## [6.0.15](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.14...v6.0.15) (2016-05-16)
+
+
+### Bug Fixes
+
+* **identityCheck:** return correct response ([c3a38d8](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/c3a38d8))
+* **login:** proper handling of login ([1b4a28a](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/1b4a28a))
+
+
+
 <a name="6.0.14"></a>
 ## [6.0.14](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.13...v6.0.14) (2016-05-16)
 
