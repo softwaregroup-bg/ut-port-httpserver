@@ -142,7 +142,9 @@ module.exports = function(port) {
             }
         };
 
-        port.bus.importMethod('identity.check')(request.payload.method === 'identity.check' ? assign({}, request.payload.params, request.auth.credentials) : request.auth.credentials)
+        port.bus.importMethod('identity.check')(
+            request.payload.method === 'identity.check' ? assign({}, request.payload.params, request.auth.credentials)
+                : assign({actionId: request.payload.method}, request.auth.credentials))
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
@@ -157,15 +159,15 @@ module.exports = function(port) {
             } else if (request.payload.method === 'permission.get') {
                 return procesMessage();
             } else {
-                var permit = (res['permission.get'] || []).filter((val) => (val.actionId === request.payload.method && val.objectId === '%')).length > 0;
-                if (permit) {
+                if (res['permission.get'] && res['permission.get'].length) {
                     return procesMessage();
+                } else {
+                    return handleError({
+                        code: '-1',
+                        message: `Missing Pemission for ${request.payload.method}`,
+                        errorPrint: `Missing Pemission for ${request.payload.method}`
+                    }, {});
                 }
-                return handleError({
-                    code: '-1',
-                    message: `Missing Pemission for ${request.payload.method}`,
-                    errorPrint: `Missing Pemission for ${request.payload.method}`
-                }, {});
             }
         })
         .catch((err) => (
