@@ -148,14 +148,18 @@ module.exports = function(port) {
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
-                return reply(endReply)
-                    .state(
-                    port.config.jwt.cookieKey,
-                    jwt.sign({
-                        actorId: res['identity.check'].actorId,
-                        sessionId: res['identity.check'].sessionId
-                    }, port.config.jwt.key),
-                    port.config.cookie);
+                if (res['identity.check'] && res['identity.check'].sessionId) {
+                    return reply(endReply)
+                        .state(
+                        port.config.jwt.cookieKey,
+                        jwt.sign({
+                            actorId: res['identity.check'].actorId,
+                            sessionId: res['identity.check'].sessionId
+                        }, port.config.jwt.key),
+                        port.config.cookie);
+                } else {
+                    reply(endReply);
+                }
             } else if (request.payload.method === 'permission.get') {
                 return procesMessage();
             } else {
