@@ -158,7 +158,7 @@ module.exports = function(port) {
                         }, port.config.jwt.key),
                         port.config.cookie);
                 } else {
-                    reply(endReply);
+                    return reply(endReply);
                 }
             } else if (request.payload.method === 'permission.get') {
                 return procesMessage();
