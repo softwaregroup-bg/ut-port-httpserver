@@ -84,7 +84,7 @@ module.exports = function(port) {
         }
         endReply.id = request.payload.id;
 
-        var procesMessage = function() {
+        var procesMessage = function(end) {
             try {
                 var $meta = {
                     auth: request.auth.credentials,
@@ -128,6 +128,9 @@ module.exports = function(port) {
                         endReply.resultLength = response.length;
                     }
                     endReply.result = response;
+                    if (end && typeof (end) === 'function') {
+                        return end(reply(endReply, $meta.responseHeaders));
+                    }
                     reply(endReply, $meta.responseHeaders);
                     return true;
                 };
@@ -142,6 +145,16 @@ module.exports = function(port) {
             }
         };
 
+        if (request.payload.method === 'identity.closeSession' && request.auth && request.auth.credentials) {
+            return procesMessage((repl) => {
+                repl
+                .state(
+                    port.config.jwt.cookieKey,
+                    '',
+                    port.config.cookie
+                );
+            });
+        }
         port.bus.importMethod('identity.check')(
             request.payload.method === 'identity.check' ? assign({}, request.payload.params, request.auth.credentials)
                 : assign({actionId: request.payload.method}, request.auth.credentials))
@@ -151,12 +164,13 @@ module.exports = function(port) {
                 if (res['identity.check'] && res['identity.check'].sessionId) {
                     return reply(endReply)
                         .state(
-                        port.config.jwt.cookieKey,
-                        jwt.sign({
-                            actorId: res['identity.check'].actorId,
-                            sessionId: res['identity.check'].sessionId
-                        }, port.config.jwt.key),
-                        port.config.cookie);
+                            port.config.jwt.cookieKey,
+                            jwt.sign({
+                                actorId: res['identity.check'].actorId,
+                                sessionId: res['identity.check'].sessionId
+                            }, port.config.jwt.key),
+                            port.config.cookie
+                        );
                 } else {
                     return reply(endReply);
                 }
