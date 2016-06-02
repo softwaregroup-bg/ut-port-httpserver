@@ -1,3 +1,13 @@
+<a name="6.0.18"></a>
+## [6.0.18](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.17...v6.0.18) (2016-06-02)
+
+
+### Features
+
+* **logout:** do logout without ([a01f49b](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/a01f49b))
+
+
+
 <a name="6.0.17"></a>
 ## [6.0.17](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.16...v6.0.17) (2016-05-30)
 
