@@ -1,3 +1,14 @@
+<a name="6.0.19"></a>
+## [6.0.19](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.18...v6.0.19) (2016-06-08)
+
+
+### Bug Fixes
+
+* update dependencies ([3e6899a](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/3e6899a))
+* upgrade lodash ([96bae2f](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/96bae2f))
+
+
+
 <a name="6.0.18"></a>
 ## [6.0.18](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.17...v6.0.18) (2016-06-02)
 
