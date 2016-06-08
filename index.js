@@ -7,11 +7,11 @@ var vision = require('vision');
 var jwt = require('hapi-auth-jwt2');
 var when = require('when');
 var _ = {
-    assign: require('lodash/object/assign'),
-    merge: require('lodash/object/merge'),
-    isArray: require('lodash/lang/isArray'),
-    isObject: require('lodash/lang/isObject'),
-    isString: require('lodash/lang/isString')
+    assign: require('lodash.assign'),
+    merge: require('lodash.merge'),
+    isArray: require('lodash.isarray'),
+    isObject: require('lodash.isobject'),
+    isString: require('lodash.isstring')
 };
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');

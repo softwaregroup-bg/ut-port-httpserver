@@ -1,5 +1,5 @@
-var assign = require('lodash/object/assign');
-var cloneDeep = require('lodash/lang/cloneDeep');
+var assign = require('lodash.assign');
+var cloneDeep = require('lodash.clonedeep');
 var when = require('when');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
