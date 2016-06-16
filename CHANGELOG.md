@@ -1,3 +1,13 @@
+<a name="6.0.20"></a>
+## [6.0.20](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.19...v6.0.20) (2016-06-16)
+
+
+### Features
+
+* upgrade inert ([530bc19](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/530bc19))
+
+
+
 <a name="6.0.19"></a>
 ## [6.0.19](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.18...v6.0.19) (2016-06-08)
 
