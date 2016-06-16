@@ -6,7 +6,7 @@
     "hapi": "13.3.0",
     "hapi-auth-jwt2": "5.8.0",
     "hapi-swagger": "5.0.1",
-    "inert": "3.2.0",
+    "inert": "4.0.0",
     "jsonwebtoken": "5.7.0",
     "lodash.assign": "4.0.9",
     "lodash.clonedeep": "4.3.2",
