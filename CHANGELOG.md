@@ -1,3 +1,13 @@
+<a name="6.0.21"></a>
+## [6.0.21](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.20...v6.0.21) (2016-06-23)
+
+
+### Bug Fixes
+
+* upgrade webpack ([00d7eaa](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/00d7eaa))
+
+
+
 <a name="6.0.20"></a>
 ## [6.0.20](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.19...v6.0.20) (2016-06-16)
 
