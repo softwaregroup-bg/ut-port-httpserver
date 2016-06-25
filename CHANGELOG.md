@@ -1,3 +1,13 @@
+<a name="6.0.22"></a>
+## [6.0.22](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.21...v6.0.22) (2016-06-25)
+
+
+### Features
+
+* allow self registration ([59c75c9](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/59c75c9))
+
+
+
 <a name="6.0.21"></a>
 ## [6.0.21](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.20...v6.0.21) (2016-06-23)
 
