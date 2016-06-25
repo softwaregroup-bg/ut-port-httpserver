@@ -84,7 +84,7 @@ module.exports = function(port) {
         }
         endReply.id = request.payload.id;
 
-        var procesMessage = function(end) {
+        var processMessage = function(end) {
             try {
                 var $meta = {
                     auth: request.auth.credentials,
@@ -146,14 +146,12 @@ module.exports = function(port) {
         };
 
         if (request.payload.method === 'identity.closeSession' && request.auth && request.auth.credentials) {
-            return procesMessage((repl) => {
-                repl
-                .state(
-                    port.config.jwt.cookieKey,
-                    '',
-                    port.config.cookie
-                );
+            return processMessage((repl) => {
+                repl.state(port.config.jwt.cookieKey, '', port.config.cookie);
             });
+        }
+        if (request.payload.method === 'identity.add') { // todo use standard processing once identity.check works for ananymous
+            return processMessage();
         }
         port.bus.importMethod('identity.check')(
             request.payload.method === 'identity.check' ? assign({}, request.payload.params, request.auth.credentials)
@@ -175,10 +173,10 @@ module.exports = function(port) {
                     return reply(endReply);
                 }
             } else if (request.payload.method === 'permission.get') {
-                return procesMessage();
+                return processMessage();
             } else {
                 if (res['permission.get'] && res['permission.get'].length) {
-                    return procesMessage();
+                    return processMessage();
                 } else {
                     return handleError({
                         code: '-1',
@@ -209,6 +207,18 @@ module.exports = function(port) {
         }
     }, port.config.routes.rpc, {
         path: '/login',
+        config: {
+            auth: false
+        }
+    }));
+
+    pendingRoutes.unshift(assign({
+        handler: (req, repl) => {
+            req.params.method = 'identity.add';
+            return rpcHandler(req, repl);
+        }
+    }, port.config.routes.rpc, {
+        path: '/register',
         config: {
             auth: false
         }
