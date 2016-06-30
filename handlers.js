@@ -165,7 +165,8 @@ module.exports = function(port) {
                             port.config.jwt.cookieKey,
                             jwt.sign({
                                 actorId: res['identity.check'].actorId,
-                                sessionId: res['identity.check'].sessionId
+                                sessionId: res['identity.check'].sessionId,
+                                language: res.language && res.language.iso2Code || ''
                             }, port.config.jwt.key),
                             port.config.cookie
                         );
