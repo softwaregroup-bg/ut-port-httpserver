@@ -54,7 +54,7 @@ module.exports = function(port) {
             } else {
                 return reply(msg);
             }
-        };
+        }
 
         if (request.params.method && !request.payload.jsonrpc) {
             request.payload = {
@@ -84,7 +84,8 @@ module.exports = function(port) {
         }
         endReply.id = request.payload.id;
 
-        var processMessage = function(end) {
+        var processMessage = function(msgOptions) {
+            msgOptions = msgOptions || {};
             try {
                 var $meta = {
                     auth: request.auth.credentials,
@@ -95,6 +96,9 @@ module.exports = function(port) {
                     ipAddress: request.info && request.info.remoteAddress,
                     frontEnd: request.headers && request.headers['user-agent']
                 };
+                if (msgOptions.language) {
+                    $meta.language = msgOptions.language;
+                }
                 // if(options.config && options.config.yar) {
                 //    incMsg.$$.request = request;
                 // }
@@ -128,8 +132,8 @@ module.exports = function(port) {
                         endReply.resultLength = response.length;
                     }
                     endReply.result = response;
-                    if (end && typeof (end) === 'function') {
-                        return end(reply(endReply, $meta.responseHeaders));
+                    if (msgOptions.end && typeof (msgOptions.end) === 'function') {
+                        return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
                     }
                     reply(endReply, $meta.responseHeaders);
                     return true;
@@ -165,8 +169,7 @@ module.exports = function(port) {
                             port.config.jwt.cookieKey,
                             jwt.sign({
                                 actorId: res['identity.check'].actorId,
-                                sessionId: res['identity.check'].sessionId,
-                                language: res.language && res.language.iso2Code || ''
+                                sessionId: res['identity.check'].sessionId
                             }, port.config.jwt.key),
                             port.config.cookie
                         );
@@ -177,7 +180,9 @@ module.exports = function(port) {
                 return processMessage();
             } else {
                 if (res['permission.get'] && res['permission.get'].length) {
-                    return processMessage();
+                    return processMessage({
+                        language: res.language
+                    });
                 } else {
                     return handleError({
                         code: '-1',
