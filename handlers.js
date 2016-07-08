@@ -1,4 +1,5 @@
 var assign = require('lodash.assign');
+var merge = require('lodash.merge');
 var cloneDeep = require('lodash.clonedeep');
 var when = require('when');
 var fs = require('fs');
@@ -202,11 +203,11 @@ module.exports = function(port) {
         ));
     };
 
-    pendingRoutes.unshift(assign({
+    pendingRoutes.unshift(merge({
         handler: rpcHandler
     }, port.config.routes.rpc));
 
-    pendingRoutes.unshift(assign({
+    pendingRoutes.unshift(merge({
         handler: (req, repl) => {
             req.params.method = 'identity.check';
             return rpcHandler(req, repl);
@@ -218,7 +219,7 @@ module.exports = function(port) {
         }
     }));
 
-    pendingRoutes.unshift(assign({
+    pendingRoutes.unshift(merge({
         handler: (req, repl) => {
             req.params.method = 'identity.add';
             return rpcHandler(req, repl);
