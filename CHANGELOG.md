@@ -1,3 +1,13 @@
+<a name="6.0.23"></a>
+## [6.0.23](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.22...v6.0.23) (2016-07-08)
+
+
+### Bug Fixes
+
+* merge configuration properly ([758ce7b](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/758ce7b))
+
+
+
 <a name="6.0.22"></a>
 ## [6.0.22](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.21...v6.0.22) (2016-06-25)
 
