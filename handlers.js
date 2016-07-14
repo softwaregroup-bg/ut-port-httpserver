@@ -14,7 +14,6 @@ module.exports = function(port) {
         port.log.trace && port.log.trace({
             payload: request.payload
         });
-        var isRPC = true;
 
         function addTime() {
             if (port.latency) {
@@ -24,16 +23,8 @@ module.exports = function(port) {
         }
 
         var reply = function(resp, headers) {
-            var _resp;
-            if (!isRPC) {
-                _resp = resp.result || {
-                    error: resp.error
-                };
-            } else {
-                _resp = resp;
-            }
             addTime();
-            var repl = _reply(_resp);
+            var repl = _reply(resp);
             headers && Object.keys(headers).forEach(function(header) {
                 repl.header(header, headers[header]);
             });
@@ -64,7 +55,6 @@ module.exports = function(port) {
                 id: '1',
                 params: cloneDeep(request.payload)
             };
-            isRPC = false;
         } else if (request.params.method && request.payload.jsonrpc && request.params.method !== request.payload.method) {
             return handleError({
                 code: '-1',
