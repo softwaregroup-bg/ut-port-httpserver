@@ -1,3 +1,13 @@
+<a name="6.1.2"></a>
+## [6.1.2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.1...v6.1.2) (2016-07-14)
+
+
+### Features
+
+* swagger validation integration ([806dd9b](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/806dd9b))
+
+
+
 <a name="6.1.1"></a>
 ## [6.1.1](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.0.23...v6.1.1) (2016-07-11)
 
