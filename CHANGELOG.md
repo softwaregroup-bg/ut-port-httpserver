@@ -1,3 +1,15 @@
+<a name="6.1.3"></a>
+## [6.1.3](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.2...v6.1.3) (2016-07-14)
+
+
+### Bug Fixes
+
+* Meta Language - Modify processMessage call to match the new interface. ([e5a1381](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/e5a1381))
+* **lint:** Update ut-tools ([bf23830](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/bf23830))
+* **meta-language:** Add language to $meta without using JWT. ([baf6f15](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/baf6f15))
+
+
+
 <a name="6.1.2"></a>
 ## [6.1.2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.1...v6.1.2) (2016-07-14)
 
