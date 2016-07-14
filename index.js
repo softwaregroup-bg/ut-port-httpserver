@@ -49,7 +49,9 @@ function HttpServerPort() {
             strictHeader: true // don't allow violations of RFC 6265
         },
         swagger: {
-            version: packageJson.version,
+            info: {
+                version: packageJson.version
+            },
             pathPrefixSize: 2 // this helps extracting the namespace from the second argument of the url
         },
         jwt: {

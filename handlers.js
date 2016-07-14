@@ -232,26 +232,28 @@ module.exports = function(port) {
     }));
 
     port.bus.importMethods(httpMethods, port.config.api);
-    Object.keys(httpMethods).forEach(function(key) {
-        // create routes for all methods
-        var method = httpMethods[key];
-
-        if (typeof method === 'function' && Object.keys(method).length > 0) { // only documented methods will be added to the api
-            pendingRoutes.unshift({
-                method: 'POST',
-                path: '/rpc/' + key.split('.').join('/'),
-                config: {
-                    description: method.description,
-                    notes: method.notes,
-                    tags: method.tags,
-                    validate: {
-                        payload: method.params
+    Object.keys(httpMethods).forEach(function(key) { // create routes for all methods
+        if (key.endsWith('.validations') && Array.isArray(httpMethods[key])) { // only documented methods will be added to the api
+            httpMethods[key].forEach(function(validation) {
+                pendingRoutes.unshift({
+                    method: 'POST',
+                    path: '/rpc/' + validation.method.split('.').join('/'),
+                    config: {
+                        description: validation.schema.description,
+                        notes: validation.schema.notes,
+                        tags: validation.schema.tags,
+                        validate: {
+                            payload: validation.schema.params
+                        },
+                        response: {
+                            schema: validation.schema.returns
+                        }
                     },
-                    response: {
-                        schema: method.returns
+                    handler: function(req, repl) {
+                        req.params.method = validation.method;
+                        return rpcHandler(req, repl);
                     }
-                },
-                handler: rpcHandler
+                });
             });
         }
     });
