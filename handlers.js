@@ -151,8 +151,10 @@ module.exports = function(port) {
         };
 
         if (request.payload.method === 'identity.closeSession' && request.auth && request.auth.credentials) {
-            return processMessage((repl) => {
-                repl.state(port.config.jwt.cookieKey, '', port.config.cookie);
+            return processMessage({
+                end: (repl) => {
+                    repl.state(port.config.jwt.cookieKey, '', port.config.cookie);
+                }
             });
         }
         if (request.payload.method === 'identity.add') { // todo use standard processing once identity.check works for ananymous
