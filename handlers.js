@@ -236,15 +236,13 @@ module.exports = function(port) {
                         notes: [validation.method.split('.').join(' ')],
                         tags: ['api', port.config.id, validation.method],
                         validate: {
-                            payload: joi.object(validation.schema.params).label('params')
+                            payload: validation.schema.params.label('params')
                         },
                         response: {
                             schema: joi.object({
                                 jsonrpc: joi.string().valid('2.0'),
                                 id: joi.string(),
-                                result: Array.isArray(validation.schema.result)
-                                        ? joi.array().items(validation.schema.result).label('result')
-                                        : joi.object().keys(validation.schema.result).label('result'),
+                                result: validation.schema.result.label('result'),
                                 error: joi.object({
                                     'code': joi.string().description('Error code'),
                                     'message': joi.string().description('Debug error message'),
