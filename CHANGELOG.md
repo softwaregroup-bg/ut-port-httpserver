@@ -1,3 +1,21 @@
+<a name="6.1.4"></a>
+## [6.1.4](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.3...v6.1.4) (2016-07-15)
+
+
+### Bug Fixes
+
+* preserve json rpc for all handlers ([6ed3dde](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/6ed3dde))
+
+
+### Features
+
+* extra validation inspection on runtime ([c97a005](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/c97a005))
+* give control over params and result to validation schema in module ([63adfb8](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/63adfb8))
+* move common validation logic to http server ([077621f](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/077621f))
+* set debug validation property to be optional ([ad85f1b](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/ad85f1b))
+
+
+
 <a name="6.1.3"></a>
 ## [6.1.3](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.2...v6.1.3) (2016-07-14)
 
