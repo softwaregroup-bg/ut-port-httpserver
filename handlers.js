@@ -228,13 +228,18 @@ module.exports = function(port) {
     Object.keys(httpMethods).forEach(function(key) { // create routes for all methods
         if (key.endsWith('.validations') && Array.isArray(httpMethods[key])) { // only documented methods will be added to the api
             httpMethods[key].forEach(function(validation) {
+                if (!validation.schema.params) {
+                    throw new Error('Missing params in validation schema for method: ' + validation.method);
+                } else if (!validation.schema.result) {
+                    throw new Error('Missing result in validation schema for method: ' + validation.method);
+                }
                 pendingRoutes.unshift({
                     method: 'POST',
                     path: '/rpc/' + validation.method.split('.').join('/'),
                     config: {
-                        description: validation.method,
-                        notes: [validation.method.split('.').join(' ')],
-                        tags: ['api', port.config.id, validation.method],
+                        description: validation.schema.description || validation.method,
+                        notes: (validation.schema.notes || []).concat([validation.method + ' method definition']),
+                        tags: (validation.schema.tags || []).concat(['api', port.config.id, validation.method]),
                         validate: {
                             payload: validation.schema.params.label('params')
                         },
