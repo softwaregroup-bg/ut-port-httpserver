@@ -251,8 +251,8 @@ module.exports = function(port) {
                                     'errorPrint': joi.string().optional().description('User friendly error message'),
                                     'type': joi.string().description('Error type')
                                 }).label('error'),
-                                debug: joi.object().label('debug')
-                            }).requiredKeys('jsonrpc', 'id').xor('result', 'error').with('error', 'debug')
+                                debug: joi.object().label('debug').optional()
+                            }).requiredKeys('jsonrpc', 'id').xor('result', 'error')
                         }
                     },
                     handler: function(req, repl) {
