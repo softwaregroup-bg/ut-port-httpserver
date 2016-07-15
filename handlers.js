@@ -229,9 +229,13 @@ module.exports = function(port) {
         if (key.endsWith('.validations') && Array.isArray(httpMethods[key])) { // only documented methods will be added to the api
             httpMethods[key].forEach(function(validation) {
                 if (!validation.schema.params) {
-                    throw new Error('Missing params in validation schema for method: ' + validation.method);
+                    throw new Error('Missing \'params\' in validation schema for method: ' + validation.method);
+                } else if (!validation.schema.params.isJoi) {
+                    throw new Error('\'params\' must be a joi schema object! Method: ' + validation.method);
                 } else if (!validation.schema.result) {
-                    throw new Error('Missing result in validation schema for method: ' + validation.method);
+                    throw new Error('Missing \'result\' in validation schema for method: ' + validation.method);
+                } else if (!validation.schema.result.isJoi) {
+                    throw new Error('\'result\' must be a joi schema object! Method: ' + validation.method);
                 }
                 pendingRoutes.unshift({
                     method: 'POST',
