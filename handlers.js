@@ -4,6 +4,7 @@ var cloneDeep = require('lodash.clonedeep');
 var when = require('when');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
+var joi = require('joi');
 
 module.exports = function(port) {
     var httpMethods = {};
@@ -231,14 +232,27 @@ module.exports = function(port) {
                     method: 'POST',
                     path: '/rpc/' + validation.method.split('.').join('/'),
                     config: {
-                        description: validation.schema.description,
-                        notes: validation.schema.notes,
-                        tags: validation.schema.tags,
+                        description: validation.method,
+                        notes: [validation.method.split('.').join(' ')],
+                        tags: ['api', port.config.id, validation.method],
                         validate: {
-                            payload: validation.schema.params
+                            payload: joi.object(validation.schema.params).label('params')
                         },
                         response: {
-                            schema: validation.schema.returns
+                            schema: joi.object({
+                                jsonrpc: joi.string().valid('2.0'),
+                                id: joi.string(),
+                                result: Array.isArray(validation.schema.result)
+                                        ? joi.array().items(validation.schema.result).label('result')
+                                        : joi.object().keys(validation.schema.result).label('result'),
+                                error: joi.object({
+                                    'code': joi.string().description('Error code'),
+                                    'message': joi.string().description('Debug error message'),
+                                    'errorPrint': joi.string().optional().description('User friendly error message'),
+                                    'type': joi.string().description('Error type')
+                                }).label('error'),
+                                debug: joi.object().label('debug')
+                            }).requiredKeys('jsonrpc', 'id').xor('result', 'error').with('error', 'debug')
                         }
                     },
                     handler: function(req, repl) {

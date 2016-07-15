@@ -17,7 +17,8 @@
     "through2": "2.0.1",
     "when": "3.7.7",
     "ut-error": "^5.3.12",
-    "vision": "4.1.0"
+    "vision": "4.1.0",
+    "joi": "9.0.0"
   },
   "devDependencies": {
     "ut-tools": "^5.4.1",
