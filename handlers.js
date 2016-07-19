@@ -120,9 +120,6 @@ module.exports = function(port) {
                         return true;
                     }
 
-                    if (Array.isArray(response)) {
-                        endReply.resultLength = response.length;
-                    }
                     endReply.result = response;
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
                         return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
