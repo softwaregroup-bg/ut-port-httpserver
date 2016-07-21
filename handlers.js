@@ -145,7 +145,7 @@ module.exports = function(port) {
                 }
             });
         }
-        if (request.payload.method === 'identity.add') { // todo use standard processing once identity.check works for ananymous
+        if (request.payload.method === 'identity.add' || request.payload.method === 'identity.forgotPassword') { // todo use standard processing once identity.check works for ananymous
             return processMessage();
         }
         port.bus.importMethod('identity.check')(
@@ -216,6 +216,18 @@ module.exports = function(port) {
         }
     }, port.config.routes.rpc, {
         path: '/register',
+        config: {
+            auth: false
+        }
+    }));
+
+    pendingRoutes.unshift(merge({
+        handler: (req, repl) => {
+            req.params.method = 'identity.forgotPassword';
+            return rpcHandler(req, repl);
+        }
+    }, port.config.routes.rpc, {
+        path: '/forgot-password',
         config: {
             auth: false
         }
