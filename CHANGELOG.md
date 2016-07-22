@@ -1,3 +1,13 @@
+<a name="6.1.5"></a>
+## [6.1.5](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.4...v6.1.5) (2016-07-22)
+
+
+### Bug Fixes
+
+* remove obsolete property ([34a34f9](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/34a34f9))
+
+
+
 <a name="6.1.4"></a>
 ## [6.1.4](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.3...v6.1.4) (2016-07-15)
 
