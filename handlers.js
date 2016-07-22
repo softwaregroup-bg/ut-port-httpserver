@@ -56,12 +56,17 @@ module.exports = function(port) {
                 id: '1',
                 params: cloneDeep(request.payload)
             };
-        } else if (request.params.method && request.payload.jsonrpc && request.params.method !== request.payload.method) {
-            return handleError({
-                code: '-1',
-                message: 'Invalid request method, url method and jsonRpc method should be the same',
-                errorPrint: 'Invalid request method, url method and jsonRpc method should be the same'
-            }, {});
+        } else if (request.params.method && request.payload.jsonrpc) {
+            if (
+                (typeof request.params.method === 'string' && request.params.method !== request.payload.method) ||
+                (Array.isArray(request.params.method) && request.params.method.indexOf(request.payload.method) < 0)
+            ) {
+                return handleError({
+                    code: '-1',
+                    message: 'Invalid request method, url method and jsonRpc method should be the same',
+                    errorPrint: 'Invalid request method, url method and jsonRpc method should be the same'
+                }, {});
+            }
         }
         var endReply = {
             jsonrpc: '2.0',
@@ -145,7 +150,12 @@ module.exports = function(port) {
                 }
             });
         }
-        if (request.payload.method === 'identity.add' || request.payload.method === 'identity.forgotPassword') { // todo use standard processing once identity.check works for ananymous
+        if (
+            request.payload.method === 'identity.add' ||
+            request.payload.method === 'identity.forgottenPasswordRequest' ||
+            request.payload.method === 'identity.forgottenPasswordValidate' ||
+            request.payload.method === 'identity.forgottenPassword'
+        ) { // todo use standard processing once identity.check works for ananymous
             return processMessage();
         }
         port.bus.importMethod('identity.check')(
@@ -223,11 +233,15 @@ module.exports = function(port) {
 
     pendingRoutes.unshift(merge({
         handler: (req, repl) => {
-            req.params.method = 'identity.forgotPassword';
+            req.params.method = [
+                'identity.forgottenPassword',
+                'identity.forgottenPasswordRequest',
+                'identity.forgottenPasswordValidate'
+            ];
             return rpcHandler(req, repl);
         }
     }, port.config.routes.rpc, {
-        path: '/forgot-password',
+        path: '/forgottenPassword',
         config: {
             auth: false
         }
