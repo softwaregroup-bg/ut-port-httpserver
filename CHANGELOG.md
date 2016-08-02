@@ -1,3 +1,8 @@
+<a name="6.1.8"></a>
+## [6.1.8](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.7...v6.1.8) (2016-08-02)
+
+
+
 <a name="6.1.7"></a>
 ## [6.1.7](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.6...v6.1.7) (2016-08-02)
 
