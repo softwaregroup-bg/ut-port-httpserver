@@ -1,3 +1,13 @@
+<a name="6.1.7"></a>
+## [6.1.7](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.6...v6.1.7) (2016-08-02)
+
+
+### Bug Fixes
+
+* **self-registartion:** Make registration appear after OTP. ([fa682e2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/fa682e2))
+
+
+
 <a name="6.1.6"></a>
 ## [6.1.6](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.5...v6.1.6) (2016-07-22)
 
