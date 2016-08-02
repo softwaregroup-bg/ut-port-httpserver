@@ -154,7 +154,9 @@ module.exports = function(port) {
             request.payload.method === 'identity.add' ||
             request.payload.method === 'identity.forgottenPasswordRequest' ||
             request.payload.method === 'identity.forgottenPasswordValidate' ||
-            request.payload.method === 'identity.forgottenPassword'
+            request.payload.method === 'identity.forgottenPassword' ||
+            request.payload.method === 'identity.registerRequest' ||
+            request.payload.method === 'identity.registerValidate'
         ) { // todo use standard processing once identity.check works for ananymous
             return processMessage();
         }
@@ -221,7 +223,11 @@ module.exports = function(port) {
 
     pendingRoutes.unshift(merge({
         handler: (req, repl) => {
-            req.params.method = 'identity.add';
+            req.params.method = [
+                'identity.add',
+                'identity.registerRequest',
+                'identity.registerValidate'
+            ];
             return rpcHandler(req, repl);
         }
     }, port.config.routes.rpc, {
