@@ -171,7 +171,7 @@ module.exports = function(port) {
                         .state(
                             port.config.jwt.cookieKey,
                             jwt.sign({
-                                timezone: request.payload && request.payload.params && request.payload.params.timezone,
+                                timezone: (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00',
                                 actorId: res['identity.check'].actorId,
                                 sessionId: res['identity.check'].sessionId
                             }, port.config.jwt.key),
