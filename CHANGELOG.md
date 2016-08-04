@@ -1,3 +1,13 @@
+<a name="6.2.0"></a>
+# [6.2.0](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.8...v6.2.0) (2016-08-04)
+
+
+### Features
+
+* pass timezone to meta ([ef0cc11](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/ef0cc11))
+
+
+
 <a name="6.1.8"></a>
 ## [6.1.8](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.7...v6.1.8) (2016-08-02)
 
