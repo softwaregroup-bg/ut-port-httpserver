@@ -1,3 +1,13 @@
+<a name="6.2.1"></a>
+## [6.2.1](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.2.0...v6.2.1) (2016-08-04)
+
+
+### Bug Fixes
+
+* default timezone ([f4f3657](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/f4f3657))
+
+
+
 <a name="6.2.0"></a>
 # [6.2.0](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.1.8...v6.2.0) (2016-08-04)
 
