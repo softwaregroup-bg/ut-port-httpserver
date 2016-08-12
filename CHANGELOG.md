@@ -1,3 +1,13 @@
+<a name="6.2.3"></a>
+## [6.2.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.2...v6.2.3) (2016-08-12)
+
+
+### Bug Fixes
+
+* publish to npm ([efc10d5](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/efc10d5))
+
+
+
 <a name="6.2.2"></a>
 ## [6.2.2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.2.1...v6.2.2) (2016-08-12)
 
