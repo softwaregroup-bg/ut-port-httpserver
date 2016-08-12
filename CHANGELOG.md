@@ -1,3 +1,13 @@
+<a name="6.2.2"></a>
+## [6.2.2](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.2.1...v6.2.2) (2016-08-12)
+
+
+### Bug Fixes
+
+* document body as json-rpc ([a67aa64](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/commit/a67aa64))
+
+
+
 <a name="6.2.1"></a>
 ## [6.2.1](https://git.softwaregroup-bg.com/ut5/ut-port-httpserver/compare/v6.2.0...v6.2.1) (2016-08-04)
 
