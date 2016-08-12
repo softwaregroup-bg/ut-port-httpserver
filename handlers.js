@@ -275,7 +275,12 @@ module.exports = function(port) {
                         notes: (validation.schema.notes || []).concat([validation.method + ' method definition']),
                         tags: (validation.schema.tags || []).concat(['api', port.config.id, validation.method]),
                         validate: {
-                            payload: validation.schema.params.label('params')
+                            payload: joi.object({
+                                jsonrpc: joi.string().valid('2.0'),
+                                id: joi.string(),
+                                method: joi.string().valid(validation.method),
+                                params: validation.schema.params.label('params')
+                            })
                         },
                         response: {
                             schema: joi.object({
