@@ -1,3 +1,13 @@
+<a name="6.2.4"></a>
+## [6.2.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.3...v6.2.4) (2016-08-18)
+
+
+### Bug Fixes
+
+* config and error.code issues ([fe99e31](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/fe99e31))
+
+
+
 <a name="6.2.3"></a>
 ## [6.2.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.2...v6.2.3) (2016-08-12)
 
