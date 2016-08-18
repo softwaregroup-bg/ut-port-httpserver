@@ -1,3 +1,13 @@
+<a name="6.2.6"></a>
+## [6.2.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.5...v6.2.6) (2016-08-18)
+
+
+### Bug Fixes
+
+* allow field errors in error response ([da4a90e](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/da4a90e))
+
+
+
 <a name="6.2.5"></a>
 ## [6.2.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.4...v6.2.5) (2016-08-18)
 
