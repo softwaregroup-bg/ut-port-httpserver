@@ -1,3 +1,13 @@
+<a name="6.2.5"></a>
+## [6.2.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.4...v6.2.5) (2016-08-18)
+
+
+### Bug Fixes
+
+* dont't modify port.config.routes.rpc by reference ([ae3d366](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/ae3d366))
+
+
+
 <a name="6.2.4"></a>
 ## [6.2.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.3...v6.2.4) (2016-08-18)
 
