@@ -267,7 +267,7 @@ module.exports = function(port) {
                 } else if (!validation.schema.result.isJoi) {
                     throw new Error('\'result\' must be a joi schema object! Method: ' + validation.method);
                 }
-                pendingRoutes.unshift(merge(port.config.routes.rpc, {
+                pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
                     method: 'POST',
                     path: '/rpc/' + validation.method.split('.').join('/'),
                     config: {
