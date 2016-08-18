@@ -10,7 +10,7 @@ module.exports = function(port) {
     var httpMethods = {};
     var pendingRoutes = [];
 
-    var rpcHandler = function rpcHandler(request, _reply) {
+    var rpcHandler = port.handler = function rpcHandler(request, _reply) {
         var startTime = process.hrtime();
         port.log.trace && port.log.trace({
             payload: request.payload
@@ -291,6 +291,7 @@ module.exports = function(port) {
                                     code: joi.number().integer().description('Error code'),
                                     message: joi.string().description('Debug error message'),
                                     errorPrint: joi.string().optional().description('User friendly error message'),
+                                    fieldErrors: joi.any().description('Field validation errors'),
                                     type: joi.string().description('Error type')
                                 }).label('error'),
                                 debug: joi.object().label('debug').optional()
