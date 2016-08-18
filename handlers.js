@@ -267,7 +267,7 @@ module.exports = function(port) {
                 } else if (!validation.schema.result.isJoi) {
                     throw new Error('\'result\' must be a joi schema object! Method: ' + validation.method);
                 }
-                pendingRoutes.unshift({
+                pendingRoutes.unshift(merge(port.config.routes.rpc, {
                     method: 'POST',
                     path: '/rpc/' + validation.method.split('.').join('/'),
                     config: {
@@ -288,10 +288,10 @@ module.exports = function(port) {
                                 id: joi.string(),
                                 result: validation.schema.result.label('result'),
                                 error: joi.object({
-                                    'code': joi.string().description('Error code'),
-                                    'message': joi.string().description('Debug error message'),
-                                    'errorPrint': joi.string().optional().description('User friendly error message'),
-                                    'type': joi.string().description('Error type')
+                                    code: joi.number().integer().description('Error code'),
+                                    message: joi.string().description('Debug error message'),
+                                    errorPrint: joi.string().optional().description('User friendly error message'),
+                                    type: joi.string().description('Error type')
                                 }).label('error'),
                                 debug: joi.object().label('debug').optional()
                             }).requiredKeys('jsonrpc', 'id').xor('result', 'error')
@@ -301,7 +301,7 @@ module.exports = function(port) {
                         req.params.method = validation.method;
                         return rpcHandler(req, repl);
                     }
-                });
+                }));
             });
         }
     });
