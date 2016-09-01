@@ -1,3 +1,13 @@
+<a name="6.2.7"></a>
+## [6.2.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.6...v6.2.7) (2016-09-01)
+
+
+### Bug Fixes
+
+* typos ([bd8edf5](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/bd8edf5))
+
+
+
 <a name="6.2.6"></a>
 ## [6.2.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.5...v6.2.6) (2016-08-18)
 
