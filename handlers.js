@@ -157,7 +157,7 @@ module.exports = function(port) {
             request.payload.method === 'identity.forgottenPassword' ||
             request.payload.method === 'identity.registerRequest' ||
             request.payload.method === 'identity.registerValidate'
-        ) { // todo use standard processing once identity.check works for ananymous
+        ) { // todo use standard processing once identity.check works for anonymous
             return processMessage();
         }
         port.bus.importMethod('identity.check')(
@@ -190,8 +190,8 @@ module.exports = function(port) {
                 } else {
                     return handleError({
                         code: '-1',
-                        message: `Missing Pemission for ${request.payload.method}`,
-                        errorPrint: `Missing Pemission for ${request.payload.method}`
+                        message: `Missing Permission for ${request.payload.method}`,
+                        errorPrint: `Missing Permission for ${request.payload.method}`
                     }, {});
                 }
             }
