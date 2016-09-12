@@ -1,3 +1,13 @@
+<a name="6.2.9"></a>
+## [6.2.9](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.8...v6.2.9) (2016-09-12)
+
+
+### Bug Fixes
+
+* sanity check ([5436b30](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/5436b30))
+
+
+
 <a name="6.2.8"></a>
 ## [6.2.8](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.7...v6.2.8) (2016-09-12)
 
