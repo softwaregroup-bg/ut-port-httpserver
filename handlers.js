@@ -151,10 +151,6 @@ module.exports = function(port) {
             });
         }
         if (
-            // !!!!!!!!!!!!!!!!
-            // obsolete code, please remove after a month of not complaining!(todays date is: 12.IX.2016)
-            // request.payload.method === 'identity.add' ||
-            // !!!!!!!!!!!!!!!!
             request.payload.method === 'identity.forgottenPasswordRequest' ||
             request.payload.method === 'identity.forgottenPasswordValidate' ||
             request.payload.method === 'identity.forgottenPassword' ||
@@ -228,7 +224,6 @@ module.exports = function(port) {
     pendingRoutes.unshift(merge({
         handler: (req, repl) => {
             req.params.method = [
-                'identity.add',
                 'identity.registerRequest',
                 'identity.registerValidate'
             ];
