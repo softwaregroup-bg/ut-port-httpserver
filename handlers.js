@@ -151,7 +151,10 @@ module.exports = function(port) {
             });
         }
         if (
-            request.payload.method === 'identity.add' ||
+            // !!!!!!!!!!!!!!!!
+            // obsolete code, please remove after a month of not complaining!(todays date is: 12.IX.2016)
+            // request.payload.method === 'identity.add' ||
+            // !!!!!!!!!!!!!!!!
             request.payload.method === 'identity.forgottenPasswordRequest' ||
             request.payload.method === 'identity.forgottenPasswordValidate' ||
             request.payload.method === 'identity.forgottenPassword' ||
