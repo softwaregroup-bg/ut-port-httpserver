@@ -10,7 +10,7 @@ module.exports = function(port) {
     var httpMethods = {};
     var pendingRoutes = [];
 
-    var rpcHandler = port.handler = function rpcHandler(request, _reply) {
+    var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         var startTime = process.hrtime();
         port.log.trace && port.log.trace({
             payload: request.payload
@@ -23,12 +23,15 @@ module.exports = function(port) {
             }
         }
 
-        var reply = function(resp, headers) {
+        var reply = function(resp, headers, statusCode) {
             addTime();
             var repl = _reply(resp);
             headers && Object.keys(headers).forEach(function(header) {
                 repl.header(header, headers[header]);
             });
+            if (statusCode) {
+                repl.code(statusCode);
+            }
             return repl;
         };
 
@@ -129,7 +132,11 @@ module.exports = function(port) {
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
                         return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
                     }
-                    reply(endReply, $meta.responseHeaders);
+                    if (typeof customReply === 'function') {
+                        customReply(reply, response, $meta);
+                    } else {
+                        reply(endReply, $meta.responseHeaders, $meta.statusCode);
+                    }
                     return true;
                 };
                 port.stream.write([request.payload.params || {}, $meta]);
