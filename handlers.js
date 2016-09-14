@@ -158,7 +158,6 @@ module.exports = function(port) {
             });
         }
         if (
-            request.payload.method === 'identity.add' ||
             request.payload.method === 'identity.forgottenPasswordRequest' ||
             request.payload.method === 'identity.forgottenPasswordValidate' ||
             request.payload.method === 'identity.forgottenPassword' ||
@@ -232,7 +231,6 @@ module.exports = function(port) {
     pendingRoutes.unshift(merge({
         handler: (req, repl) => {
             req.params.method = [
-                'identity.add',
                 'identity.registerRequest',
                 'identity.registerValidate'
             ];
