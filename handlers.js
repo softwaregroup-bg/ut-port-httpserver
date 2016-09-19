@@ -10,6 +10,10 @@ module.exports = function(port) {
     var httpMethods = {};
     var pendingRoutes = [];
 
+    function addDebugInfo(msg, err) {
+        err && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err);
+    }
+
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         var startTime = process.hrtime();
         port.log.trace && port.log.trace({
@@ -42,10 +46,10 @@ module.exports = function(port) {
                 id: (request.payload && request.payload.id) || '',
                 error: error
             };
-            response && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = response);
+            addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
                 return when(port.config.receive(msg, $meta)).then(function(result) {
-                    reply(result, $meta.responseHeaders);
+                    reply(result, $meta.responseHeaders, $meta.statusCode);
                 });
             } else {
                 return reply(msg);
@@ -115,6 +119,10 @@ module.exports = function(port) {
                             type: $meta.errorType || response.type,
                             fieldErrors: $meta.fieldErrors || response.fieldErrors
                         };
+                        if (typeof customReply === 'function') {
+                            addDebugInfo(endReply, response);
+                            return customReply(reply, endReply, $meta);
+                        }
                         return handleError(endReply.error, request, response);
                     }
                     if (response.auth) {
