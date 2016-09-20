@@ -1,3 +1,13 @@
+<a name="6.4.0"></a>
+# [6.4.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.3.0...v6.4.0) (2016-09-20)
+
+
+### Features
+
+* use customReply function for errors too ([#9](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/9)) ([f5980ae](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/f5980ae))
+
+
+
 <a name="6.3.0"></a>
 # [6.3.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.2.9...v6.3.0) (2016-09-14)
 
