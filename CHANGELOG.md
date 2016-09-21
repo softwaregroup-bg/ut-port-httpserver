@@ -1,3 +1,13 @@
+<a name="6.5.0"></a>
+# [6.5.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.4.1...v6.5.0) (2016-09-21)
+
+
+### Features
+
+* /rpc uri method validations ([#10](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/10)) ([83fbd84](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/83fbd84))
+
+
+
 <a name="6.4.1"></a>
 ## [6.4.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.4.0...v6.4.1) (2016-09-20)
 
