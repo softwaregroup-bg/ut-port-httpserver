@@ -5,16 +5,38 @@ var when = require('when');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
 var joi = require('joi');
+var Boom = require('boom');
 
 module.exports = function(port) {
     var httpMethods = {};
     var pendingRoutes = [];
+    var validations = {};
 
     function addDebugInfo(msg, err) {
         err && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err);
     }
 
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
+        // custom validation. request.path === '/rpc' is because we already have validation for uri routed methods
+        if (request.path === '/rpc' && validations[request.payload.method]) { // check for current method validation
+            // try to validate all request validation
+            var rqValRes = Object.keys(validations[request.payload.method].reqValidation).reduce((prev, key) => {
+                if (!prev.error && validations[request.payload.method].reqValidation[key] && request[key]) {
+                    return validations[request.payload.method].reqValidation[key].validate(request[key]);
+                }
+                return prev;
+            }, {error: null});
+            if (rqValRes.error) { // some of the request validation fails and returned an error
+                var err = Boom.badRequest(rqValRes.error.message);
+                err.output.payload.validation = {
+                    source: 'payload',
+                    keys: rqValRes.error.details.map((k) => {
+                        return k.path;
+                    })
+                };
+                return _reply(err);
+            }
+        }
         var startTime = process.hrtime();
         port.log.trace && port.log.trace({
             payload: request.payload
@@ -280,6 +302,30 @@ module.exports = function(port) {
                 } else if (!validation.schema.result.isJoi) {
                     throw new Error('\'result\' must be a joi schema object! Method: ' + validation.method);
                 }
+                var reqValidation = {
+                    payload: joi.object({
+                        jsonrpc: joi.string().valid('2.0'),
+                        id: joi.string(),
+                        method: joi.string().valid(validation.method),
+                        params: validation.schema.params.label('params')
+                    })
+                };
+                var respValidation = {
+                    schema: joi.object({
+                        jsonrpc: joi.string().valid('2.0'),
+                        id: joi.string(),
+                        result: validation.schema.result.label('result'),
+                        error: joi.object({
+                            code: joi.number().integer().description('Error code'),
+                            message: joi.string().description('Debug error message'),
+                            errorPrint: joi.string().optional().description('User friendly error message'),
+                            fieldErrors: joi.any().description('Field validation errors'),
+                            type: joi.string().description('Error type')
+                        }).label('error'),
+                        debug: joi.object().label('debug').optional()
+                    }).requiredKeys('jsonrpc', 'id').xor('result', 'error')
+                };
+                validations[validation.method] = {reqValidation, respValidation};
                 pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
                     method: 'POST',
                     path: '/rpc/' + validation.method.split('.').join('/'),
@@ -287,29 +333,8 @@ module.exports = function(port) {
                         description: validation.schema.description || validation.method,
                         notes: (validation.schema.notes || []).concat([validation.method + ' method definition']),
                         tags: (validation.schema.tags || []).concat(['api', port.config.id, validation.method]),
-                        validate: {
-                            payload: joi.object({
-                                jsonrpc: joi.string().valid('2.0'),
-                                id: joi.string(),
-                                method: joi.string().valid(validation.method),
-                                params: validation.schema.params.label('params')
-                            })
-                        },
-                        response: {
-                            schema: joi.object({
-                                jsonrpc: joi.string().valid('2.0'),
-                                id: joi.string(),
-                                result: validation.schema.result.label('result'),
-                                error: joi.object({
-                                    code: joi.number().integer().description('Error code'),
-                                    message: joi.string().description('Debug error message'),
-                                    errorPrint: joi.string().optional().description('User friendly error message'),
-                                    fieldErrors: joi.any().description('Field validation errors'),
-                                    type: joi.string().description('Error type')
-                                }).label('error'),
-                                debug: joi.object().label('debug').optional()
-                            }).requiredKeys('jsonrpc', 'id').xor('result', 'error')
-                        }
+                        validate: reqValidation,
+                        response: respValidation
                     },
                     handler: function(req, repl) {
                         req.params.method = validation.method;
