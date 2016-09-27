@@ -12,7 +12,6 @@ function SocketServer(path) {
     this.server = null;
 }
 
-
 SocketServer.prototype.init = function stop(server) {
     this.server = new ws.Server({
         server: server
