@@ -159,7 +159,6 @@ HttpServerPort.prototype.registerSocketServer = function(path) {
     return this.socketServer.publish.bind(this.socketServer);
 };
 
-
 HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
     return when.promise((resolve, reject) => {
         if (this.hotReload) {
