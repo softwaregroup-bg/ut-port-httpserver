@@ -18,6 +18,7 @@ var packageJson = require('./package.json');
 var handlers = require('./handlers.js');
 var through2 = require('through2');
 var fs = require('fs-plus');
+var SocketServer = require('./socketServer');
 
 function HttpServerPort() {
     Port.call(this);
@@ -64,6 +65,7 @@ function HttpServerPort() {
         }
     };
     this.hapiServer = {};
+    this.socketServer = null;
     this.routes = [];
     this.stream = {};
 }
@@ -132,6 +134,7 @@ HttpServerPort.prototype.start = function start() {
         }, this.config.jwt));
         this.hapiServer.route(this.routes);
         this.hapiServer.route(handlers(this));
+        this.socketServer && this.socketServer.init(this.hapiServer.listener);
         return this.hapiServer.start();
     }).then(() => {
         this.log.info && this.log.info({
@@ -150,6 +153,12 @@ HttpServerPort.prototype.registerRequestHandler = function(handlers) {
         Array.prototype.push.apply(this.routes, (handlers instanceof Array) ? handlers : [handlers]);
     }
 };
+
+HttpServerPort.prototype.registerSocketServer = function(path) {
+    this.socketServer = new SocketServer(path);
+    return this.socketServer.publish.bind(this.socketServer);
+};
+
 
 HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
     return when.promise((resolve, reject) => {
@@ -222,6 +231,7 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
 
 HttpServerPort.prototype.stop = function stop() {
     var self = this;
+    this.socketServer && this.socketServer.stop();
     return when.promise(function(resolve, reject) {
         self.hapiServer.stop(function() {
             when(Port.prototype.stop.apply(self, arguments)).then(resolve).catch(reject);
