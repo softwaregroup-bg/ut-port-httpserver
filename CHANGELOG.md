@@ -1,3 +1,13 @@
+<a name="6.5.8"></a>
+## [6.5.8](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.7...v6.5.8) (2016-09-28)
+
+
+### Bug Fixes
+
+* refactor socketServer ([de8a0bc](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/de8a0bc))
+
+
+
 <a name="6.5.7"></a>
 ## [6.5.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.6...v6.5.7) (2016-09-28)
 
