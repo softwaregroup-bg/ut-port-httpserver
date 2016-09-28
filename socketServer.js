@@ -1,68 +1,46 @@
 var ws = require('ws');
+var Router = require('call').Router;
+var interpolationRegex = /\{([^\}]*)\}/g;
 
-function SocketServer(path) {
-    this.sockets = {};
-    this.tokens = [];
-    this.path = new RegExp(path.replace(/\{([^\}]*)\}/g, (placeHolder, label) => {
-        this.tokens.push(label);
-        return '(\\w+)';
-    }));
-    this.server = null;
-    this.initialized = false;
-    this.server = null;
+function SocketServer() {
+    this.router = new Router();
+    this.rooms = {};
+    this.wss = null;
 }
 
-SocketServer.prototype.init = function stop(server) {
-    this.server = new ws.Server({
+SocketServer.prototype.start = function start(server) {
+    this.wss = new ws.Server({
         server: server
     });
-    var buildKey = function(url) {
-        var tokens = (url.match(this.path) || []).slice(1);
-        if (tokens.length) {
-            return JSON.stringify(tokens.reduce((all, token, i) => {
-                all[this.tokens[i]] = token;
-                return all;
-            }, {}));
-        }
-    }.bind(this);
-    this.server.on('connection', (socket) => {
-        var key = buildKey(socket.upgradeReq.url);
-        if (key) {
-            if (!this.sockets[key]) {
-                this.sockets[key] = [];
-            }
-            var i = this.sockets[key].length;
-            this.sockets[key].push(socket);
-            socket.on('close', () => {
-                this.sockets[key].splice(i, 1);
-            });
-        } else {
-            socket.terminate();
-        }
+    this.wss.on('connection', (socket) => {
+        var context = this.router.route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url);
+        context.isBoom ? socket.terminate() : context.route(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
     });
-    this.initialized = true;
 };
 
-SocketServer.prototype.publish = function publish(params, message) {
-    var key;
-    var msg;
-    try {
-        key = JSON.stringify(params);
-        if (this.sockets[key] && this.sockets[key].length) {
-            msg = JSON.stringify(message);
-            this.sockets[key].forEach((socket) => {
-                socket.send(msg);
-            });
+SocketServer.prototype.registerPath = function registerPath(path) {
+    this.router.add({
+        method: 'get',
+        path: path
+    }, (roomId, socket) => {
+        if (!this.rooms[roomId]) {
+            this.rooms[roomId] = [];
         }
-    } catch (e) {
+        var i = this.rooms[roomId].length;
+        this.rooms[roomId].push(socket);
+        socket.on('close', () => {
+            this.rooms[roomId].splice(i, 1);
+        });
+    });
+};
 
-    }
+SocketServer.prototype.publish = function publish(data, message) {
+    var room = this.rooms[data.path.replace(interpolationRegex, (placeholder, label) => (data.params[label] || placeholder))];
+    room.length && room.forEach((socket) => socket.send(JSON.stringify(message)));
 };
 
 SocketServer.prototype.stop = function stop() {
-    if (this.initialized) {
-        this.server.close();
-    }
+    this.wss.close();
 };
 
 module.exports = SocketServer;

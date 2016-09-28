@@ -66,6 +66,7 @@ function HttpServerPort() {
     };
     this.hapiServer = {};
     this.socketServer = null;
+    this.socketSubscriptions = [];
     this.routes = [];
     this.stream = {};
 }
@@ -134,7 +135,11 @@ HttpServerPort.prototype.start = function start() {
         }, this.config.jwt));
         this.hapiServer.route(this.routes);
         this.hapiServer.route(handlers(this));
-        this.socketServer && this.socketServer.init(this.hapiServer.listener);
+        if (this.socketSubscriptions.length) {
+            this.socketServer = new SocketServer();
+            this.socketSubscriptions.forEach((path) => this.socketServer.registerPath(path));
+            this.socketServer.start(this.hapiServer.listener);
+        }
         return this.hapiServer.start();
     }).then(() => {
         this.log.info && this.log.info({
@@ -154,9 +159,9 @@ HttpServerPort.prototype.registerRequestHandler = function(handlers) {
     }
 };
 
-HttpServerPort.prototype.registerSocketServer = function(path) {
-    this.socketServer = new SocketServer(path);
-    return this.socketServer.publish.bind(this.socketServer);
+HttpServerPort.prototype.registerSocketSubscription = function(path) {
+    this.socketSubscriptions.push(path);
+    return (params, message) => this.socketServer.publish({path: path, params: params}, message);
 };
 
 HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
