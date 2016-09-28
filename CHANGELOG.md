@@ -1,3 +1,13 @@
+<a name="6.5.7"></a>
+## [6.5.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.6...v6.5.7) (2016-09-28)
+
+
+### Bug Fixes
+
+* fix merge error ([622b4de](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/622b4de))
+
+
+
 <a name="6.5.6"></a>
 ## [6.5.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.5...v6.5.6) (2016-09-27)
 
