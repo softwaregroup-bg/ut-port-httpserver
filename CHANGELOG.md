@@ -1,3 +1,13 @@
+<a name="6.5.9"></a>
+## [6.5.9](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.8...v6.5.9) (2016-09-28)
+
+
+### Bug Fixes
+
+* handle no room case ([41bfa8f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/41bfa8f))
+
+
+
 <a name="6.5.8"></a>
 ## [6.5.8](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.7...v6.5.8) (2016-09-28)
 
