@@ -36,7 +36,7 @@ SocketServer.prototype.registerPath = function registerPath(path) {
 
 SocketServer.prototype.publish = function publish(data, message) {
     var room = this.rooms[data.path.replace(interpolationRegex, (placeholder, label) => (data.params[label] || placeholder))];
-    room.length && room.forEach((socket) => socket.send(JSON.stringify(message)));
+    room && room.length && room.forEach((socket) => socket.send(JSON.stringify(message)));
 };
 
 SocketServer.prototype.stop = function stop() {
