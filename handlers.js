@@ -16,6 +16,10 @@ module.exports = function(port) {
         err && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err);
     }
 
+    function addDebugInfo(msg, err) {
+        err && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err);
+    }
+
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         // custom validation. request.path === '/rpc' is because we already have validation for uri routed methods
         if (request.path === '/rpc' && validations[request.payload.method]) { // check for current method validation
