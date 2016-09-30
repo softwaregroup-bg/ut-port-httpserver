@@ -1,6 +1,17 @@
 var ws = require('ws');
 var Router = require('call').Router;
 var interpolationRegex = /\{([^\}]*)\}/g;
+var util = {
+    formatMessage: function(message) {
+        var msg;
+        try {
+            msg = typeof message === 'string' ? message : JSON.stringify(message);
+        } catch (e) {
+            throw e;
+        }
+        return msg;
+    }
+};
 
 function SocketServer() {
     this.router = new Router();
@@ -26,18 +37,33 @@ SocketServer.prototype.registerPath = function registerPath(path) {
         if (!this.rooms[roomId]) {
             this.rooms[roomId] = [];
         }
-        var i = this.rooms[roomId].length;
-        this.rooms[roomId].push(socket);
+        var i = this.rooms[roomId].push(socket) - 1;
         socket.on('close', () => this.rooms[roomId].splice(i, 1));
     });
 };
 
 SocketServer.prototype.publish = function publish(data, message) {
-    var room = this.rooms[data.path.replace(interpolationRegex, (placeholder, label) => (data.params[label] || placeholder))];
-    if (room && room.length) {
-        var msg = JSON.stringify(message);
-        room.forEach((socket) => (socket.readyState === 1 && socket.send(msg)));
+    var room;
+    try {
+        room = this.rooms[data.path.replace(interpolationRegex, (placeholder, label) => (data.params[label] || placeholder))];
+    } catch (e) {
+        throw e;
     }
+    if (room && room.length) {
+        var formattedMessage = util.formatMessage(message);
+        room.forEach(function(socket) {
+            if (socket.readyState === ws.OPEN) {
+                socket.send(formattedMessage);
+            }
+        });
+    }
+};
+
+SocketServer.prototype.broadcast = function broadcast(message) {
+    var formattedMessage = util.formatMessage(message);
+    this.wss.clients.forEach(function(socket) {
+        socket.send(formattedMessage);
+    });
 };
 
 SocketServer.prototype.stop = function stop() {
