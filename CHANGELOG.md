@@ -1,3 +1,13 @@
+<a name="6.5.10"></a>
+## [6.5.10](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.9...v6.5.10) (2016-09-30)
+
+
+### Bug Fixes
+
+* check socket's ready state before sending a message to it ([4671791](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/4671791))
+
+
+
 <a name="6.5.9"></a>
 ## [6.5.9](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.8...v6.5.9) (2016-09-28)
 
