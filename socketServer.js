@@ -28,15 +28,16 @@ SocketServer.prototype.registerPath = function registerPath(path) {
         }
         var i = this.rooms[roomId].length;
         this.rooms[roomId].push(socket);
-        socket.on('close', () => {
-            this.rooms[roomId].splice(i, 1);
-        });
+        socket.on('close', () => this.rooms[roomId].splice(i, 1));
     });
 };
 
 SocketServer.prototype.publish = function publish(data, message) {
     var room = this.rooms[data.path.replace(interpolationRegex, (placeholder, label) => (data.params[label] || placeholder))];
-    room && room.length && room.forEach((socket) => socket.send(JSON.stringify(message)));
+    if (room && room.length) {
+        var msg = JSON.stringify(message);
+        room.forEach((socket) => (socket.readyState === 1 && socket.send(msg)));
+    }
 };
 
 SocketServer.prototype.stop = function stop() {
