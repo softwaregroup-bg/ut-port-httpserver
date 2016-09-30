@@ -1,3 +1,13 @@
+<a name="6.5.11"></a>
+## [6.5.11](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.10...v6.5.11) (2016-09-30)
+
+
+### Bug Fixes
+
+* improve error handling and add broadcast method ([94bd628](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/94bd628))
+
+
+
 <a name="6.5.10"></a>
 ## [6.5.10](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.9...v6.5.10) (2016-09-30)
 
