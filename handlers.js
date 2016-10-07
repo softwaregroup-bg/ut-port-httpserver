@@ -329,9 +329,10 @@ module.exports = function(port) {
                     }).requiredKeys('jsonrpc', 'id').xor('result', 'error')
                 };
                 validations[validation.method] = {reqValidation, respValidation};
-                rpcRouteAdd('/rpc/' + validation.method.split('.').join('/'), validation, reqValidation, respValidation);
                 if (validation.schema && validation.schema.route) {
                     rpcRouteAdd(validation.schema.route, validation, reqValidation, respValidation);
+                } else {
+                    rpcRouteAdd('/rpc/' + validation.method.split('.').join('/'), validation, reqValidation, respValidation);
                 }
             });
         }
