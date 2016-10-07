@@ -1,3 +1,13 @@
+<a name="6.6.0"></a>
+# [6.6.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.11...v6.6.0) (2016-10-07)
+
+
+### Features
+
+* two new params added in validations, auth: weither this url sho… ([#12](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/12)) ([11601e8](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/11601e8))
+
+
+
 <a name="6.5.11"></a>
 ## [6.5.11](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.10...v6.5.11) (2016-09-30)
 
