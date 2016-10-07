@@ -330,8 +330,8 @@ module.exports = function(port) {
                 };
                 validations[validation.method] = {reqValidation, respValidation};
                 rpcRouteAdd('/rpc/' + validation.method.split('.').join('/'), validation, reqValidation, respValidation);
-                if (validation.schema && validation.schema.anotherRoute) {
-                    rpcRouteAdd(validation.schema.anotherRoute, validation, reqValidation, respValidation);
+                if (validation.schema && validation.schema.route) {
+                    rpcRouteAdd(validation.schema.route, validation, reqValidation, respValidation);
                 }
             });
         }
