@@ -18,7 +18,7 @@ module.exports = function(port) {
 
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         // custom validation. request.path === '/rpc' is because we already have validation for uri routed methods
-        if (request.path === '/rpc' && validations[request.payload.method]) { // check for current method validation
+        if (request.path === '/rpc' && request.payload && validations[request.payload.method]) { // check for current method validation
             // try to validate all request validation
             var rqValRes = Object.keys(validations[request.payload.method].reqValidation).reduce((prev, key) => {
                 if (!prev.error && validations[request.payload.method].reqValidation[key] && request[key]) {
@@ -78,12 +78,12 @@ module.exports = function(port) {
             }
         }
 
-        if (request.params.method && !request.payload.jsonrpc) {
+        if (request.params.method && (!request.payload || !request.payload.jsonrpc)) {
             request.payload = {
                 method: request.params.method,
                 jsonrpc: '2.0',
                 id: '1',
-                params: cloneDeep(request.payload)
+                params: cloneDeep(request.payload || {})
             };
         } else if (request.params.method && request.payload.jsonrpc) {
             if (
@@ -125,9 +125,6 @@ module.exports = function(port) {
                 if (msgOptions.language) {
                     $meta.language = msgOptions.language;
                 }
-                // if(options.config && options.config.yar) {
-                //    incMsg.$$.request = request;
-                // }
                 $meta.callback = function(response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
@@ -248,18 +245,6 @@ module.exports = function(port) {
 
     pendingRoutes.unshift(merge({
         handler: (req, repl) => {
-            req.params.method = 'identity.check';
-            return rpcHandler(req, repl);
-        }
-    }, port.config.routes.rpc, {
-        path: '/login',
-        config: {
-            auth: false
-        }
-    }));
-
-    pendingRoutes.unshift(merge({
-        handler: (req, repl) => {
             req.params.method = [
                 'identity.registerRequest',
                 'identity.registerValidate'
@@ -290,6 +275,24 @@ module.exports = function(port) {
     }));
 
     port.bus.importMethods(httpMethods, port.config.api);
+    function rpcRouteAdd(path, validation, reqValidation, respValidation) {
+        pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
+            method: 'POST',
+            path: path,
+            config: {
+                auth: ((validation.schema && typeof (validation.schema.auth) === 'undefined') ? 'jwt' : validation.schema.auth),
+                description: validation.schema.description || validation.method,
+                notes: (validation.schema.notes || []).concat([validation.method + ' method definition']),
+                tags: (validation.schema.tags || []).concat(['api', port.config.id, validation.method]),
+                validate: reqValidation,
+                response: respValidation
+            },
+            handler: function(req, repl) {
+                req.params.method = validation.method;
+                return rpcHandler(req, repl);
+            }
+        }));
+    };
     Object.keys(httpMethods).forEach(function(key) { // create routes for all methods
         if (key.endsWith('.validations') && Array.isArray(httpMethods[key])) { // only documented methods will be added to the api
             httpMethods[key].forEach(function(validation) {
@@ -326,21 +329,10 @@ module.exports = function(port) {
                     }).requiredKeys('jsonrpc', 'id').xor('result', 'error')
                 };
                 validations[validation.method] = {reqValidation, respValidation};
-                pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
-                    method: 'POST',
-                    path: '/rpc/' + validation.method.split('.').join('/'),
-                    config: {
-                        description: validation.schema.description || validation.method,
-                        notes: (validation.schema.notes || []).concat([validation.method + ' method definition']),
-                        tags: (validation.schema.tags || []).concat(['api', port.config.id, validation.method]),
-                        validate: reqValidation,
-                        response: respValidation
-                    },
-                    handler: function(req, repl) {
-                        req.params.method = validation.method;
-                        return rpcHandler(req, repl);
-                    }
-                }));
+                rpcRouteAdd('/rpc/' + validation.method.split('.').join('/'), validation, reqValidation, respValidation);
+                if (validation.schema && validation.schema.anotherRoute) {
+                    rpcRouteAdd(validation.schema.anotherRoute, validation, reqValidation, respValidation);
+                }
             });
         }
     });
