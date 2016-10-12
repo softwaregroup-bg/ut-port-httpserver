@@ -1,3 +1,13 @@
+<a name="6.7.0"></a>
+# [6.7.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.6.0...v6.7.0) (2016-10-12)
+
+
+### Features
+
+* allow non json-rpc payloads in custom routes ([36df63b](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/36df63b))
+
+
+
 <a name="6.6.0"></a>
 # [6.6.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.5.11...v6.6.0) (2016-10-07)
 
