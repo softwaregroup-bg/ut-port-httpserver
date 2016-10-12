@@ -5,6 +5,7 @@
     "fs-plus": "2.9.1",
     "hapi": "13.5.0",
     "hapi-auth-jwt2": "7.0.1",
+    "hapi-auth-basic": "4.2.0",
     "hapi-swagger": "6.1.0",
     "inert": "4.0.1",
     "boom": "3.2.2",
