@@ -296,27 +296,31 @@ module.exports = function(port) {
     Object.keys(httpMethods).forEach(function(key) { // create routes for all methods
         if (key.endsWith('.validations') && Array.isArray(httpMethods[key])) { // only documented methods will be added to the api
             httpMethods[key].forEach(function(validation) {
-                if (!validation.schema.params) {
-                    throw new Error('Missing \'params\' in validation schema for method: ' + validation.method);
-                } else if (!validation.schema.params.isJoi) {
-                    throw new Error('\'params\' must be a joi schema object! Method: ' + validation.method);
-                } else if (!validation.schema.result) {
-                    throw new Error('Missing \'result\' in validation schema for method: ' + validation.method);
-                } else if (!validation.schema.result.isJoi) {
-                    throw new Error('\'result\' must be a joi schema object! Method: ' + validation.method);
+                if (!validation.schema.params && !validation.schema.payload) {
+                    throw new Error(`Missing 'params'/'payload' in validation schema for method: ${validation.method}`);
+                } else if (validation.schema.params && !validation.schema.params.isJoi) {
+                    throw new Error(`'params' must be a joi schema object! Method: ${validation.method}`);
+                } else if (validation.schema.payload && !validation.schema.payload.isJoi) {
+                    throw new Error(`'payload' must be a joi schema object! Method: ${validation.method}`);
+                } else if (!validation.schema.result && !validation.schema.response) {
+                    throw new Error(`Missing 'result'/'response' in validation schema for method: ${validation.method}`);
+                } else if (validation.schema.result && !validation.schema.result.isJoi) {
+                    throw new Error(`'result' must be a joi schema object! Method: ${validation.method}`);
+                } else if (validation.schema.response && !validation.schema.response.isJoi) {
+                    throw new Error(`'response' must be a joi schema object! Method: ${validation.method}`);
                 }
                 var reqValidation = {
-                    payload: joi.object({
+                    payload: validation.schema.payload || joi.object({
                         jsonrpc: joi.string().valid('2.0'),
-                        id: joi.string(),
+                        id: joi.alternatives().try(joi.number(), joi.string()),
                         method: joi.string().valid(validation.method),
                         params: validation.schema.params.label('params')
                     })
                 };
                 var respValidation = {
-                    schema: joi.object({
+                    schema: validation.schema.response || joi.object({
                         jsonrpc: joi.string().valid('2.0'),
-                        id: joi.string(),
+                        id: joi.alternatives().try(joi.number(), joi.string()),
                         result: validation.schema.result.label('result'),
                         error: joi.object({
                             code: joi.number().integer().description('Error code'),
