@@ -1,3 +1,13 @@
+<a name="6.8.0"></a>
+# [6.8.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.7.0...v6.8.0) (2016-10-13)
+
+
+### Features
+
+* add basic authentication strategy support ([#14](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/14)) ([01df912](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/01df912))
+
+
+
 <a name="6.7.0"></a>
 # [6.7.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.6.0...v6.7.0) (2016-10-12)
 
