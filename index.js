@@ -5,6 +5,7 @@ var hapi = require('hapi');
 var inert = require('inert');
 var vision = require('vision');
 var jwt = require('hapi-auth-jwt2');
+var basicAuth = require('hapi-auth-basic');
 var when = require('when');
 var _ = {
     assign: require('lodash.assign'),
@@ -122,6 +123,7 @@ HttpServerPort.prototype.start = function start() {
         });
     }).then((dir) => {
         return this.hapiServer.register([
+            basicAuth,
             jwt,
             inert,
             vision, {
@@ -130,6 +132,11 @@ HttpServerPort.prototype.start = function start() {
             }
         ]);
     }).then(() => {
+        this.hapiServer.auth.strategy('basic', 'basic', {
+            validateFunc: (request, username, password, cb) => {
+                cb(null, true, {username: username, password: password});
+            }
+        });
         this.hapiServer.auth.strategy('jwt', 'jwt', true, _.assign({
             validateFunc: (decoded, request, cb) => (cb(null, true)) // errors will be matched in the rpc handler
         }, this.config.jwt));
