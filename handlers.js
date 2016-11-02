@@ -18,7 +18,7 @@ module.exports = function(port) {
 
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         // custom validation. request.path === '/rpc' is because we already have validation for uri routed methods
-        if (request.path === '/rpc' && request.payload && validations[request.payload.method]) { // check for current method validation
+        if ((request.path === '/rpc' || request.path === '/rpc/') && request.payload && validations[request.payload.method]) { // check for current method validation
             // try to validate all request validation
             var rqValRes = Object.keys(validations[request.payload.method].reqValidation).reduce((prev, key) => {
                 if (!prev.error && validations[request.payload.method].reqValidation[key] && request[key]) {
@@ -71,7 +71,7 @@ module.exports = function(port) {
             addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
                 return when(port.config.receive(msg, $meta)).then(function(result) {
-                    reply(result, $meta.responseHeaders, $meta.statusCode);
+                    return reply(result, $meta.responseHeaders, $meta.statusCode);
                 });
             } else {
                 return reply(msg);
@@ -337,6 +337,7 @@ module.exports = function(port) {
                     rpcRouteAdd(validation.schema.route, validation, reqValidation, respValidation);
                 } else {
                     rpcRouteAdd('/rpc/' + validation.method.split('.').join('/'), validation, reqValidation, respValidation);
+                    rpcRouteAdd('/rpc/' + validation.method, validation, reqValidation, respValidation);
                 }
             });
         }
