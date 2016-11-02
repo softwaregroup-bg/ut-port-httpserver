@@ -1,3 +1,13 @@
+<a name="6.8.2"></a>
+## [6.8.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.8.1...v6.8.2) (2016-11-02)
+
+
+### Bug Fixes
+
+* fix validations ([af1dc1c](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/af1dc1c))
+
+
+
 <a name="6.8.1"></a>
 ## [6.8.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.8.0...v6.8.1) (2016-11-01)
 
