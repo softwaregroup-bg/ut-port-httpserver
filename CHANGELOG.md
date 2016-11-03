@@ -1,3 +1,13 @@
+<a name="6.8.3"></a>
+## [6.8.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.8.2...v6.8.3) (2016-11-03)
+
+
+### Bug Fixes
+
+* return correct error response ([#16](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/16)) ([fd4f9da](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/fd4f9da))
+
+
+
 <a name="6.8.2"></a>
 ## [6.8.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.8.1...v6.8.2) (2016-11-02)
 
