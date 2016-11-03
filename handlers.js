@@ -94,7 +94,7 @@ module.exports = function(port) {
                     code: '-1',
                     message: 'Invalid request method, url method and jsonRpc method should be the same',
                     errorPrint: 'Invalid request method, url method and jsonRpc method should be the same'
-                }, {});
+                }, request);
             }
         }
         var endReply = {
@@ -106,7 +106,7 @@ module.exports = function(port) {
                 code: '-1',
                 message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
                 errorPrint: 'Invalid request!'
-            }, {});
+            }, request);
         }
         endReply.id = request.payload.id;
 
@@ -225,7 +225,7 @@ module.exports = function(port) {
                         code: '-1',
                         message: `Missing Permission for ${request.payload.method}`,
                         errorPrint: `Missing Permission for ${request.payload.method}`
-                    }, {});
+                    }, request);
                 }
             }
         })
