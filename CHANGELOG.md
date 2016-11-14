@@ -1,3 +1,13 @@
+<a name="6.9.0"></a>
+# [6.9.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.8.3...v6.9.0) (2016-11-14)
+
+
+### Features
+
+* dont allow passing through http validation if no validation is defined ([9be292a](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/9be292a))
+
+
+
 <a name="6.8.3"></a>
 ## [6.8.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.8.2...v6.8.3) (2016-11-03)
 
