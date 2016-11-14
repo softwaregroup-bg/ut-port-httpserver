@@ -1,8 +1,10 @@
 var create = require('ut-error').define;
 
 var HttpServer = create('HttpServer');
+var ValidationNotFound = create('ValidationNotFound', 'HttpServer');
 module.exports = {
-    HttpServer: HttpServer
+    HttpServer: HttpServer,
+    ValidationNotFound: ValidationNotFound
 };
 
 Object.getOwnPropertyNames(module.exports).forEach(function(key) {
