@@ -1,3 +1,18 @@
+<a name="7.0.0"></a>
+# [7.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.9.0...v7.0.0) (2016-11-14)
+
+
+### Documentation
+
+* improve docs ([b932e2c](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/b932e2c))
+
+
+### BREAKING CHANGES
+
+* validationPassThrough property is using backwards incompatible default
+
+
+
 <a name="6.9.0"></a>
 # [6.9.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.8.3...v6.9.0) (2016-11-14)
 
