@@ -6,6 +6,7 @@ var fs = require('fs');
 var jwt = require('jsonwebtoken');
 var joi = require('joi');
 var Boom = require('boom');
+var errors = require('./errors');
 
 module.exports = function(port) {
     var httpMethods = {};
@@ -17,31 +18,6 @@ module.exports = function(port) {
     }
 
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
-        // custom validation. request.path === '/rpc' is because we already have validation for uri routed methods
-        if ((request.path === '/rpc' || request.path === '/rpc/') && request.payload && validations[request.payload.method]) { // check for current method validation
-            // try to validate all request validation
-            var rqValRes = Object.keys(validations[request.payload.method].reqValidation).reduce((prev, key) => {
-                if (!prev.error && validations[request.payload.method].reqValidation[key] && request[key]) {
-                    return validations[request.payload.method].reqValidation[key].validate(request[key]);
-                }
-                return prev;
-            }, {error: null});
-            if (rqValRes.error) { // some of the request validation fails and returned an error
-                var err = Boom.badRequest(rqValRes.error.message);
-                err.output.payload.validation = {
-                    source: 'payload',
-                    keys: rqValRes.error.details.map((k) => {
-                        return k.path;
-                    })
-                };
-                return _reply(err);
-            }
-        }
-        var startTime = process.hrtime();
-        port.log.trace && port.log.trace({
-            payload: request.payload
-        });
-
         function addTime() {
             if (port.latency) {
                 var diff = process.hrtime(startTime);
@@ -77,6 +53,32 @@ module.exports = function(port) {
                 return reply(msg);
             }
         }
+        // custom validation. request.path === '/rpc' is because we already have validation for uri routed methods
+        if ((request.path === '/rpc' || request.path === '/rpc/') && request.payload && validations[request.payload.method]) { // check for current method validation
+            // try to validate all request validation
+            var rqValRes = Object.keys(validations[request.payload.method].reqValidation).reduce((prev, key) => {
+                if (!prev.error && validations[request.payload.method].reqValidation[key] && request[key]) {
+                    return validations[request.payload.method].reqValidation[key].validate(request[key]);
+                }
+                return prev;
+            }, {error: null});
+            if (rqValRes.error) { // some of the request validation fails and returned an error
+                var err = Boom.badRequest(rqValRes.error.message);
+                err.output.payload.validation = {
+                    source: 'payload',
+                    keys: rqValRes.error.details.map((k) => {
+                        return k.path;
+                    })
+                };
+                return _reply(err);
+            }
+        } else if (!validations[request.payload.method] && !port.config.validationPassThrough) {
+            return handleError(errors.ValidationNotFound(`Method ${request.payload.method} not found`), request, _reply);
+        }
+        var startTime = process.hrtime();
+        port.log.trace && port.log.trace({
+            payload: request.payload
+        });
 
         if (request.params.method && (!request.payload || !request.payload.jsonrpc)) {
             request.payload = {
@@ -200,11 +202,12 @@ module.exports = function(port) {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
                 if (res['identity.check'] && res['identity.check'].sessionId) {
+                    var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
                     return reply(endReply)
                         .state(
                             port.config.jwt.cookieKey,
                             jwt.sign({
-                                timezone: (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00',
+                                timezone: tz,
                                 actorId: res['identity.check'].actorId,
                                 sessionId: res['identity.check'].sessionId
                             }, port.config.jwt.key),

@@ -11,12 +11,12 @@ is used in the port-httpserver to do so.
 
  - `Hapi-swagger` - [Github Page](https://github.com/glennjones/hapi-swagger)
  - `Swagger` - [Live Demo](http://petstore.swagger.io/) [Official Site](http://swagger.io/)
- 
+
 ### Usages ###
 
-1. Creating automatic HTTP API documentation for 
+1. Creating automatic HTTP API documentation for
 1. `Documenting` URL paths based on the different methods in each module
-    -  /rpc/{namespace}/{method} 
+    -  /rpc/{namespace}/{method}
     - e.g: "`/rpc/security/login`", "`/rpc/customer/get`"
 1. `Documenting` and `Validating` request/response parameters:
     * `variable type`
@@ -24,7 +24,7 @@ is used in the port-httpserver to do so.
     * whether the params are `optional/required`
 
 ### Accessing the docs ###
-Go to: 
+Go to:
 
 ```
 http://localhost:{port}/documentation
@@ -42,14 +42,14 @@ To create documentation and validation for a given module follow the steps below
     ```js
     var Joi = require('joi');
     ```
-    
+
 * Add the following code to `index.js` in the implementation's `httpserver port`.
 
     ```js
     imports: ['module1', 'module2', 'module3'],
     ```
     Where module* are the names of your modules.
-    
+
 * Lets say the module `customer` exports some functions like those below:
 
     ```js
@@ -60,10 +60,10 @@ To create documentation and validation for a given module follow the steps below
         batchRegister: function(msg) {},
         search: function(msg) {},
         getAllAccounts: function(msg) {},
-        cashWithdraw: function(msg) {}, 
+        cashWithdraw: function(msg) {},
     };
     ```
-* The file `validation.js` should export an object with the same property names for each documented method.  
+* The file `validation.js` should export an object with the same property names for each documented method.
 
     ```js
     module.exports = {
@@ -84,7 +84,7 @@ To create documentation and validation for a given module follow the steps below
     }
     ```
     The property names in the `validations` should be the ame as the module names.
-    
+
 * Documentation and validation for a given method is written in the following format:
 
     ```js
@@ -108,15 +108,19 @@ To create documentation and validation for a given module follow the steps below
         returns: Joi.object({
             recordId: Joi.string().description("Transaction confirmation code"),
             overrideMessages: Joi.array().items(Joi.string()).description("Array with messages from t24")
-        })
+        }),
+        auth: false, // will not go through jwt authentication check. default policy: restrictive
+        route: '/abc' // custom route to bound current method to. If not set
+        // route will be generated from method name with rpc prefix eg.
+        // method a.b.c will be accessed via /rpc/a.b.c or /rpc/a/b/c or /rpc/
     },
     ```
-    * `description` - short description 
+    * `description` - short description
     * `notes` - full length description
     * `tags: ['api']`: this should be added for the method to be shown in the
     documentation page. If a given method should be validated but not documented this property can be omitted.
-    Other tags like `'customer'` can be added in order to access only paths with specific tags: 
-    
+    Other tags like `'customer'` can be added in order to access only paths with specific tags:
+
     ```
     http://localhost:{port}/documentation/{tagName}
     ```
