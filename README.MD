@@ -65,7 +65,7 @@ module.exports = {
     port: 8003,//or use property ports, see below
     ports: [8003, 8004],
     imports:[],
-    validationPassThrough: (true|false), // if true, validation definition is not required for message to go into system. default policy: restrictive
+    validationPassThrough: (true|false), // if true, validation is not mandatory for methods. default policy: restrictive
     server:{
         /*.......*/
     }
