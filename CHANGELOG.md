@@ -1,3 +1,13 @@
+<a name="7.0.2"></a>
+## [7.0.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.0.1...v7.0.2) (2016-11-15)
+
+
+### Bug Fixes
+
+* improve validation defaults ([782ffbc](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/782ffbc))
+
+
+
 <a name="7.0.1"></a>
 ## [7.0.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.0.0...v7.0.1) (2016-11-15)
 
