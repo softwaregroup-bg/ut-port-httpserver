@@ -314,10 +314,10 @@ module.exports = function(port) {
                 }
                 var reqValidation = {
                     payload: validation.schema.payload || joi.object({
-                        jsonrpc: joi.string().valid('2.0'),
-                        id: joi.alternatives().try(joi.number(), joi.string()),
-                        method: joi.string().valid(validation.method),
-                        params: validation.schema.params.label('params')
+                        jsonrpc: joi.string().valid('2.0').required(),
+                        id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
+                        method: joi.string().valid(validation.method).required(),
+                        params: validation.schema.params.label('params').required()
                     })
                 };
                 var respValidation = {
