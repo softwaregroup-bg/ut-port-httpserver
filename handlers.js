@@ -18,6 +18,7 @@ module.exports = function(port) {
     }
 
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
+        var startTime = process.hrtime();
         function addTime() {
             if (port.latency) {
                 var diff = process.hrtime(startTime);
@@ -75,7 +76,6 @@ module.exports = function(port) {
         } else if (!validations[request.payload.method] && !port.config.validationPassThrough) {
             return handleError(errors.ValidationNotFound(`Method ${request.payload.method} not found`), request, _reply);
         }
-        var startTime = process.hrtime();
         port.log.trace && port.log.trace({
             payload: request.payload
         });
