@@ -1,3 +1,13 @@
+<a name="7.0.1"></a>
+## [7.0.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.0.0...v7.0.1) (2016-11-15)
+
+
+### Bug Fixes
+
+* process.hrtime() only accepts an Array tuple ([d04aded](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/d04aded))
+
+
+
 <a name="7.0.0"></a>
 # [7.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v6.9.0...v7.0.0) (2016-11-14)
 
