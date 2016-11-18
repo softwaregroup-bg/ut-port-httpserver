@@ -1,6 +1,5 @@
 var assign = require('lodash.assign');
 var merge = require('lodash.merge');
-var cloneDeep = require('lodash.clonedeep');
 var when = require('when');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
@@ -52,6 +51,7 @@ var assertRouteConfig = function assertRouteConfig(routeConfig) {
 module.exports = function(port) {
     var httpMethods = {};
     var pendingRoutes = [];
+    var config = {};
     var validations = {};
 
     function addDebugInfo(msg, err) {
@@ -107,7 +107,7 @@ module.exports = function(port) {
             return vr;
         };
         var doValidate = function doValidate(checkType, data) {
-            if (Object.keys(validations[request.payload.method]).length === 2) {
+            if (Object.keys(validations[request.payload.method] || {}).length === 2) {
                 var validationResult = byMethodValidate(checkType, data);
                 if (validationResult.error) {
                     handleError({
@@ -128,44 +128,27 @@ module.exports = function(port) {
             }
             return true;
         };
-
+        // detect issue with method
+        if (!request.payload || !request.payload.method) {
+            return handleError(errors.InvalidRequest('Invalid request method, url method and jsonRpc method should be the same'), _reply);
+        } else if (
+            (typeof request.params.method === 'string' && request.params.method !== request.payload.method) ||
+            (Array.isArray(request.params.method) && (request.params.method.indexOf(request.payload.method) < 0))
+        ) {
+            return handleError(errors.InvalidRequest('Invalid request method, url method and jsonRpc method should be the same'), _reply);
+        }
+        // detect issue with method end
         if (!doValidate('request')) {
             return;
         }
-        port.log.trace && port.log.trace({
-            payload: request.payload
-        });
+        try { // on rpc/identity.closeSession this throws an error
+            port.log.trace && port.log.trace({payload: request.payload});
+        } catch (e) {}
 
-        if (request.params.method && (!request.payload || !request.payload.jsonrpc)) {
-            request.payload = {
-                method: request.params.method,
-                jsonrpc: '2.0',
-                id: '1',
-                params: cloneDeep(request.payload || {})
-            };
-        } else if (request.params.method && request.payload.jsonrpc) {
-            if (
-                (typeof request.params.method === 'string' && request.params.method !== request.payload.method) ||
-                (Array.isArray(request.params.method) && (request.params.method.indexOf(request.payload.method) < 0))
-            ) {
-                return handleError({
-                    code: '-1',
-                    message: 'Invalid request method, url method and jsonRpc method should be the same',
-                    errorPrint: 'Invalid request method, url method and jsonRpc method should be the same'
-                });
-            }
-        }
         var endReply = {
-            jsonrpc: '2.0',
-            id: (request && request.payload && request.payload.id) || ''
+            jsonrpc: request.payload.jsonrpc,
+            id: request.payload.id
         };
-        if (!request.payload || !request.payload.method || !request.payload.id) {
-            return handleError({
-                code: '-1',
-                message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
-                errorPrint: 'Invalid request!'
-            });
-        }
 
         var processMessage = function(msgOptions) {
             msgOptions = msgOptions || {};
@@ -270,8 +253,10 @@ module.exports = function(port) {
             return processMessage();
         }
         port.bus.importMethod('identity.check')(
-            request.payload.method === 'identity.check' ? assign({}, request.payload.params, request.auth.credentials)
-                : assign({actionId: request.payload.method}, request.auth.credentials))
+            request.payload.method === 'identity.check'
+            ? assign({}, request.payload.params, request.auth.credentials)
+            : assign({actionId: request.payload.method}, request.auth.credentials)
+        )
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
@@ -321,32 +306,33 @@ module.exports = function(port) {
     }, port.config.routes.rpc));
 
     port.bus.importMethods(httpMethods, port.config.api);
-    function rpcRouteAdd(method, path, routeConfig) {
+    function rpcRouteAdd(method, path) {
         pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
             method: 'POST',
             path: path,
             config: {
-                auth: ((routeConfig.config && typeof (routeConfig.config.auth) === 'undefined') ? 'jwt' : routeConfig.config.auth),
-                description: routeConfig.config.description || routeConfig.method,
-                notes: (routeConfig.config.notes || []).concat([routeConfig.method + ' method definition']),
-                tags: (routeConfig.config.tags || []).concat(['api', port.config.id, routeConfig.method])
+                auth: ((config[method].config && typeof (config[method].config.auth) === 'undefined') ? 'jwt' : config[method].config.auth),
+                description: config[method].config.description || config[method].method,
+                notes: (config[method].config.notes || []).concat([config[method].method + ' method definition']),
+                tags: (config[method].config.tags || []).concat(['api', port.config.id, config[method].method])
             },
             handler: function(req, repl) {
-                req.params.method = (routeConfig.config || {}).paramsMethod || method;
+                req.params.method = (config[method].config || {}).paramsMethod || method;
                 return rpcHandler(req, repl);
             }
         }));
     };
-    Object.keys(httpMethods).forEach(function(key) { // create routes for all methods
-        if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) { // only documented methods will be added to the api
+    Object.keys(httpMethods).forEach(function(key) {
+        if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) {
             httpMethods[key].forEach(function(routeConfig) {
                 assertRouteConfig(routeConfig);
+                config[routeConfig.method] = routeConfig;
                 validations[routeConfig.method] = getReqRespValidation(routeConfig);
                 if (routeConfig.config && routeConfig.config.route) {
-                    rpcRouteAdd(routeConfig.method, routeConfig.config.route, routeConfig);
+                    rpcRouteAdd(routeConfig.method, routeConfig.config.route);
                 } else {
-                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), routeConfig);
-                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method, routeConfig);
+                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'));
+                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method);
                 }
             });
         }
