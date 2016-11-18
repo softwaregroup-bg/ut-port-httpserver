@@ -1,3 +1,18 @@
+<a name="8.0.0"></a>
+# [8.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.1.0...v8.0.0) (2016-11-18)
+
+
+### Bug Fixes
+
+* refactoring validation ([80bc5c9](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/80bc5c9))
+
+
+### BREAKING CHANGES
+
+* identity module routes are removed
+
+
+
 <a name="7.1.0"></a>
 # [7.1.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.0.2...v7.1.0) (2016-11-18)
 
