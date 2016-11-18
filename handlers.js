@@ -5,8 +5,49 @@ var when = require('when');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
 var joi = require('joi');
-var Boom = require('boom');
 var errors = require('./errors');
+
+var getReqRespValidation = function getReqRespValidation(routeConfig) {
+    var request = {
+        payload: routeConfig.schema.payload || joi.object({
+            jsonrpc: joi.string().valid('2.0').required(),
+            id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
+            method: joi.string().valid(routeConfig.method).required(),
+            params: routeConfig.schema.params.label('params').required()
+        })
+    };
+    var response = routeConfig.schema.response || joi.object({
+        jsonrpc: joi.string().valid('2.0').required(),
+        id: joi.alternatives().try(joi.number(), joi.string()).required(),
+        result: routeConfig.schema.result.label('result'),
+        error: joi.object({
+            code: joi.number().integer().description('Error code'),
+            message: joi.string().description('Debug error message'),
+            errorPrint: joi.string().optional().description('User friendly error message'),
+            fieldErrors: joi.any().description('Field validation errors'),
+            type: joi.string().description('Error type')
+        }).label('error'),
+        debug: joi.object().label('debug')
+    })
+    .xor('result', 'error');
+    return {request, response};
+};
+
+var assertRouteConfig = function assertRouteConfig(routeConfig) {
+    if (!routeConfig.schema.params && !routeConfig.schema.payload) {
+        throw new Error(`Missing 'params'/'payload' in validation schema for method: ${routeConfig.method}`);
+    } else if (routeConfig.schema.params && !routeConfig.schema.params.isJoi) {
+        throw new Error(`'params' must be a joi schema object! Method: ${routeConfig.method}`);
+    } else if (routeConfig.schema.payload && !routeConfig.schema.payload.isJoi) {
+        throw new Error(`'payload' must be a joi schema object! Method: ${routeConfig.method}`);
+    } else if (!routeConfig.schema.result && !routeConfig.schema.response) {
+        throw new Error(`Missing 'result'/'response' in validation schema for method: ${routeConfig.method}`);
+    } else if (routeConfig.schema.result && !routeConfig.schema.result.isJoi) {
+        throw new Error(`'result' must be a joi schema object! Method: ${routeConfig.method}`);
+    } else if (routeConfig.schema.response && !routeConfig.schema.response.isJoi) {
+        throw new Error(`'response' must be a joi schema object! Method: ${routeConfig.method}`);
+    }
+};
 
 module.exports = function(port) {
     var httpMethods = {};
@@ -38,10 +79,10 @@ module.exports = function(port) {
             return repl;
         };
 
-        function handleError(error, request, response) {
+        function handleError(error, response) {
             var $meta = {};
             var msg = {
-                jsonrpc: '2.0',
+                jsonrpc: (request.payload && request.payload.jsonrpc) || '',
                 id: (request.payload && request.payload.id) || '',
                 error: error
             };
@@ -54,27 +95,42 @@ module.exports = function(port) {
                 return reply(msg);
             }
         }
-        // custom validation. request.path === '/rpc' is because we already have validation for uri routed methods
-        if ((request.path === '/rpc' || request.path === '/rpc/') && request.payload && validations[request.payload.method]) { // check for current method validation
-            // try to validate all request validation
-            var rqValRes = Object.keys(validations[request.payload.method].reqValidation).reduce((prev, key) => {
-                if (!prev.error && validations[request.payload.method].reqValidation[key] && request[key]) {
-                    return validations[request.payload.method].reqValidation[key].validate(request[key]);
-                }
-                return prev;
-            }, {error: null});
-            if (rqValRes.error) { // some of the request validation fails and returned an error
-                var err = Boom.badRequest(rqValRes.error.message);
-                err.output.payload.validation = {
-                    source: 'payload',
-                    keys: rqValRes.error.details.map((k) => {
-                        return k.path;
-                    })
-                };
-                return _reply(err);
+        var byMethodValidate = function byMethodValidate(checkType, data) {
+            var vr;
+            if (checkType === 'request') {
+                vr = validations[request.payload.method].request.payload.validate(request.payload);
+                vr.method = 'payload';
+            } else if (checkType === 'response') {
+                vr = validations[request.payload.method].response.validate(data);
+                vr.method = 'response';
             }
-        } else if (!validations[request.payload.method] && !port.config.validationPassThrough) {
-            return handleError(errors.ValidationNotFound(`Method ${request.payload.method} not found`), request, _reply);
+            return vr;
+        };
+        var doValidate = function doValidate(checkType, data) {
+            if (Object.keys(validations[request.payload.method]).length === 2) {
+                var validationResult = byMethodValidate(checkType, data);
+                if (validationResult.error) {
+                    handleError({
+                        message: validationResult.error.message,
+                        validation: {
+                            source: validationResult.method,
+                            keys: validationResult.error.details.map((k) => {
+                                return k.path;
+                            })
+                        },
+                        code: validationResult.error.name
+                    });
+                    return false;
+                }
+            } else if (!validations[request.payload.method] && !port.config.validationPassThrough) {
+                handleError(errors.ValidationNotFound(`Method ${request.payload.method} not found`), _reply);
+                return false;
+            }
+            return true;
+        };
+
+        if (!doValidate('request')) {
+            return;
         }
         port.log.trace && port.log.trace({
             payload: request.payload
@@ -96,7 +152,7 @@ module.exports = function(port) {
                     code: '-1',
                     message: 'Invalid request method, url method and jsonRpc method should be the same',
                     errorPrint: 'Invalid request method, url method and jsonRpc method should be the same'
-                }, request);
+                });
             }
         }
         var endReply = {
@@ -108,7 +164,7 @@ module.exports = function(port) {
                 code: '-1',
                 message: (request.payload && !request.payload.id ? 'Missing request id' : 'Missing request method'),
                 errorPrint: 'Invalid request!'
-            }, request);
+            });
         }
         endReply.id = request.payload.id;
 
@@ -142,18 +198,33 @@ module.exports = function(port) {
                         };
                         if (typeof customReply === 'function') {
                             addDebugInfo(endReply, response);
-                            return customReply(reply, endReply, $meta);
+                            if (doValidate('response', endReply)) {
+                                return customReply(reply, endReply, $meta);
+                            }
                         }
-                        return handleError(endReply.error, request, response);
+                        return handleError(endReply.error, response);
                     }
                     if (response.auth) {
                         delete response.auth;
                     }
 
-                    // todo find a better way to return static file
                     if ($meta && $meta.staticFileName) {
-                        addTime();
-                        _reply.file($meta.staticFileName, $meta.staticFileOptions);
+                        fs.access($meta.staticFileName, fs.constants.R_OK, (err) => {
+                            addTime();
+                            if (err) {
+                                endReply.error = {
+                                    code: -1,
+                                    message: 'File not found',
+                                    errorPrint: 'File not found',
+                                    type: $meta.errorType || response.type,
+                                    fieldErrors: $meta.fieldErrors || response.fieldErrors
+                                };
+                                handleError(endReply.error, response);
+                            } else {
+                                _reply(fs.createReadStream($meta.staticFileName));
+                            }
+                        });
+
                         return true;
                     }
 
@@ -162,9 +233,13 @@ module.exports = function(port) {
                         return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
                     }
                     if (typeof customReply === 'function') {
-                        customReply(reply, response, $meta);
+                        if (doValidate('response', response)) {
+                            customReply(reply, response, $meta);
+                        }
                     } else {
-                        reply(endReply, $meta.responseHeaders, $meta.statusCode);
+                        if (doValidate('response', endReply)) {
+                            reply(endReply, $meta.responseHeaders, $meta.statusCode);
+                        }
                     }
                     return true;
                 };
@@ -175,7 +250,7 @@ module.exports = function(port) {
                     message: err.message,
                     errorPrint: err.message,
                     type: err.type
-                }, request, err);
+                }, err);
             }
         };
 
@@ -192,7 +267,7 @@ module.exports = function(port) {
             request.payload.method === 'identity.forgottenPassword' ||
             request.payload.method === 'identity.registerRequest' ||
             request.payload.method === 'identity.registerValidate'
-        ) { // todo use standard processing once identity.check works for anonymous
+        ) {
             return processMessage();
         }
         port.bus.importMethod('identity.check')(
@@ -228,7 +303,7 @@ module.exports = function(port) {
                         code: '-1',
                         message: `Missing Permission for ${request.payload.method}`,
                         errorPrint: `Missing Permission for ${request.payload.method}`
-                    }, request);
+                    });
                 }
             }
         })
@@ -238,7 +313,7 @@ module.exports = function(port) {
                 message: err.message,
                 errorPrint: err.errorPrint || err.message,
                 type: err.type
-            }, request, err)
+            }, err)
         ));
     };
 
@@ -246,101 +321,69 @@ module.exports = function(port) {
         handler: rpcHandler
     }, port.config.routes.rpc));
 
-    pendingRoutes.unshift(merge({
-        handler: (req, repl) => {
-            req.params.method = [
-                'identity.registerRequest',
-                'identity.registerValidate'
-            ];
-            return rpcHandler(req, repl);
-        }
-    }, port.config.routes.rpc, {
-        path: '/register',
-        config: {
-            auth: false
-        }
-    }));
+    // pendingRoutes.unshift(merge({
+    //     handler: (req, repl) => {
+    //         req.params.method = [
+    //             'identity.registerRequest',
+    //             'identity.registerValidate'
+    //         ];
+    //         return rpcHandler(req, repl);
+    //     }
+    // }, port.config.routes.rpc, {
+    //     path: '/register',
+    //     config: {
+    //         auth: false
+    //     }
+    // }));
 
-    pendingRoutes.unshift(merge({
-        handler: (req, repl) => {
-            req.params.method = [
-                'identity.forgottenPassword',
-                'identity.forgottenPasswordRequest',
-                'identity.forgottenPasswordValidate'
-            ];
-            return rpcHandler(req, repl);
-        }
-    }, port.config.routes.rpc, {
-        path: '/forgottenPassword',
-        config: {
-            auth: false
-        }
-    }));
+    // pendingRoutes.unshift(merge({
+    //     handler: (req, repl) => {
+    //         req.params.method = [
+    //             'identity.forgottenPassword',
+    //             'identity.forgottenPasswordRequest',
+    //             'identity.forgottenPasswordValidate'
+    //         ];
+    //         return rpcHandler(req, repl);
+    //     }
+    // }, port.config.routes.rpc, {
+    //     path: '/forgottenPassword',
+    //     config: {
+    //         auth: false
+    //     }
+    // }));
 
     port.bus.importMethods(httpMethods, port.config.api);
-    function rpcRouteAdd(path, validation, reqValidation, respValidation) {
+    function rpcRouteAdd(method, path, routeConfig) {
         pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
             method: 'POST',
             path: path,
             config: {
-                auth: ((validation.schema && typeof (validation.schema.auth) === 'undefined') ? 'jwt' : validation.schema.auth),
-                description: validation.schema.description || validation.method,
-                notes: (validation.schema.notes || []).concat([validation.method + ' method definition']),
-                tags: (validation.schema.tags || []).concat(['api', port.config.id, validation.method]),
-                validate: reqValidation,
-                response: respValidation
+                auth: ((routeConfig.schema && typeof (routeConfig.schema.auth) === 'undefined') ? 'jwt' : routeConfig.schema.auth),
+                description: routeConfig.schema.description || routeConfig.method,
+                notes: (routeConfig.schema.notes || []).concat([routeConfig.method + ' method definition']),
+                tags: (routeConfig.schema.tags || []).concat(['api', port.config.id, routeConfig.method])
+                // validate: validations[method].request,
+                // response: {
+                //     schema: validations[method].response,
+                //     failAction: 'error'
+                // }
             },
             handler: function(req, repl) {
-                req.params.method = validation.method;
+                req.params.method = method;
                 return rpcHandler(req, repl);
             }
         }));
     };
     Object.keys(httpMethods).forEach(function(key) { // create routes for all methods
         if (key.endsWith('.validations') && Array.isArray(httpMethods[key])) { // only documented methods will be added to the api
-            httpMethods[key].forEach(function(validation) {
-                if (!validation.schema.params && !validation.schema.payload) {
-                    throw new Error(`Missing 'params'/'payload' in validation schema for method: ${validation.method}`);
-                } else if (validation.schema.params && !validation.schema.params.isJoi) {
-                    throw new Error(`'params' must be a joi schema object! Method: ${validation.method}`);
-                } else if (validation.schema.payload && !validation.schema.payload.isJoi) {
-                    throw new Error(`'payload' must be a joi schema object! Method: ${validation.method}`);
-                } else if (!validation.schema.result && !validation.schema.response) {
-                    throw new Error(`Missing 'result'/'response' in validation schema for method: ${validation.method}`);
-                } else if (validation.schema.result && !validation.schema.result.isJoi) {
-                    throw new Error(`'result' must be a joi schema object! Method: ${validation.method}`);
-                } else if (validation.schema.response && !validation.schema.response.isJoi) {
-                    throw new Error(`'response' must be a joi schema object! Method: ${validation.method}`);
-                }
-                var reqValidation = {
-                    payload: validation.schema.payload || joi.object({
-                        jsonrpc: joi.string().valid('2.0').required(),
-                        id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
-                        method: joi.string().valid(validation.method).required(),
-                        params: validation.schema.params.label('params').required()
-                    })
-                };
-                var respValidation = {
-                    schema: validation.schema.response || joi.object({
-                        jsonrpc: joi.string().valid('2.0'),
-                        id: joi.alternatives().try(joi.number(), joi.string()),
-                        result: validation.schema.result.label('result'),
-                        error: joi.object({
-                            code: joi.number().integer().description('Error code'),
-                            message: joi.string().description('Debug error message'),
-                            errorPrint: joi.string().optional().description('User friendly error message'),
-                            fieldErrors: joi.any().description('Field validation errors'),
-                            type: joi.string().description('Error type')
-                        }).label('error'),
-                        debug: joi.object().label('debug').optional()
-                    }).requiredKeys('jsonrpc', 'id').xor('result', 'error')
-                };
-                validations[validation.method] = {reqValidation, respValidation};
-                if (validation.schema && validation.schema.route) {
-                    rpcRouteAdd(validation.schema.route, validation, reqValidation, respValidation);
+            httpMethods[key].forEach(function(routeConfig) {
+                assertRouteConfig(routeConfig);
+                validations[routeConfig.method] = getReqRespValidation(routeConfig);
+                if (routeConfig.schema && routeConfig.schema.route) {
+                    rpcRouteAdd(routeConfig.method, routeConfig.schema.route, routeConfig);
                 } else {
-                    rpcRouteAdd('/rpc/' + validation.method.split('.').join('/'), validation, reqValidation, respValidation);
-                    rpcRouteAdd('/rpc/' + validation.method, validation, reqValidation, respValidation);
+                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), routeConfig);
+                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method, routeConfig);
                 }
             });
         }
