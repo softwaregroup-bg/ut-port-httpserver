@@ -1,3 +1,13 @@
+<a name="7.1.0"></a>
+# [7.1.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.0.2...v7.1.0) (2016-11-18)
+
+
+### Features
+
+* upgrade dependencies ([ce6151d](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/ce6151d))
+
+
+
 <a name="7.0.2"></a>
 ## [7.0.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.0.1...v7.0.2) (2016-11-15)
 
