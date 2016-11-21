@@ -1,3 +1,20 @@
+<a name="8.1.0"></a>
+# [8.1.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.0.0...v8.1.0) (2016-11-21)
+
+
+### Bug Fixes
+
+* handlers ([da91b4b](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/da91b4b))
+* remove extra checks ([db07b10](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/db07b10))
+* removed logic that is not in use anymore;few errors are red from errors.js ([321e447](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/321e447))
+
+
+### Features
+
+* multiple cookie paths ([9209077](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/9209077))
+
+
+
 <a name="8.0.0"></a>
 # [8.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v7.1.0...v8.0.0) (2016-11-18)
 
