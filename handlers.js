@@ -1,4 +1,5 @@
 var assign = require('lodash.assign');
+var cloneDeep = require('lodash.clonedeep');
 var merge = require('lodash.merge');
 var when = require('when');
 var fs = require('fs');
@@ -129,12 +130,16 @@ module.exports = function(port) {
             return true;
         };
         // detect issue with method
-        if (!request.payload || !request.payload.method) {
-            return handleError(errors.InvalidRequest('Invalid request method, url method and jsonRpc method should be the same'), _reply);
-        } else if (
-            (typeof request.params.method === 'string' && request.params.method !== request.payload.method) ||
-            (Array.isArray(request.params.method) && (request.params.method.indexOf(request.payload.method) < 0))
-        ) {
+        if (request.params.method && (!request.payload || !request.payload.jsonrpc)) {
+            request.payload = {
+                method: request.params.method,
+                jsonrpc: '2.0',
+                id: '1',
+                params: cloneDeep(request.payload || {})
+            };
+        } else if (request.params.method && request.payload.jsonrpc && !request.params.method[request.payload.method]) {
+            return handleError(errors.MethodNotFound(`Method ${request.payload.method} not found`), _reply);
+        } else if (!request.params.method) {
             return handleError(errors.InvalidRequest('Invalid request method, url method and jsonRpc method should be the same'), _reply);
         }
         // detect issue with method end
@@ -283,11 +288,7 @@ module.exports = function(port) {
                         language: res.language
                     });
                 } else {
-                    return handleError({
-                        code: '-1',
-                        message: `Missing Permission for ${request.payload.method}`,
-                        errorPrint: `Missing Permission for ${request.payload.method}`
-                    });
+                    return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
                 }
             }
         })
@@ -317,7 +318,12 @@ module.exports = function(port) {
                 tags: (config[method].config.tags || []).concat(['api', port.config.id, config[method].method])
             },
             handler: function(req, repl) {
-                req.params.method = (config[method].config || {}).paramsMethod || method;
+                var currentMethods = (config[method].config || {}).paramsMethod || method;
+                req.params.method = currentMethods;
+                if (typeof (currentMethods) === 'string') {
+                    req.params.method = {};
+                    req.params.method[currentMethods] = 1;
+                }
                 return rpcHandler(req, repl);
             }
         }));
