@@ -12,7 +12,7 @@ var getReqRespValidation = function getReqRespValidation(routeConfig) {
         payload: routeConfig.config.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
             id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
-            method: joi.string().valid(routeConfig.method).required(),
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod || routeConfig.method)).required(),
             params: routeConfig.config.params.label('params').required()
         })
     };
@@ -137,8 +137,6 @@ module.exports = function(port) {
                 id: '1',
                 params: cloneDeep(request.payload || {})
             };
-        } else if (request.params.method && request.payload.jsonrpc && !request.params.method[request.payload.method]) {
-            return handleError(errors.MethodNotFound(`Method ${request.payload.method} not found`), _reply);
         } else if (!request.params.method) {
             return handleError(errors.InvalidRequest('Invalid request method, url method and jsonRpc method should be the same'), _reply);
         }
@@ -146,9 +144,7 @@ module.exports = function(port) {
         if (!doValidate('request')) {
             return;
         }
-        try { // on rpc/identity.closeSession this throws an error
-            port.log.trace && port.log.trace({payload: request.payload});
-        } catch (e) {}
+        port.log.trace && port.log.trace({payload: request.payload});
 
         var endReply = {
             jsonrpc: request.payload.jsonrpc,
@@ -306,25 +302,19 @@ module.exports = function(port) {
     };
 
     pendingRoutes.unshift(merge({
-        handler: function(req, repl) {
-            var method = req.params.method;
-            req.params.method = {};
-            req.params.method[method] = 1;
-            return rpcHandler(req, repl);
-        }
+        handler: rpcHandler
     }, port.config.routes.rpc));
-
     port.bus.importMethods(httpMethods, port.config.api);
+
     function rpcRouteAdd(method, path) {
-        var currentMethods = ((config[method].config || {}).paramsMethod || [method]).reduce((prev, method) => {
-            if (method) {
-                prev[method] = 1;
-                if (config[method]) {
-                    validations[method] = getReqRespValidation(config[method]);
+        validations[method] = getReqRespValidation(config[method]);
+        if (config[method].config.paramsMethod) {
+            config[method].config.paramsMethod.reduce((prev, cur) => {
+                if (!validations[cur]) {
+                    validations[cur] = validations[method];
                 }
-            }
-            return prev;
-        }, {});
+            });
+        }
         pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
             method: 'POST',
             path: path,
@@ -335,7 +325,7 @@ module.exports = function(port) {
                 tags: (config[method].config.tags || []).concat(['api', port.config.id, config[method].method])
             },
             handler: function(req, repl) {
-                req.params.method = currentMethods;
+                req.params.method = method;
                 return rpcHandler(req, repl);
             }
         }));
