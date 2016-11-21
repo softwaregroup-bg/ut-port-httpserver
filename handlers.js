@@ -303,11 +303,25 @@ module.exports = function(port) {
     };
 
     pendingRoutes.unshift(merge({
-        handler: rpcHandler
+        handler: function(req, repl) {
+            var method = req.params.method;
+            req.params.method = {};
+            req.params.method[method] = 1;
+            return rpcHandler(req, repl);
+        }
     }, port.config.routes.rpc));
 
     port.bus.importMethods(httpMethods, port.config.api);
     function rpcRouteAdd(method, path) {
+        var currentMethods = ((config[method].config || {}).paramsMethod || [method]).reduce((prev, method) => {
+            if (method) {
+                prev[method] = 1;
+                if (config[method]) {
+                    validations[method] = getReqRespValidation(config[method]);
+                }
+            }
+            return prev;
+        }, {});
         pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
             method: 'POST',
             path: path,
@@ -318,12 +332,7 @@ module.exports = function(port) {
                 tags: (config[method].config.tags || []).concat(['api', port.config.id, config[method].method])
             },
             handler: function(req, repl) {
-                var currentMethods = (config[method].config || {}).paramsMethod || method;
                 req.params.method = currentMethods;
-                if (typeof (currentMethods) === 'string') {
-                    req.params.method = {};
-                    req.params.method[currentMethods] = 1;
-                }
                 return rpcHandler(req, repl);
             }
         }));
@@ -333,7 +342,6 @@ module.exports = function(port) {
             httpMethods[key].forEach(function(routeConfig) {
                 assertRouteConfig(routeConfig);
                 config[routeConfig.method] = routeConfig;
-                validations[routeConfig.method] = getReqRespValidation(routeConfig);
                 if (routeConfig.config && routeConfig.config.route) {
                     rpcRouteAdd(routeConfig.method, routeConfig.config.route);
                 } else {
