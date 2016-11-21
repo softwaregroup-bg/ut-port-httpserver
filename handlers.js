@@ -267,16 +267,19 @@ module.exports = function(port) {
                 endReply.result = res;
                 if (res['identity.check'] && res['identity.check'].sessionId) {
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
-                    return reply(endReply)
-                        .state(
+                    var jwtSigned = jwt.sign({
+                        timezone: tz,
+                        actorId: res['identity.check'].actorId,
+                        sessionId: res['identity.check'].sessionId
+                    }, port.config.jwt.key);
+
+                    return port.config.cookiePaths.reduce((repl, path) => {
+                        repl.state(
                             port.config.jwt.cookieKey,
-                            jwt.sign({
-                                timezone: tz,
-                                actorId: res['identity.check'].actorId,
-                                sessionId: res['identity.check'].sessionId
-                            }, port.config.jwt.key),
-                            port.config.cookie
+                            jwtSigned,
+                            Object.assign({path}, port.config.cookie)
                         );
+                    }, reply(endReply));
                 } else {
                     return reply(endReply);
                 }
