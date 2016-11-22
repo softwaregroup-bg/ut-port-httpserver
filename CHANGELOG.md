@@ -1,3 +1,13 @@
+<a name="8.1.1"></a>
+## [8.1.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.0...v8.1.1) (2016-11-22)
+
+
+### Bug Fixes
+
+* removed Plamens logic, added check by multiple routes ([e7f0177](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/e7f0177))
+
+
+
 <a name="8.1.0"></a>
 # [8.1.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.0.0...v8.1.0) (2016-11-21)
 
