@@ -1,5 +1,4 @@
 var assign = require('lodash.assign');
-var cloneDeep = require('lodash.clonedeep');
 var merge = require('lodash.merge');
 var when = require('when');
 var fs = require('fs');
@@ -14,6 +13,9 @@ var getReqRespValidation = function getReqRespValidation(routeConfig) {
             id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
             method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod || routeConfig.method)).required(),
             params: routeConfig.config.params.label('params').required()
+        }),
+        params: joi.object({
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod || routeConfig.method))
         })
     };
     var response = routeConfig.config.response || joi.object({
@@ -59,8 +61,35 @@ module.exports = function(port) {
         err && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err);
     }
 
+    var byMethodValidate = function byMethodValidate(checkType, method, data) {
+        var vr;
+        if (checkType === 'request') {
+            vr = validations[method].request.payload.validate(data);
+            vr.method = 'payload';
+        } else if (checkType === 'response') {
+            vr = validations[method].response.validate(data);
+            vr.method = 'response';
+        }
+        return vr;
+    };
+    var doValidate = function doValidate(checkType, method, data, next) {
+        if (Object.keys(validations[method] || {}).length === 2) {
+            var validationResult = byMethodValidate(checkType, method, data);
+            if (validationResult.error) {
+                next(validationResult.error);
+            } else {
+                next(null, data);
+            }
+        } else if (!validations[method] && !port.config.validationPassThrough) {
+            next(errors.ValidationNotFound(`Method ${method} not found`));
+        } else {
+            next(null, data);
+        }
+    };
+
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         var startTime = process.hrtime();
+        port.log.trace && port.log.trace({payload: request.payload});
         function addTime() {
             if (port.latency) {
                 var diff = process.hrtime(startTime);
@@ -96,55 +125,6 @@ module.exports = function(port) {
                 return reply(msg);
             }
         }
-        var byMethodValidate = function byMethodValidate(checkType, data) {
-            var vr;
-            if (checkType === 'request') {
-                vr = validations[request.payload.method].request.payload.validate(request.payload);
-                vr.method = 'payload';
-            } else if (checkType === 'response') {
-                vr = validations[request.payload.method].response.validate(data);
-                vr.method = 'response';
-            }
-            return vr;
-        };
-        var doValidate = function doValidate(checkType, data) {
-            if (Object.keys(validations[request.payload.method] || {}).length === 2) {
-                var validationResult = byMethodValidate(checkType, data);
-                if (validationResult.error) {
-                    handleError({
-                        message: validationResult.error.message,
-                        validation: {
-                            source: validationResult.method,
-                            keys: validationResult.error.details.map((k) => {
-                                return k.path;
-                            })
-                        },
-                        code: validationResult.error.name
-                    });
-                    return false;
-                }
-            } else if (!validations[request.payload.method] && !port.config.validationPassThrough) {
-                handleError(errors.ValidationNotFound(`Method ${request.payload.method} not found`), _reply);
-                return false;
-            }
-            return true;
-        };
-        // detect issue with method
-        if (request.params.method && (!request.payload || !request.payload.jsonrpc)) {
-            request.payload = {
-                method: request.params.method,
-                jsonrpc: '2.0',
-                id: '1',
-                params: cloneDeep(request.payload || {})
-            };
-        } else if (!request.params.method) {
-            return handleError(errors.InvalidRequest('Invalid request method, url method and jsonRpc method should be the same'), _reply);
-        }
-        // detect issue with method end
-        if (!doValidate('request')) {
-            return;
-        }
-        port.log.trace && port.log.trace({payload: request.payload});
 
         var endReply = {
             jsonrpc: request.payload.jsonrpc,
@@ -181,9 +161,7 @@ module.exports = function(port) {
                         };
                         if (typeof customReply === 'function') {
                             addDebugInfo(endReply, response);
-                            if (doValidate('response', endReply)) {
-                                return customReply(reply, endReply, $meta);
-                            }
+                            return customReply(reply, endReply, $meta);
                         }
                         return handleError(endReply.error, response);
                     }
@@ -216,13 +194,9 @@ module.exports = function(port) {
                         return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
                     }
                     if (typeof customReply === 'function') {
-                        if (doValidate('response', response)) {
-                            customReply(reply, response, $meta);
-                        }
+                        customReply(reply, response, $meta);
                     } else {
-                        if (doValidate('response', endReply)) {
-                            reply(endReply, $meta.responseHeaders, $meta.statusCode);
-                        }
+                        reply(endReply, $meta.responseHeaders, $meta.statusCode);
                     }
                     return true;
                 };
@@ -243,8 +217,7 @@ module.exports = function(port) {
                     repl.state(port.config.jwt.cookieKey, '', port.config.cookie);
                 }
             });
-        }
-        if (
+        } else if (
             request.payload.method === 'identity.forgottenPasswordRequest' ||
             request.payload.method === 'identity.forgottenPasswordValidate' ||
             request.payload.method === 'identity.forgottenPassword' ||
@@ -302,12 +275,36 @@ module.exports = function(port) {
     };
 
     pendingRoutes.unshift(merge({
-        handler: rpcHandler
+        config: {
+            handler: rpcHandler,
+            description: 'rpc common validation',
+            tags: ['api', 'rpc'],
+            validate: {
+                query: false,
+                payload: (value, options, next) => {
+                    doValidate('request', options.context.params.method, value, next);
+                },
+                params: joi.object({method: joi.string().min(1).required()}).required()
+            },
+            response: {
+                schema: joi.object({}),
+                failAction: (request, reply, value, error) => {
+                    doValidate('response', request.params.method, value._object, (err, result) => {
+                        if (err) {
+                            port.log.error && port.log.error(err);
+                        }
+                        reply(value._object);
+                    });
+                }
+            }
+        }
     }, port.config.routes.rpc));
     port.bus.importMethods(httpMethods, port.config.api);
 
-    function rpcRouteAdd(method, path) {
+    function rpcRouteAdd(method, path, registerInSwagger) {
+        port.log.trace && port.log.trace({methodRegistered: method, route: path});
         validations[method] = getReqRespValidation(config[method]);
+
         if (config[method].config.paramsMethod) {
             config[method].config.paramsMethod.reduce((prev, cur) => {
                 if (!validations[cur]) {
@@ -315,18 +312,36 @@ module.exports = function(port) {
                 }
             });
         }
+        var tags = [port.config.id, config[method].method];
+        if (registerInSwagger) {
+            tags.unshift('api');
+        }
         pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
             method: 'POST',
             path: path,
             config: {
+                handler: function(req, repl) {
+                    req.params.method = method;
+                    return rpcHandler(req, repl);
+                },
                 auth: ((config[method].config && typeof (config[method].config.auth) === 'undefined') ? 'jwt' : config[method].config.auth),
                 description: config[method].config.description || config[method].method,
                 notes: (config[method].config.notes || []).concat([config[method].method + ' method definition']),
-                tags: (config[method].config.tags || []).concat(['api', port.config.id, config[method].method])
-            },
-            handler: function(req, repl) {
-                req.params.method = method;
-                return rpcHandler(req, repl);
+                tags: (config[method].config.tags || []).concat(tags),
+                response: {
+                    schema: validations[method].response,
+                    failAction: (request, reply, value, error) => {
+                        if (value instanceof Error) {
+                            port.log.error && port.log.error(value);
+                        }
+                        reply(value._object);
+                    }
+                },
+                validate: {
+                    payload: validations[method].request.payload,
+                    params: validations[method].request.params,
+                    query: false
+                }
             }
         }));
     };
@@ -336,9 +351,9 @@ module.exports = function(port) {
                 assertRouteConfig(routeConfig);
                 config[routeConfig.method] = routeConfig;
                 if (routeConfig.config && routeConfig.config.route) {
-                    rpcRouteAdd(routeConfig.method, routeConfig.config.route);
+                    rpcRouteAdd(routeConfig.method, routeConfig.config.route, true);
                 } else {
-                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'));
+                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), true);
                     rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method);
                 }
             });
