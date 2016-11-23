@@ -1,3 +1,13 @@
+<a name="8.1.2"></a>
+## [8.1.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.1...v8.1.2) (2016-11-23)
+
+
+### Bug Fixes
+
+* proper response validation ([142b0e4](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/142b0e4))
+
+
+
 <a name="8.1.1"></a>
 ## [8.1.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.0...v8.1.1) (2016-11-22)
 
