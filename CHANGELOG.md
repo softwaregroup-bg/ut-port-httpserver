@@ -1,3 +1,13 @@
+<a name="8.1.3"></a>
+## [8.1.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.2...v8.1.3) (2016-11-23)
+
+
+### Bug Fixes
+
+* versions bump ([0c955f8](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/0c955f8))
+
+
+
 <a name="8.1.2"></a>
 ## [8.1.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.1...v8.1.2) (2016-11-23)
 
