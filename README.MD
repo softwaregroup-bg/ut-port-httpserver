@@ -67,6 +67,7 @@ module.exports = {
     imports:[],
     cookiePaths:['/rpc'], // cookie paths, to which paths to bound cookies to, default: /rpc
     validationPassThrough: (true|false), // if true, validation is not mandatory for methods. default policy: restrictive
+    entryPoint: './abc/index.js', // app entry point (webpack helper)
     server:{
         /*.......*/
     }
