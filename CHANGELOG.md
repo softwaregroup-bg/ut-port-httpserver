@@ -1,3 +1,13 @@
+<a name="8.1.5"></a>
+## [8.1.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.4...v8.1.5) (2016-11-27)
+
+
+### Bug Fixes
+
+* validation on /rpc params was not correct ([538f6b2](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/538f6b2))
+
+
+
 <a name="8.1.4"></a>
 ## [8.1.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.3...v8.1.4) (2016-11-25)
 
