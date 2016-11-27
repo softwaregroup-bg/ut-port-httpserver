@@ -282,9 +282,9 @@ module.exports = function(port) {
             validate: {
                 query: false,
                 payload: (value, options, next) => {
-                    doValidate('request', options.context.params.method, value, next);
+                    doValidate('request', value.method, value, next);
                 },
-                params: joi.object({method: joi.string().min(1).required()}).required()
+                params: true
             },
             response: {
                 schema: joi.object({}),
