@@ -1,3 +1,13 @@
+<a name="8.1.6"></a>
+## [8.1.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.5...v8.1.6) (2016-12-01)
+
+
+### Bug Fixes
+
+* improve logging ([dee0b55](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/dee0b55))
+
+
+
 <a name="8.1.5"></a>
 ## [8.1.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.4...v8.1.5) (2016-11-27)
 
