@@ -153,6 +153,7 @@ HttpServerPort.prototype.start = function start() {
         this.log.info && this.log.info({
             message: 'HTTP server started',
             $meta: {
+                mtid: 'event',
                 opcode: 'port.started'
             }
         });
