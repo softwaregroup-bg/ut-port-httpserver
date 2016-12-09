@@ -31,7 +31,7 @@ function HttpServerPort() {
         connections: [],
         routes: {
             rpc: {
-                method: '*',
+                method: 'POST',
                 path: '/rpc/{method?}',
                 config: {
                     auth: 'jwt',
