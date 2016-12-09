@@ -1,3 +1,13 @@
+<a name="8.1.7"></a>
+## [8.1.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.6...v8.1.7) (2016-12-09)
+
+
+### Bug Fixes
+
+* correct handling when /rpc is called and method is missing; + validate all request fields and return multi errors ([951caa6](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/951caa6))
+
+
+
 <a name="8.1.6"></a>
 ## [8.1.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.5...v8.1.6) (2016-12-01)
 
