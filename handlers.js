@@ -280,6 +280,7 @@ module.exports = function(port) {
             description: 'rpc common validation',
             tags: ['api', 'rpc'],
             validate: {
+                options: {abortEarly: false},
                 query: false,
                 payload: (value, options, next) => {
                     doValidate('request', value.method, value, next);
@@ -289,7 +290,7 @@ module.exports = function(port) {
             response: {
                 schema: joi.object({}),
                 failAction: (request, reply, value, error) => {
-                    doValidate('response', request.params.method, value._object, (err, result) => {
+                    doValidate('response', request.params.method || request.payload.method, value._object, (err, result) => {
                         if (err) {
                             port.log.error && port.log.error(err);
                         }
@@ -338,6 +339,7 @@ module.exports = function(port) {
                     }
                 },
                 validate: {
+                    options: {abortEarly: false},
                     payload: validations[method].request.payload,
                     params: validations[method].request.params,
                     query: false
