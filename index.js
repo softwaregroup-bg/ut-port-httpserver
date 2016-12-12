@@ -190,11 +190,12 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                 return reject(new Error('config.entry must be an Object'));
             }
             for (var name in config.entry) {
-                if (config.entry.hasOwnProperty(name)) {
+                if (config.entry.hasOwnProperty(name) && name !== 'vendor') {
                     if (!_.isArray(config.entry[name])) {
                         return reject(new Error(config.entry[name] + ' should be an Array'));
                     }
-                    config.entry[name].unshift('webpack-hot-middleware/client');
+                    (config.entry[name].indexOf('webpack-hot-middleware/client') < 0) && config.entry[name].unshift('webpack-hot-middleware/client');
+                    (config.entry[name].indexOf('react-hot-loader/patch') < 0) && config.entry[name].unshift('react-hot-loader/patch');
                 }
             }
             if (!_.isArray(config.plugins)) {
