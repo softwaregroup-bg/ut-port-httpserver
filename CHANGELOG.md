@@ -1,3 +1,13 @@
+<a name="8.1.8"></a>
+## [8.1.8](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.7...v8.1.8) (2016-12-15)
+
+
+### Bug Fixes
+
+* deps versions bump ([f1ce7cc](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/f1ce7cc))
+
+
+
 <a name="8.1.7"></a>
 ## [8.1.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.6...v8.1.7) (2016-12-09)
 
