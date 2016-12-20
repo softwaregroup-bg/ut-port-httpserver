@@ -209,7 +209,15 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                     colors: true
                 }
             };
-            if (process.platform !== 'win32') {
+            if (process.platform === 'darwin') {
+                assetsConfig.watchOptions = {
+                    aggregateTimeout: 1000,
+                    poll: false,
+                    ignored: /node_module/,
+                    useFsEvents: true,
+                    watch: true
+                };
+            } else if (process.platform !== 'win32') {
                 assetsConfig.watchOptions = {
                     aggregateTimeout: 300,
                     poll: true,
