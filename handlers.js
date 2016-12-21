@@ -132,13 +132,21 @@ module.exports = function(port) {
         };
 
         var processMessage = function(msgOptions) {
+            var $meta;
+            function callReply(response) {
+                if (typeof customReply === 'function') {
+                    customReply(reply, response, $meta);
+                } else {
+                    reply(endReply, $meta.responseHeaders, $meta.statusCode);
+                }
+            }
             msgOptions = msgOptions || {};
             try {
-                var $meta = {
+                $meta = {
                     auth: request.auth.credentials,
                     method: request.payload.method,
                     opcode: request.payload.method.split('.').pop(),
-                    mtid: 'request',
+                    mtid: (request.payload.id == null) ? 'notification' : 'request',
                     requestHeaders: request.headers,
                     ipAddress: request.info && request.info.remoteAddress,
                     frontEnd: request.headers && request.headers['user-agent']
@@ -146,7 +154,7 @@ module.exports = function(port) {
                 if (msgOptions.language) {
                     $meta.language = msgOptions.language;
                 }
-                $meta.callback = function(response) {
+                var callback = function(response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
                     }
@@ -193,13 +201,15 @@ module.exports = function(port) {
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
                         return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
                     }
-                    if (typeof customReply === 'function') {
-                        customReply(reply, response, $meta);
-                    } else {
-                        reply(endReply, $meta.responseHeaders, $meta.statusCode);
-                    }
+                    callReply(response);
                     return true;
                 };
+                if ($meta.mtid === 'request') {
+                    $meta.callback = callback;
+                } else {
+                    endReply.result = true;
+                    callReply(true);
+                }
                 port.stream.write([request.payload.params || {}, $meta]);
             } catch (err) {
                 return handleError({
@@ -323,6 +333,7 @@ module.exports = function(port) {
             config: {
                 handler: function(req, repl) {
                     req.params.method = method;
+                    req.id = 1;
                     return rpcHandler(req, repl);
                 },
                 auth: ((config[method].config && typeof (config[method].config.auth) === 'undefined') ? 'jwt' : config[method].config.auth),

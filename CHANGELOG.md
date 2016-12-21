@@ -1,3 +1,24 @@
+<a name="8.1.9"></a>
+## [8.1.9](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.8...v8.1.9) (2016-12-19)
+
+
+### Bug Fixes
+
+* add support for json-rpc notifications ([71856a8](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/71856a8))
+* remove dependency to lodash.isarray ([64d02b4](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/64d02b4))
+
+
+
+<a name="8.1.8"></a>
+## [8.1.8](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.7...v8.1.8) (2016-12-15)
+
+
+### Bug Fixes
+
+* deps versions bump ([f1ce7cc](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/f1ce7cc))
+
+
+
 <a name="8.1.7"></a>
 ## [8.1.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.6...v8.1.7) (2016-12-09)
 

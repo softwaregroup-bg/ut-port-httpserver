@@ -10,7 +10,6 @@ var when = require('when');
 var _ = {
     assign: require('lodash.assign'),
     merge: require('lodash.merge'),
-    isArray: require('lodash.isarray'),
     isObject: require('lodash.isobject'),
     isString: require('lodash.isstring')
 };
@@ -191,14 +190,14 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
             }
             for (var name in config.entry) {
                 if (config.entry.hasOwnProperty(name) && name !== 'vendor') {
-                    if (!_.isArray(config.entry[name])) {
+                    if (!Array.isArray(config.entry[name])) {
                         return reject(new Error(config.entry[name] + ' should be an Array'));
                     }
                     (config.entry[name].indexOf('webpack-hot-middleware/client') < 0) && config.entry[name].unshift('webpack-hot-middleware/client');
                     (config.entry[name].indexOf('react-hot-loader/patch') < 0) && config.entry[name].unshift('react-hot-loader/patch');
                 }
             }
-            if (!_.isArray(config.plugins)) {
+            if (!Array.isArray(config.plugins)) {
                 return reject(new Error('config.plugins must be an Array'));
             }
             config.plugins.push(new webpack.HotModuleReplacementPlugin());
