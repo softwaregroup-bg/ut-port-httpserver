@@ -1,6 +1,6 @@
 var ws = require('ws');
 var Router = require('call').Router;
-var interpolationRegex = /\{([^\}]*)\}/g;
+var interpolationRegex = /\{([^}]*)\}/g;
 var util = {
     formatMessage: function(message) {
         var msg;
