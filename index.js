@@ -213,7 +213,6 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                 assetsConfig.watchOptions = {
                     aggregateTimeout: 1000,
                     poll: false,
-                    ignored: /node_module/,
                     useFsEvents: true,
                     watch: true
                 };
