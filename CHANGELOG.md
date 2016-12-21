@@ -1,3 +1,13 @@
+<a name="8.2.0"></a>
+# [8.2.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.9...v8.2.0) (2016-12-21)
+
+
+### Features
+
+* upgrade to latest webpack and hotreload ([#32](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/32)) ([9490a17](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/9490a17))
+
+
+
 <a name="8.1.9"></a>
 ## [8.1.9](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.1.8...v8.1.9) (2016-12-19)
 
