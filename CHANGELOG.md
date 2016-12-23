@@ -1,3 +1,13 @@
+<a name="8.2.6"></a>
+## [8.2.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.2.5...v8.2.6) (2016-12-23)
+
+
+### Bug Fixes
+
+* update dependencies ([7c405b2](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/7c405b2))
+
+
+
 <a name="8.2.5"></a>
 ## [8.2.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.2.4...v8.2.5) (2016-12-23)
 
