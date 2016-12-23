@@ -15,7 +15,7 @@
     "lodash.merge": "4.6.0",
     "lodash.isobject": "3.0.2",
     "lodash.isstring": "4.0.1",
-    "through2": "2.0.1",
+    "through2": "2.0.3",
     "when": "3.7.7",
     "ut-error": "^5.3.16",
     "vision": "4.1.1",
@@ -31,7 +31,7 @@
     "webpack-hot-middleware": "2.13.2"
   },
   "peerDependencies": {
-    "ut-bus": "~5.8.0"
+    "ut-bus": "~5.8.1"
   },
   "description": "UT port httpserver module",
   "scripts": {
