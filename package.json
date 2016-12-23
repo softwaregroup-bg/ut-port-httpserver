@@ -3,11 +3,11 @@
   "version": "8.2.4",
   "dependencies": {
     "fs-plus": "2.9.3",
-    "hapi": "16.0.1",
+    "hapi": "16.0.2",
     "hapi-auth-jwt2": "7.2.4",
     "hapi-auth-basic": "4.2.0",
     "hapi-swagger": "7.5.0",
-    "inert": "4.0.3",
+    "inert": "4.0.4",
     "boom": "4.2.0",
     "jsonwebtoken": "7.1.9",
     "lodash.assign": "4.2.0",
@@ -24,14 +24,14 @@
     "call": "3.0.3"
   },
   "devDependencies": {
-    "ut-tools": "^5.10.8",
+    "ut-tools": "^5.11.1",
     "hapi-webpack-plugin": "1.3.0",
     "react-hot-loader": "3.0.0-beta.6",
     "webpack": "2.1.0-beta.27",
     "webpack-hot-middleware": "2.13.2"
   },
   "peerDependencies": {
-    "ut-bus": "~5.7.0"
+    "ut-bus": "~5.8.0"
   },
   "description": "UT port httpserver module",
   "scripts": {
