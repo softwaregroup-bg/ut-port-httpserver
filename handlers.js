@@ -6,7 +6,7 @@ var jwt = require('jsonwebtoken');
 var joi = require('joi');
 var errors = require('./errors');
 
-var getReqRespValidation = function getReqRespValidation(routeConfig) {
+var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     var request = {
         payload: routeConfig.config.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
@@ -33,6 +33,16 @@ var getReqRespValidation = function getReqRespValidation(routeConfig) {
     })
     .xor('result', 'error');
     return {request, response};
+};
+
+var getReqRespValidation = function getReqRespValidation(routeConfig) {
+    return {
+        request: {
+            payload: routeConfig.config.payload,
+            params: routeConfig.config.params
+        },
+        response: routeConfig.config.result
+    };
 };
 
 var assertRouteConfig = function assertRouteConfig(routeConfig) {
@@ -177,6 +187,9 @@ module.exports = function(port) {
                         delete response.auth;
                     }
 
+                    if ($meta && $meta.responseAsIs) { // return response in a way that we receive it.
+                        return reply(response, $meta.responseHeaders);
+                    }
                     if ($meta && $meta.staticFileName) {
                         fs.access($meta.staticFileName, fs.constants.R_OK, (err) => {
                             addTime();
@@ -312,12 +325,13 @@ module.exports = function(port) {
     }, port.config.routes.rpc));
     port.bus.importMethods(httpMethods, port.config.api);
 
-    function rpcRouteAdd(method, path, registerInSwagger) {
+    function routeAdd(method, path, registerInSwagger) {
         port.log.trace && port.log.trace({methodRegistered: method, route: path});
-        validations[method] = getReqRespValidation(config[method]);
-
-        if (config[method].config.paramsMethod) {
-            config[method].config.paramsMethod.reduce((prev, cur) => {
+        var currentMethodConfig = (config[method] && config[method].config) || {};
+        var isRpc = !(currentMethodConfig.isRpc === false);
+        validations[method] = isRpc ? getReqRespRpcValidation(config[method]) : getReqRespValidation(config[method]);
+        if (currentMethodConfig.paramsMethod) {
+            currentMethodConfig.paramsMethod.reduce((prev, cur) => {
                 if (!validations[cur]) {
                     validations[cur] = validations[method];
                 }
@@ -327,19 +341,27 @@ module.exports = function(port) {
         if (registerInSwagger) {
             tags.unshift('api');
         }
-        pendingRoutes.unshift(merge({}, port.config.routes.rpc, {
-            method: 'POST',
+        pendingRoutes.unshift(merge({}, (isRpc ? port.config.routes.rpc : {}), {
+            method: currentMethodConfig.httpMethod || 'POST',
             path: path,
             config: {
                 handler: function(req, repl) {
-                    req.params.method = method;
                     req.id = 1;
+                    if (!isRpc && !req.payload) {
+                        req.payload = {
+                            id: req.id,
+                            jsonrpc: '',
+                            method,
+                            params: merge({}, req.params, {})
+                        };
+                    }
+                    req.params.method = method;
                     return rpcHandler(req, repl);
                 },
-                auth: ((config[method].config && typeof (config[method].config.auth) === 'undefined') ? 'jwt' : config[method].config.auth),
-                description: config[method].config.description || config[method].method,
-                notes: (config[method].config.notes || []).concat([config[method].method + ' method definition']),
-                tags: (config[method].config.tags || []).concat(tags),
+                auth: ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth),
+                description: currentMethodConfig.description || config[method].method,
+                notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
+                tags: (currentMethodConfig.tags || []).concat(tags),
                 response: {
                     schema: validations[method].response,
                     failAction: (request, reply, value, error) => {
@@ -361,13 +383,22 @@ module.exports = function(port) {
     Object.keys(httpMethods).forEach(function(key) {
         if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) {
             httpMethods[key].forEach(function(routeConfig) {
-                assertRouteConfig(routeConfig);
-                config[routeConfig.method] = routeConfig;
-                if (routeConfig.config && routeConfig.config.route) {
-                    rpcRouteAdd(routeConfig.method, routeConfig.config.route, true);
+                if (routeConfig.config.isRpc === false) {
+                    config[routeConfig.method] = routeConfig;
+                    if (routeConfig.config.route) {
+                        return routeAdd(routeConfig.method, routeConfig.config.route, true);
+                    } else {
+                        return routeAdd(routeConfig.method, routeConfig.method.split('.').join('/'), true);
+                    }
                 } else {
-                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), true);
-                    rpcRouteAdd(routeConfig.method, '/rpc/' + routeConfig.method);
+                    assertRouteConfig(routeConfig);
+                    config[routeConfig.method] = routeConfig;
+                    if (routeConfig.config && routeConfig.config.route) {
+                        routeAdd(routeConfig.method, routeConfig.config.route, true);
+                    } else {
+                        routeAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), true);
+                        routeAdd(routeConfig.method, '/rpc/' + routeConfig.method);
+                    }
                 }
             });
         }
