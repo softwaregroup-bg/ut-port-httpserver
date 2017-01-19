@@ -249,11 +249,15 @@ module.exports = function(port) {
         ) {
             return processMessage();
         }
-        port.bus.importMethod('identity.check')(
-            request.payload.method === 'identity.check'
-            ? assign({}, request.payload.params, request.auth.credentials)
-            : assign({actionId: request.payload.method}, request.auth.credentials)
-        )
+
+        var identityCheckParams;
+        if (request.payload.method === 'identity.check') {
+            identityCheckParams = assign({ip: request.info.remoteAddress}, request.payload.params, request.auth.credentials);
+        } else {
+            identityCheckParams = assign({actionId: request.payload.method}, request.auth.credentials);
+        }
+
+        port.bus.importMethod('identity.check')(identityCheckParams)
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
