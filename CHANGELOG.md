@@ -1,3 +1,13 @@
+<a name="8.3.1"></a>
+## [8.3.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.0...v8.3.1) (2017-01-23)
+
+
+### Bug Fixes
+
+* add x-forwarded-for in header request only in debug mode ([fb39331](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/fb39331))
+
+
+
 <a name="8.3.0"></a>
 # [8.3.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.2.6...v8.3.0) (2017-01-12)
 
