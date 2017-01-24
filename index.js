@@ -102,6 +102,15 @@ HttpServerPort.prototype.start = function start() {
         });
     }
 
+    this.hapiServer.ext({
+        type: 'onRequest',
+        method: function(request, reply) {
+            if (request.path.search('../') > -1) {
+                return reply.redirect('/404');
+            }
+            return reply.continue();
+        }
+    });
     return new Promise((resolve, reject) => {
         var fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
         fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
