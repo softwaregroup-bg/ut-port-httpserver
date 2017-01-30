@@ -17,7 +17,7 @@ This port exposes the following functionality:
 # Planned features
 
 1. Secure Remote Password protocol support, as defined in [RFC 2945](http://tools.ietf.org/html/rfc2945)
-1. Multilanguage support
+1. Multi language support
 1. Fingerprinted resource URLs
 1. WebSockets
 1. Recommendations from http://stackoverflow.com/questions/549/the-definitive-guide-to-form-based-website-authentication
@@ -36,9 +36,9 @@ This port exposes the following functionality:
 
 ## USAGE
 
-#### Configuration file required otions:
+#### Configuration file required options:
 
-```
+```javascript
     id: '',
     type: 'httpserver',
     logLevel: '',
@@ -75,8 +75,21 @@ module.exports = {
     /*.......*/
 };
 ```
-all properties from `server` will be passed to server as configuration and will be merget with `host` and `port` properties
+all properties from `server` will be passed to server as configuration and will be merged with `host` and `port` properties
 
 
 Optional configuration options:
-* `start`: function that will be called once on creation of port. It can be used for setting global variables and initialising objects.
+* `start`: function that will be called once on creation of port. It can be used for setting global variables and initializing objects.
+
+## Validations (config) files pops
+
+```javascript
+module.exports = {
+    description: '...', // from swagger description
+    notes: ['...'], // from swagger notes
+    tags: ['...'], // from swagger tags, it will add api automatically
+    isRpc: false || true, // either this route is rpc or not
+    httpMethod: '..', // (GET|POST|PUT|DELETE)
+    route: '<route path>' // example "/a/b/c/{page}" will overwrite default defined route path
+};
+```
