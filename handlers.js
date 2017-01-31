@@ -18,7 +18,7 @@ var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod || routeConfig.method))
         })
     };
-    var response = routeConfig.config.response || joi.object({
+    var response = routeConfig.config.response || (routeConfig.config.result && joi.object({
         jsonrpc: joi.string().valid('2.0').required(),
         id: joi.alternatives().try(joi.number(), joi.string()).required(),
         result: routeConfig.config.result.label('result'),
@@ -31,7 +31,7 @@ var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
         }).label('error'),
         debug: joi.object().label('debug')
     })
-    .xor('result', 'error');
+    .xor('result', 'error'));
     return {request, response};
 };
 
@@ -52,11 +52,9 @@ var assertRouteConfig = function assertRouteConfig(routeConfig) {
         throw new Error(`'params' must be a joi schema object! Method: ${routeConfig.method}`);
     } else if (routeConfig.config.payload && !routeConfig.config.payload.isJoi) {
         throw new Error(`'payload' must be a joi schema object! Method: ${routeConfig.method}`);
-    } else if (!routeConfig.config.result && !routeConfig.config.response) {
-        throw new Error(`Missing 'result'/'response' in validation schema for method: ${routeConfig.method}`);
     } else if (routeConfig.config.result && !routeConfig.config.result.isJoi) {
         throw new Error(`'result' must be a joi schema object! Method: ${routeConfig.method}`);
-    } else if (routeConfig.config.response && !routeConfig.config.response.isJoi) {
+    } else if (routeConfig.config.response && (!routeConfig.config.response.isJoi && routeConfig.config.response !== 'stream')) {
         throw new Error(`'response' must be a joi schema object! Method: ${routeConfig.method}`);
     }
 };
@@ -346,6 +344,22 @@ module.exports = function(port) {
         if (registerInSwagger) {
             tags.unshift('api');
         }
+        var responseValidation = {};
+        if (validations[method].response) {
+            responseValidation = {
+                config: {
+                    response: {
+                        schema: validations[method].response,
+                        failAction: (request, reply, value, error) => {
+                            if (value instanceof Error) {
+                                port.log.error && port.log.error(value);
+                            }
+                            reply(value._object);
+                        }
+                    }
+                }
+            };
+        }
         pendingRoutes.unshift(merge({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
@@ -367,15 +381,6 @@ module.exports = function(port) {
                 description: currentMethodConfig.description || config[method].method,
                 notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
                 tags: (currentMethodConfig.tags || []).concat(tags),
-                response: {
-                    schema: validations[method].response,
-                    failAction: (request, reply, value, error) => {
-                        if (value instanceof Error) {
-                            port.log.error && port.log.error(value);
-                        }
-                        reply(value._object);
-                    }
-                },
                 validate: {
                     options: {abortEarly: false},
                     payload: validations[method].request.payload,
@@ -383,7 +388,7 @@ module.exports = function(port) {
                     query: false
                 }
             }
-        }));
+        }, responseValidation));
     };
     Object.keys(httpMethods).forEach(function(key) {
         if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) {
