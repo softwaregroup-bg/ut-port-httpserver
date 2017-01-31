@@ -89,7 +89,10 @@ module.exports = {
     notes: ['...'], // from swagger notes
     tags: ['...'], // from swagger tags, it will add api automatically
     isRpc: false || true, // either this route is rpc or not
+    auth: false || '....', // authentication type (jwt ?)
     httpMethod: '..', // (GET|POST|PUT|DELETE)
+    response: '...',// response and result, bot are used for response validation, if both are omitted response will not bi validated!
+    result: '...',
     route: '<route path>' // example "/a/b/c/{page}" will overwrite default defined route path
 };
 ```
