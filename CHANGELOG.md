@@ -1,3 +1,13 @@
+<a name="8.3.4"></a>
+## [8.3.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.3...v8.3.4) (2017-02-02)
+
+
+### Bug Fixes
+
+* .state can be called only once ([ed5588e](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/ed5588e))
+
+
+
 <a name="8.3.3"></a>
 ## [8.3.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.2...v8.3.3) (2017-01-31)
 
