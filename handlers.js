@@ -267,14 +267,12 @@ module.exports = function(port) {
                         actorId: res['identity.check'].actorId,
                         sessionId: res['identity.check'].sessionId
                     }, port.config.jwt.key);
-
-                    return port.config.cookiePaths.reduce((repl, path) => {
-                        repl.state(
+                    return reply(endReply)
+                        .state(
                             port.config.jwt.cookieKey,
                             jwtSigned,
-                            Object.assign({path}, port.config.cookie)
+                            Object.assign({path: port.config.cookiePaths}, port.config.cookie)
                         );
-                    }, reply(endReply));
                 } else {
                     return reply(endReply);
                 }
