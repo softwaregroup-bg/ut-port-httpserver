@@ -65,7 +65,7 @@ module.exports = {
     port: 8003,//or use property ports, see below
     ports: [8003, 8004],
     imports:[],
-    cookiePaths:['/rpc'], // cookie paths, to which paths to bound cookies to, default: /rpc
+    cookiePaths:'/rpc', // cookie paths, to which paths to bound cookies to, default: /rpc
     validationPassThrough: (true|false), // if true, validation is not mandatory for methods. default policy: restrictive
     entryPoint: './abc/index.js', // app entry point (webpack helper)
     server:{
