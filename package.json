@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "8.3.8",
+  "version": "8.3.9",
   "dependencies": {
     "fs-plus": "2.9.3",
     "hapi": "16.0.2",
