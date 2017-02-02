@@ -1,3 +1,13 @@
+<a name="8.3.7"></a>
+## [8.3.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.6...v8.3.7) (2017-02-02)
+
+
+### Bug Fixes
+
+* clear cookies ([8bdeece](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8bdeece))
+
+
+
 <a name="8.3.6"></a>
 ## [8.3.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.5...v8.3.6) (2017-02-02)
 
