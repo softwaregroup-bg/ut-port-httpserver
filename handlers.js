@@ -234,9 +234,11 @@ module.exports = function(port) {
 
         if (request.payload.method === 'identity.closeSession' && request.auth && request.auth.credentials) {
             return processMessage({
-                end: (repl) => {
-                    repl.unstate(port.config.jwt.cookieKey);
-                }
+                end: (repl) => (repl.state(
+                    port.config.jwt.cookieKey,
+                    request.auth.token,
+                    Object.assign({path: port.config.cookiePaths}, port.config.cookie, {ttl: 0})
+                ))
             });
         } else if (
             request.payload.method === 'identity.forgottenPasswordRequest' ||
