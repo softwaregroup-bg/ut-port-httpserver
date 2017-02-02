@@ -235,7 +235,7 @@ module.exports = function(port) {
         if (request.payload.method === 'identity.closeSession' && request.auth && request.auth.credentials) {
             return processMessage({
                 end: (repl) => {
-                    repl.unstate();
+                    repl.unstate(port.config.jwt.cookieKey);
                 }
             });
         } else if (
