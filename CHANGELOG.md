@@ -1,3 +1,13 @@
+<a name="8.3.8"></a>
+## [8.3.8](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.7...v8.3.8) (2017-02-02)
+
+
+### Bug Fixes
+
+* handle cookie clear ([a08156e](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/a08156e))
+
+
+
 <a name="8.3.7"></a>
 ## [8.3.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.6...v8.3.7) (2017-02-02)
 
