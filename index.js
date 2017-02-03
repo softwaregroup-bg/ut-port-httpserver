@@ -49,7 +49,7 @@ function HttpServerPort() {
             clearInvalid: false, // remove invalid cookies
             strictHeader: true // don't allow violations of RFC 6265
         },
-        cookiePaths: ['/rpc'],
+        cookiePaths: '/rpc',
         swagger: {
             info: {
                 version: packageJson.version
