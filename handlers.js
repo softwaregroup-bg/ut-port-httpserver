@@ -45,6 +45,21 @@ var getReqRespValidation = function getReqRespValidation(routeConfig) {
     };
 };
 
+var isUploadValid = function isUploadValid(request, uploadConfig) {
+    var file = request.payload.file;
+    if (!file) {
+        return false;
+    }
+    var fileName = file.hapi.filename;
+    var isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
+    var uploadExtension = fileName.split('.').pop();
+    var isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension) > -1;
+    if (file && isNameValid && isExtensionAllowed) {
+        return true;
+    }
+    return false;
+};
+
 var assertRouteConfig = function assertRouteConfig(routeConfig) {
     if (!routeConfig.config.params && !routeConfig.config.payload) {
         throw new Error(`Missing 'params'/'payload' in validation schema for method: ${routeConfig.method}`);
@@ -418,14 +433,17 @@ module.exports = function(port) {
         path: '/file-upload',
         config: {
             payload: {
-                maxBytes: 209715200, // default is 1048576 (1MB)
+                maxBytes: port.config.fileUpload.payloadMaxBytes,
                 output: 'stream',
                 parse: true,
                 allow: 'multipart/form-data'
             },
             handler: function(request, reply) {
                 var file = request.payload.file;
-                if (file) {
+                var isValid = isUploadValid(request, port.config.fileUpload);
+                if (!isValid) {
+                    reply('').code(400);
+                } else {
                     var fileName = (new Date()).getTime() + '_' + file.hapi.filename;
                     var path = port.bus.config.workDir + '/uploads/' + fileName;
                     var ws = fs.createWriteStream(path);
@@ -445,9 +463,6 @@ module.exports = function(port) {
                             }));
                         }
                     });
-                } else {
-                    // no file
-                    reply('');
                 }
             }
         }

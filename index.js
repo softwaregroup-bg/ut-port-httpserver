@@ -50,6 +50,11 @@ function HttpServerPort() {
             strictHeader: true // don't allow violations of RFC 6265
         },
         cookiePaths: '/rpc',
+        fileUpload: {
+            maxFileName: 100,
+            payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)
+            extensionsWhiteList: ['pdf', 'doc', 'docx', 'xls', 'txt', 'jpg', 'jpeg', 'png']
+        },
         swagger: {
             info: {
                 version: packageJson.version
