@@ -245,7 +245,8 @@ module.exports = function(port) {
             request.payload.method === 'identity.forgottenPasswordValidate' ||
             request.payload.method === 'identity.forgottenPassword' ||
             request.payload.method === 'identity.registerRequest' ||
-            request.payload.method === 'identity.registerValidate'
+            request.payload.method === 'identity.registerValidate' ||
+            port.config.publicMethods && port.config.publicMethods.indexOf(request.payload.method) > -1
         ) {
             return processMessage();
         }
