@@ -41,7 +41,7 @@ function HttpServerPort() {
                 }
             }
         },
-        publicRoutes: [
+        publicMethods: [
             'identity.forgottenPasswordRequest',
             'identity.forgottenPasswordValidate',
             'identity.forgottenPassword',
