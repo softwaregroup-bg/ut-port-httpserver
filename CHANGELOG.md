@@ -1,3 +1,13 @@
+<a name="8.4.1"></a>
+## [8.4.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.0...v8.4.1) (2017-02-09)
+
+
+### Bug Fixes
+
+* add upload config ([#46](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/46)) ([3b0c54a](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/3b0c54a))
+
+
+
 <a name="8.4.0"></a>
 # [8.4.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.10...v8.4.0) (2017-02-09)
 
