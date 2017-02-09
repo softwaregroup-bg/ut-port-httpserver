@@ -41,6 +41,13 @@ function HttpServerPort() {
                 }
             }
         },
+        publicMethods: [
+            'identity.forgottenPasswordRequest',
+            'identity.forgottenPasswordValidate',
+            'identity.forgottenPassword',
+            'identity.registerRequest',
+            'identity.registerValidate'
+        ],
         cookie: {
             ttl: 100 * 60 * 1000, // expires a year from today
             encoding: 'none', // we already used JWT to encode
