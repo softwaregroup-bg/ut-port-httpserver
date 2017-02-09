@@ -1,3 +1,13 @@
+<a name="8.4.0"></a>
+# [8.4.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.10...v8.4.0) (2017-02-09)
+
+
+### Features
+
+* allow public methods in http server by configuration from port ([#48](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/48)) ([03c03d1](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/03c03d1))
+
+
+
 <a name="8.3.10"></a>
 ## [8.3.10](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.3.9...v8.3.10) (2017-02-03)
 
