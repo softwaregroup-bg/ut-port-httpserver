@@ -1,3 +1,14 @@
+<a name="8.4.5"></a>
+## [8.4.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.4...v8.4.5) (2017-02-09)
+
+
+### Bug Fixes
+
+* add new configuration in httpserver "allowXFF" to allow the x-forwarded-for header ([ebbf4e9](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/ebbf4e9))
+* change order of identityCheckParams ([e9cdf8f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/e9cdf8f))
+
+
+
 <a name="8.4.4"></a>
 ## [8.4.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.3...v8.4.4) (2017-02-09)
 
