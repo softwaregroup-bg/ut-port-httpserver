@@ -55,6 +55,8 @@ This port exposes the following functionality:
 
 * `server`: Server specific configuration
 
+* `fileUpload`: File upload configuration
+
 server specific configuration can be passed as object with key `server`.
 For instance if we have http server port implementation as follows:
 ```javascript
@@ -66,6 +68,11 @@ module.exports = {
     ports: [8003, 8004],
     imports:[],
     cookiePaths:'/rpc', // cookie paths, to which paths to bound cookies to, default: /rpc
+    fileUpload: {
+        maxFileName: 100,
+        payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)
+        extensionsWhiteList: ['pdf', 'doc', 'docx', 'xls', 'txt', 'jpg', 'jpeg', 'png']
+    },
     validationPassThrough: (true|false), // if true, validation is not mandatory for methods. default policy: restrictive
     entryPoint: './abc/index.js', // app entry point (webpack helper)
     server:{
