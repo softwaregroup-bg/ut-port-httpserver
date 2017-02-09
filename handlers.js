@@ -252,7 +252,7 @@ module.exports = function(port) {
 
         var identityCheckParams;
         if (request.payload.method === 'identity.check') {
-            identityCheckParams = assign(request.payload.params, {ip: (port.bus.config.debug && request.headers['x-forwarded-for'])
+            identityCheckParams = assign({}, request.payload.params, {ip: (port.config.allowXFF && request.headers['x-forwarded-for'])
             ? request.headers['x-forwarded-for'] : request.info.remoteAddress}, request.auth.credentials);
         } else {
             identityCheckParams = assign({actionId: request.payload.method, ip: request.info.remoteAddress}, request.auth.credentials);
