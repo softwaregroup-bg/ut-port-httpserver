@@ -1,3 +1,13 @@
+<a name="8.4.6"></a>
+## [8.4.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.5...v8.4.6) (2017-02-14)
+
+
+### Bug Fixes
+
+* validation of file upload extension to be case insensitive ([f616a7b](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/f616a7b))
+
+
+
 <a name="8.4.5"></a>
 ## [8.4.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.4...v8.4.5) (2017-02-09)
 
