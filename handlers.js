@@ -53,7 +53,7 @@ var isUploadValid = function isUploadValid(request, uploadConfig) {
     var fileName = file.hapi.filename;
     var isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
     var uploadExtension = fileName.split('.').pop();
-    var isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension) > -1;
+    var isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
     if (file && isNameValid && isExtensionAllowed) {
         return true;
     }
