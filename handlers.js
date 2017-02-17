@@ -113,6 +113,9 @@ module.exports = function(port) {
 
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         var startTime = process.hrtime();
+        if (!request.payload.method) {
+            throw new Error('Missing method definition');
+        }
         port.log.trace && port.log.trace({payload: request.payload});
         function addTime() {
             if (port.latency) {
