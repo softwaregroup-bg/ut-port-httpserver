@@ -1,3 +1,13 @@
+<a name="8.5.0"></a>
+# [8.5.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.6...v8.5.0) (2017-02-17)
+
+
+### Features
+
+* remove file 10s. after was sent to client ([de8678b](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/de8678b))
+
+
+
 <a name="8.4.6"></a>
 ## [8.4.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.5...v8.4.6) (2017-02-14)
 
