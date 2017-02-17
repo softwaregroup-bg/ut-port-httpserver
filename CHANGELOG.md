@@ -1,3 +1,14 @@
+<a name="8.5.1"></a>
+## [8.5.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.5.0...v8.5.1) (2017-02-17)
+
+
+### Bug Fixes
+
+* dont alow passing requests without payload.method defined ([e276419](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/e276419))
+* dont alow passing requests without payload.method defined ([78f96bb](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/78f96bb))
+
+
+
 <a name="8.5.0"></a>
 # [8.5.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.4.6...v8.5.0) (2017-02-17)
 
