@@ -1,3 +1,4 @@
+var path = require('path');
 var assign = require('lodash.assign');
 var merge = require('lodash.merge');
 var when = require('when');
@@ -216,7 +217,18 @@ module.exports = function(port) {
                                 };
                                 handleError(endReply.error, response);
                             } else {
-                                _reply(fs.createReadStream($meta.staticFileName));
+                                var s = fs.createReadStream($meta.staticFileName);
+                                s.on('end', () => { // cleanup, remove file after it gets send to the client
+                                    setTimeout(() => {
+                                        try {
+                                            fs.unlink($meta.staticFileName, () => {});
+                                        } catch (e) {}
+                                    }, 10000);
+                                });
+                                _reply(s)
+                                    .header('Content-Type', 'application/octet-stream')
+                                    .header('Content-Disposition', `attachment; filename="${path.basename($meta.staticFileName)}"`)
+                                    .header('Content-Transfer-Encoding', 'binary');
                             }
                         });
 
