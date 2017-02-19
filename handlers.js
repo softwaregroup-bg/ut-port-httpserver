@@ -267,8 +267,7 @@ module.exports = function(port) {
         } else {
             identityCheckParams = {actionId: request.payload.method};
         }
-        identityCheckParams = assign(
-            {},
+        assign(
             identityCheckParams,
             request.auth.credentials,
             {ip: (
