@@ -267,7 +267,8 @@ module.exports = function(port) {
                     var jwtSigned = jwt.sign({
                         timezone: tz,
                         actorId: res['identity.check'].actorId,
-                        sessionId: res['identity.check'].sessionId
+                        sessionId: res['identity.check'].sessionId,
+                        username: identityCheckParams.username
                     }, port.config.jwt.key);
                     return reply(endReply)
                         .state(
