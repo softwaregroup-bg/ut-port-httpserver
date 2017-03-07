@@ -145,9 +145,15 @@ module.exports = function(port) {
             addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
                 return when(port.config.receive(msg, $meta)).then(function(result) {
+                    if (typeof customReply === 'function') {
+                        return customReply(reply, result, $meta);
+                    }
                     return reply(result, $meta.responseHeaders, $meta.statusCode);
                 });
             } else {
+                if (typeof customReply === 'function') {
+                    return customReply(reply, msg, $meta);
+                }
                 return reply(msg);
             }
         }
