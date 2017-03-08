@@ -1,3 +1,13 @@
+<a name="8.6.0"></a>
+# [8.6.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.5.2...v8.6.0) (2017-03-08)
+
+
+### Features
+
+* call customReply if provided when calling the handleError function within httpserver reply logic ([a4345ab](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/a4345ab))
+
+
+
 <a name="8.5.2"></a>
 ## [8.5.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.5.1...v8.5.2) (2017-03-08)
 
