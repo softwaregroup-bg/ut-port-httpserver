@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "8.5.1",
+  "version": "8.5.2",
   "dependencies": {
     "fs-plus": "2.9.3",
     "hapi": "16.0.2",
@@ -24,14 +24,14 @@
     "call": "3.0.3"
   },
   "devDependencies": {
-    "ut-tools": "*",
+    "ut-tools": "^5.3.15",
     "hapi-webpack-plugin": "1.3.0",
     "react-hot-loader": "3.0.0-beta.6",
     "webpack": "2.1.0-beta.27",
     "webpack-hot-middleware": "2.13.2"
   },
   "peerDependencies": {
-    "ut-bus": "~5.8.1"
+    "ut-bus": "^5.9.0"
   },
   "description": "UT port httpserver module",
   "scripts": {
