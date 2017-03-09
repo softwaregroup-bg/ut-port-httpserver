@@ -475,7 +475,7 @@ module.exports = function(port) {
                         } else {
                             if (file.hapi.headers['content-type'] === 'base64/png') {
                                 fs.readFile(path, (err, fileContent) => {
-                                    if (err) throw err;
+                                    if (err) reply('');
                                     fileContent = fileContent.toString();
                                     var matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
                                     if (matches.length === 3) {
@@ -484,13 +484,13 @@ module.exports = function(port) {
                                         imageBuffer.data = new Buffer(matches[2], 'base64');
                                         fileContent = imageBuffer.data;
                                         fs.writeFile(path, fileContent, (err) => {
-                                            if (err) throw err;
+                                            if (err) reply('');
                                             reply(JSON.stringify({
                                                 filename: fileName,
                                                 headers: file.hapi.headers
                                             }));
                                         });
-                                    }
+                                    } else reply('');
                                 });
                             } else {
                                 reply(JSON.stringify({
