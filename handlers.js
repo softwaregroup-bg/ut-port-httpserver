@@ -12,11 +12,11 @@ var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
         payload: routeConfig.config.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
             id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod || routeConfig.method)).required(),
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required(),
             params: routeConfig.config.params.label('params').required()
         }),
         params: joi.object({
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod || routeConfig.method))
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method)
         })
     };
     var response = routeConfig.config.response || (routeConfig.config.result && joi.object({
@@ -82,7 +82,7 @@ module.exports = function(port) {
     var validations = {};
 
     function addDebugInfo(msg, err) {
-        err && port.config.debug || (port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err);
+        (err && port.config.debug) || ((port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err));
     }
 
     var byMethodValidate = function byMethodValidate(checkType, method, data) {
@@ -481,10 +481,31 @@ module.exports = function(port) {
                             port.log.error && port.log.error(err);
                             reply('');
                         } else {
-                            reply(JSON.stringify({
-                                filename: fileName,
-                                headers: file.hapi.headers
-                            }));
+                            if (file.hapi.headers['content-type'] === 'base64/png') {
+                                fs.readFile(path, (err, fileContent) => {
+                                    if (err) reply('');
+                                    fileContent = fileContent.toString();
+                                    var matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+                                    if (matches.length === 3) {
+                                        var imageBuffer = {};
+                                        imageBuffer.type = matches[1];
+                                        imageBuffer.data = new Buffer(matches[2], 'base64');
+                                        fileContent = imageBuffer.data;
+                                        fs.writeFile(path, fileContent, (err) => {
+                                            if (err) reply('');
+                                            reply(JSON.stringify({
+                                                filename: fileName,
+                                                headers: file.hapi.headers
+                                            }));
+                                        });
+                                    } else reply('');
+                                });
+                            } else {
+                                reply(JSON.stringify({
+                                    filename: fileName,
+                                    headers: file.hapi.headers
+                                }));
+                            }
                         }
                     });
                 }

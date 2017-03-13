@@ -168,7 +168,7 @@ HttpServerPort.prototype.start = function start() {
                 opcode: 'port.started'
             }
         });
-        return;
+        return true;
     });
 };
 
