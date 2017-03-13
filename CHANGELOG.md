@@ -1,3 +1,13 @@
+<a name="8.6.1"></a>
+## [8.6.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.6.0...v8.6.1) (2017-03-13)
+
+
+### Bug Fixes
+
+* x-forward ([c3cfd35](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/c3cfd35))
+
+
+
 <a name="8.6.0"></a>
 # [8.6.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.5.2...v8.6.0) (2017-03-08)
 
