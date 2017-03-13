@@ -12,11 +12,11 @@ var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
         payload: routeConfig.config.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
             id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
-            method: joi.string().valid(((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method)).required(),
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required(),
             params: routeConfig.config.params.label('params').required()
         }),
         params: joi.object({
-            method: joi.string().valid(((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method))
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method)
         })
     };
     var response = routeConfig.config.response || (routeConfig.config.result && joi.object({
