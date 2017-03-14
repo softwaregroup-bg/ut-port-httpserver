@@ -212,8 +212,9 @@ module.exports = function(port) {
                     if ($meta && $meta.responseAsIs) { // return response in a way that we receive it.
                         return reply(response, $meta.responseHeaders);
                     }
-                    if ($meta && $meta.staticFileName) {
-                        fs.access($meta.staticFileName, fs.constants.R_OK, (err) => {
+                    if ($meta && ($meta.staticFileName || $meta.tmpStaticFileName)) {
+                        let fn = $meta.staticFileName || $meta.tmpStaticFileName;
+                        fs.access(fn, fs.constants.R_OK, (err) => {
                             addTime();
                             if (err) {
                                 endReply.error = {
@@ -225,14 +226,16 @@ module.exports = function(port) {
                                 };
                                 handleError(endReply.error, response);
                             } else {
-                                var s = fs.createReadStream($meta.staticFileName);
-                                s.on('end', () => { // cleanup, remove file after it gets send to the client
-                                    setTimeout(() => {
-                                        try {
-                                            fs.unlink($meta.staticFileName, () => {});
-                                        } catch (e) {}
-                                    }, 10000);
-                                });
+                                var s = fs.createReadStream(fn);
+                                if ($meta.tmpStaticFileName) {
+                                    s.on('end', () => { // cleanup, remove file after it gets send to the client
+                                        process.nextTick(() => {
+                                            try {
+                                                fs.unlink(fn, () => {});
+                                            } catch (e) {}
+                                        });
+                                    });
+                                }
                                 _reply(s)
                                     .header('Content-Type', 'application/octet-stream')
                                     .header('Content-Disposition', `attachment; filename="${path.basename($meta.staticFileName)}"`)

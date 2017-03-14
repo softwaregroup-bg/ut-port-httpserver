@@ -103,3 +103,6 @@ module.exports = {
     route: '<route path>' // example "/a/b/c/{page}" will overwrite default defined route path
 };
 ```
+
+## Return streamed file (used for large files)
+if `staticFileName` is set file will be returned to client, but if `tmpStaticFileName` is set after file gets returned will be deleted.
