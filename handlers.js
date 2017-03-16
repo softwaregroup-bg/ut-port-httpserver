@@ -238,7 +238,7 @@ module.exports = function(port) {
                                 }
                                 _reply(s)
                                     .header('Content-Type', 'application/octet-stream')
-                                    .header('Content-Disposition', `attachment; filename="${path.basename($meta.staticFileName)}"`)
+                                    .header('Content-Disposition', `attachment; filename="${path.basename(fn)}"`)
                                     .header('Content-Transfer-Encoding', 'binary');
                             }
                         });
