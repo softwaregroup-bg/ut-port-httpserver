@@ -300,7 +300,6 @@ module.exports = function(port) {
             )}
         );
 
-        // if (port.config.identityNamespace !== '') {
         Promise.resolve()
         .then(() => {
             if (port.config.identityNamespace === '') {
