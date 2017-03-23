@@ -28,6 +28,7 @@ function HttpServerPort() {
         type: 'httpserver',
         port: 8080,
         connections: [],
+        identityNamespace: 'identity',
         routes: {
             rpc: {
                 method: 'POST',

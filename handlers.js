@@ -300,7 +300,16 @@ module.exports = function(port) {
             )}
         );
 
-        port.bus.importMethod('identity.check')(identityCheckParams)
+        // if (port.config.identityNamespace !== '') {
+        Promise.resolve()
+        .then(() => {
+            if (port.config.identityNamespace === '') {
+                return {
+                    'permission.get': ['*']
+                };
+            }
+            return port.bus.importMethod([port.config.identityNamespace, 'check'].join('.'))(identityCheckParams);
+        })
         .then((res) => {
             if (request.payload.method === 'identity.check') {
                 endReply.result = res;
