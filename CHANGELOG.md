@@ -1,3 +1,13 @@
+<a name="8.7.0"></a>
+# [8.7.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.6.3...v8.7.0) (2017-03-24)
+
+
+### Features
+
+* identity namespace as param ([7a7fd2f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/7a7fd2f))
+
+
+
 <a name="8.6.3"></a>
 ## [8.6.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.6.2...v8.6.3) (2017-03-16)
 
