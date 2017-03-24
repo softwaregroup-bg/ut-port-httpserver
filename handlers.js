@@ -283,7 +283,8 @@ module.exports = function(port) {
         }
 
         var identityCheckParams;
-        if (request.payload.method === 'identity.check') {
+        let identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
+        if (request.payload.method === identityCheckFullName) {
             identityCheckParams = assign({}, request.payload.params);
         } else {
             identityCheckParams = {actionId: request.payload.method};
@@ -305,10 +306,10 @@ module.exports = function(port) {
                     'permission.get': ['*']
                 };
             }
-            return port.bus.importMethod([port.config.identityNamespace, 'check'].join('.'))(identityCheckParams);
+            return port.bus.importMethod(identityCheckFullName)(identityCheckParams);
         })
         .then((res) => {
-            if (request.payload.method === 'identity.check') {
+            if (request.payload.method === identityCheckFullName) {
                 endReply.result = res;
                 if (res['identity.check'] && res['identity.check'].sessionId) {
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
