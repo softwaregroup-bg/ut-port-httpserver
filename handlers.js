@@ -270,7 +270,7 @@ module.exports = function(port) {
             }
         };
 
-        if (request.payload.method === 'identity.closeSession' && request.auth && request.auth.credentials) {
+        if (port.config.identityNamespace && (request.payload.method === [port.config.identityNamespace, 'closeSession'].join('.')) && request.auth && request.auth.credentials) {
             return processMessage({
                 end: (repl) => (repl.state(
                     port.config.jwt.cookieKey,
@@ -278,14 +278,13 @@ module.exports = function(port) {
                     Object.assign({path: port.config.cookiePaths}, port.config.cookie, {ttl: 0})
                 ))
             });
-        } else if (
-            port.config.publicMethods && port.config.publicMethods.indexOf(request.payload.method) > -1
-        ) {
+        } else if (port.config.publicMethods && port.config.publicMethods.indexOf(request.payload.method) > -1) {
             return processMessage();
         }
 
         var identityCheckParams;
-        if (request.payload.method === 'identity.check') {
+        let identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
+        if (request.payload.method === identityCheckFullName) {
             identityCheckParams = assign({}, request.payload.params);
         } else {
             identityCheckParams = {actionId: request.payload.method};
@@ -300,9 +299,17 @@ module.exports = function(port) {
             )}
         );
 
-        port.bus.importMethod('identity.check')(identityCheckParams)
+        Promise.resolve()
+        .then(() => {
+            if (port.config.identityNamespace === false) {
+                return {
+                    'permission.get': ['*']
+                };
+            }
+            return port.bus.importMethod(identityCheckFullName)(identityCheckParams);
+        })
         .then((res) => {
-            if (request.payload.method === 'identity.check') {
+            if (request.payload.method === identityCheckFullName) {
                 endReply.result = res;
                 if (res['identity.check'] && res['identity.check'].sessionId) {
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
