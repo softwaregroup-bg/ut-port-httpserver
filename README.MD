@@ -67,7 +67,7 @@ module.exports = {
     port: 8003,//or use property ports, see below
     ports: [8003, 8004],
     imports:[],
-    identityNamespace: 'identity', // default value: identity, if empty string is set, no identity check will be applied. this is useful when other namespace than identity will be used for identity check
+    identityNamespace: 'identity', // default value: identity, if identityNamespace is set to false, no identity check will be applied. this is useful when other namespace than identity will be used for identity check
     cookiePaths:'/rpc', // cookie paths, to which paths to bound cookies to, default: /rpc
     fileUpload: {
         maxFileName: 100,

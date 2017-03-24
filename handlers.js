@@ -270,7 +270,7 @@ module.exports = function(port) {
             }
         };
 
-        if (request.payload.method === 'identity.closeSession' && request.auth && request.auth.credentials) {
+        if (port.config.identityNamespace && (request.payload.method === [port.config.identityNamespace, 'closeSession'].join('.')) && request.auth && request.auth.credentials) {
             return processMessage({
                 end: (repl) => (repl.state(
                     port.config.jwt.cookieKey,
@@ -278,9 +278,7 @@ module.exports = function(port) {
                     Object.assign({path: port.config.cookiePaths}, port.config.cookie, {ttl: 0})
                 ))
             });
-        } else if (
-            port.config.publicMethods && port.config.publicMethods.indexOf(request.payload.method) > -1
-        ) {
+        } else if (port.config.publicMethods && port.config.publicMethods.indexOf(request.payload.method) > -1) {
             return processMessage();
         }
 
@@ -302,7 +300,7 @@ module.exports = function(port) {
 
         Promise.resolve()
         .then(() => {
-            if (port.config.identityNamespace === '') {
+            if (port.config.identityNamespace === false) {
                 return {
                     'permission.get': ['*']
                 };
