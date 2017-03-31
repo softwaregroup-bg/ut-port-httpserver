@@ -301,7 +301,7 @@ module.exports = function(port) {
 
         Promise.resolve()
         .then(() => {
-            if (port.config.identityNamespace === false) {
+            if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && !request.auth.strategy)) {
                 return {
                     'permission.get': ['*']
                 };
