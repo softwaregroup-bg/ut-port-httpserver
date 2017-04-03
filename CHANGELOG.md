@@ -1,3 +1,13 @@
+<a name="8.7.1"></a>
+## [8.7.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.7.0...v8.7.1) (2017-04-03)
+
+
+### Bug Fixes
+
+* add app.skipIdentityCheck property for skip identity check ([12c7c4f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/12c7c4f))
+
+
+
 <a name="8.7.0"></a>
 # [8.7.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.6.3...v8.7.0) (2017-03-24)
 
