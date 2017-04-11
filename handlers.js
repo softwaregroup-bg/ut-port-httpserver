@@ -299,6 +299,16 @@ module.exports = function(port) {
             )}
         );
 
+        if (port.bus.config.outOfBandAuthentication &&
+            port.bus.config.outOfBandAuthentication.protectedMethods.indexOf(request.params.method) >= 0) {
+            assign(
+                identityCheckParams, {
+                    oobPayload: request.headers['x-oob'],
+                    oobInstallationId: request.headers['x-installation-id']
+                }
+            );
+        }
+
         Promise.resolve()
         .then(() => {
             if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
