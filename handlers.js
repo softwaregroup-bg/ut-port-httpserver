@@ -299,10 +299,11 @@ module.exports = function(port) {
             )}
         );
 
-        if (port.bus.config.outOfBandAuthentication &&
-            port.bus.config.outOfBandAuthentication.protectedMethods.indexOf(request.params.method) >= 0) {
+        if (port.config.outOfBandAuthentication &&
+            port.config.outOfBandAuthentication.protectedMethods.indexOf(request.params.method) >= 0) {
             assign(
                 identityCheckParams, {
+                    requiresOobValidation: true,
                     oobPayload: request.headers['x-oob'],
                     oobInstallationId: request.headers['x-installation-id']
                 }
