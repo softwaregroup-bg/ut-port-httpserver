@@ -296,19 +296,12 @@ module.exports = function(port) {
                 (port.config.allowXFF && request.headers['x-forwarded-for'])
                 ? request.headers['x-forwarded-for']
                 : request.info.remoteAddress
-            )}
+            )},
+            {oob: {
+                payload: request.headers['x-oob'],
+                installationId: request.headers['x-installation-id']
+            }}
         );
-
-        if (port.config.outOfBandAuthentication &&
-            port.config.outOfBandAuthentication.protectedMethods.indexOf(request.params.method) >= 0) {
-            assign(
-                identityCheckParams, {
-                    requiresOobValidation: true,
-                    oobPayload: request.headers['x-oob'],
-                    oobInstallationId: request.headers['x-installation-id']
-                }
-            );
-        }
 
         Promise.resolve()
         .then(() => {
