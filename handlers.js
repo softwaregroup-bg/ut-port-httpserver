@@ -159,7 +159,7 @@ module.exports = function(port) {
             }
         }
 
-        if (request.params && request.params.isRpc && (!request.payload || !request.payload.jsonrpc || !request.payload.id)) {
+        if (request.params && request.params.isRpc && (!request.payload || !request.payload.jsonrpc)) {
             return handleError({
                 code: '-1',
                 message: 'Malformed JSON RPC Request',
@@ -168,7 +168,7 @@ module.exports = function(port) {
         }
         var endReply = {
             jsonrpc: request.payload.jsonrpc,
-            id: request.payload.id
+            id: ((request && request.payload && request.payload.id) || '')
         };
 
         var processMessage = function(msgOptions) {
