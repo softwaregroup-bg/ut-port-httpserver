@@ -168,7 +168,7 @@ module.exports = function(port) {
         }
         var endReply = {
             jsonrpc: request.payload.jsonrpc,
-            id: ((request && request.payload && request.payload.id) || '')
+            id: (request && request.payload && request.payload.id)
         };
 
         var processMessage = function(msgOptions) {
