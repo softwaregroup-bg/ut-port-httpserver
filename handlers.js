@@ -115,7 +115,8 @@ module.exports = function(port) {
 
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         var startTime = process.hrtime();
-        port.log.trace && port.log.trace({payload: request.payload});
+        port.log.trace && port.log.trace({payload: request && request.payload});
+
         function addTime() {
             if (port.latency) {
                 var diff = process.hrtime(startTime);
@@ -158,6 +159,13 @@ module.exports = function(port) {
             }
         }
 
+        if (request.params && request.params.isRpc && (!request.payload || !request.payload.jsonrpc || !request.payload.id)) {
+            return handleError({
+                code: '-1',
+                message: 'Malformed JSON RPC Request',
+                errorPrint: 'Malformed JSON RPC Request'
+            });
+        }
         var endReply = {
             jsonrpc: request.payload.jsonrpc,
             id: request.payload.id
@@ -424,6 +432,7 @@ module.exports = function(port) {
                         };
                     }
                     req.params.method = method;
+                    req.params.isRpc = isRpc;
                     return rpcHandler(req, repl);
                 },
                 auth: ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth),
