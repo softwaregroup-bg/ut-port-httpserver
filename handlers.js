@@ -296,11 +296,7 @@ module.exports = function(port) {
                 (port.config.allowXFF && request.headers['x-forwarded-for'])
                 ? request.headers['x-forwarded-for']
                 : request.info.remoteAddress
-            )},
-            {oob: {
-                payload: request.headers['x-oob'],
-                installationId: request.headers['x-installation-id']
-            }}
+            )}
         );
 
         Promise.resolve()
@@ -310,7 +306,16 @@ module.exports = function(port) {
                     'permission.get': ['*']
                 };
             }
-            return port.bus.importMethod(identityCheckFullName)(identityCheckParams);
+            var $meta = {
+                auth: request.auth.credentials,
+                method: request.payload.method,
+                opcode: request.payload.method.split('.').pop(),
+                mtid: (request.payload.id == null) ? 'notification' : 'request',
+                requestHeaders: request.headers,
+                ipAddress: request.info && request.info.remoteAddress,
+                frontEnd: request.headers && request.headers['user-agent']
+            };
+            return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
         .then((res) => {
             if (request.payload.method === identityCheckFullName) {
