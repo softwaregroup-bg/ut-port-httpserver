@@ -186,6 +186,9 @@ module.exports = function(port) {
                 if (msgOptions.language) {
                     $meta.language = msgOptions.language;
                 }
+                if (msgOptions.protection) {
+                    $meta.protection = msgOptions.protection;
+                }
                 var callback = function(response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
@@ -341,7 +344,8 @@ module.exports = function(port) {
             } else {
                 if (res['permission.get'] && res['permission.get'].length) {
                     return processMessage({
-                        language: res.language
+                        language: res.language,
+                        protection: res.protection
                     });
                 } else {
                     return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
