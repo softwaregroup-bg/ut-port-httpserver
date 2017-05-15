@@ -113,6 +113,42 @@ module.exports = function(port) {
         }
     };
 
+    let identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
+
+    var prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
+        var identityCheckParams;
+        if (request.payload.method === identityCheckFullName) {
+            identityCheckParams = assign({}, request.payload.params);
+        } else {
+            identityCheckParams = { actionId: request.payload.method };
+        }
+        assign(
+            identityCheckParams,
+            request.auth.credentials,
+            {
+                ip: (
+                    (port.config.allowXFF && request.headers['x-forwarded-for'])
+                        ? request.headers['x-forwarded-for']
+                        : request.info.remoteAddress
+                )
+            }
+        );
+        return identityCheckParams;
+    };
+
+    var initMetadataFromRequest = function initMetadataFromRequest(request) {
+        var $meta = {
+            auth: request.auth.credentials,
+            method: request.payload.method,
+            opcode: request.payload.method ? request.payload.method.split('.').pop() : '',
+            mtid: (request.payload.id == null) ? 'notification' : 'request',
+            requestHeaders: request.headers,
+            ipAddress: request.info && request.info.remoteAddress,
+            frontEnd: request.headers && request.headers['user-agent']
+        };
+        return $meta;
+    };
+
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         var startTime = process.hrtime();
         port.log.trace && port.log.trace({payload: request.payload});
@@ -174,15 +210,7 @@ module.exports = function(port) {
             }
             msgOptions = msgOptions || {};
             try {
-                $meta = {
-                    auth: request.auth.credentials,
-                    method: request.payload.method,
-                    opcode: request.payload.method.split('.').pop(),
-                    mtid: (request.payload.id == null) ? 'notification' : 'request',
-                    requestHeaders: request.headers,
-                    ipAddress: request.info && request.info.remoteAddress,
-                    frontEnd: request.headers && request.headers['user-agent']
-                };
+                $meta = initMetadataFromRequest(request);
                 if (msgOptions.language) {
                     $meta.language = msgOptions.language;
                 }
@@ -285,23 +313,6 @@ module.exports = function(port) {
             return processMessage();
         }
 
-        var identityCheckParams;
-        let identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
-        if (request.payload.method === identityCheckFullName) {
-            identityCheckParams = assign({}, request.payload.params);
-        } else {
-            identityCheckParams = {actionId: request.payload.method};
-        }
-        assign(
-            identityCheckParams,
-            request.auth.credentials,
-            {ip: (
-                (port.config.allowXFF && request.headers['x-forwarded-for'])
-                ? request.headers['x-forwarded-for']
-                : request.info.remoteAddress
-            )}
-        );
-
         Promise.resolve()
         .then(() => {
             if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
@@ -309,15 +320,8 @@ module.exports = function(port) {
                     'permission.get': ['*']
                 };
             }
-            var $meta = {
-                auth: request.auth.credentials,
-                method: request.payload.method,
-                opcode: request.payload.method.split('.').pop(),
-                mtid: (request.payload.id == null) ? 'notification' : 'request',
-                requestHeaders: request.headers,
-                ipAddress: request.info && request.info.remoteAddress,
-                frontEnd: request.headers && request.headers['user-agent']
-            };
+            let $meta = initMetadataFromRequest(request);
+            let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
             return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
         .then((res) => {
@@ -479,6 +483,9 @@ module.exports = function(port) {
         method: 'POST',
         path: '/file-upload',
         config: {
+            auth: {
+                strategy: 'jwt'
+            },
             payload: {
                 maxBytes: port.config.fileUpload.payloadMaxBytes,
                 output: 'stream',
@@ -486,52 +493,63 @@ module.exports = function(port) {
                 allow: 'multipart/form-data'
             },
             handler: function(request, reply) {
-                var file = request.payload.file;
-                var isValid = isUploadValid(request, port.config.fileUpload);
-                if (!isValid) {
-                    reply('').code(400);
-                } else {
-                    var fileName = (new Date()).getTime() + '_' + file.hapi.filename;
-                    var path = port.bus.config.workDir + '/uploads/' + fileName;
-                    var ws = fs.createWriteStream(path);
-                    ws.on('error', function(err) {
-                        port.log.error && port.log.error(err);
-                        reply('');
-                    });
-                    file.pipe(ws);
-                    file.on('end', function(err) {
-                        if (err) {
-                            port.log.error && port.log.error(err);
-                            reply('');
+                Promise.resolve()
+                    .then(() => {
+                        let $meta = initMetadataFromRequest(request);
+                        let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                        return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
+                    })
+                    .then((res) => {
+                        var file = request.payload.file;
+                        var isValid = isUploadValid(request, port.config.fileUpload);
+                        if (!isValid) {
+                            reply('').code(400);
                         } else {
-                            if (file.hapi.headers['content-type'] === 'base64/png') {
-                                fs.readFile(path, (err, fileContent) => {
-                                    if (err) reply('');
-                                    fileContent = fileContent.toString();
-                                    var matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-                                    if (matches.length === 3) {
-                                        var imageBuffer = {};
-                                        imageBuffer.type = matches[1];
-                                        imageBuffer.data = new Buffer(matches[2], 'base64');
-                                        fileContent = imageBuffer.data;
-                                        fs.writeFile(path, fileContent, (err) => {
+                            var fileName = (new Date()).getTime() + '_' + file.hapi.filename;
+                            var path = port.bus.config.workDir + '/uploads/' + fileName;
+                            var ws = fs.createWriteStream(path);
+                            ws.on('error', function(err) {
+                                port.log.error && port.log.error(err);
+                                reply('');
+                            });
+                            file.pipe(ws);
+                            file.on('end', function(err) {
+                                if (err) {
+                                    port.log.error && port.log.error(err);
+                                    reply('');
+                                } else {
+                                    if (file.hapi.headers['content-type'] === 'base64/png') {
+                                        fs.readFile(path, (err, fileContent) => {
                                             if (err) reply('');
-                                            reply(JSON.stringify({
-                                                filename: fileName,
-                                                headers: file.hapi.headers
-                                            }));
+                                            fileContent = fileContent.toString();
+                                            var matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+                                            if (matches.length === 3) {
+                                                var imageBuffer = {};
+                                                imageBuffer.type = matches[1];
+                                                imageBuffer.data = new Buffer(matches[2], 'base64');
+                                                fileContent = imageBuffer.data;
+                                                fs.writeFile(path, fileContent, (err) => {
+                                                    if (err) reply('');
+                                                    reply(JSON.stringify({
+                                                        filename: fileName,
+                                                        headers: file.hapi.headers
+                                                    }));
+                                                });
+                                            } else reply('');
                                         });
-                                    } else reply('');
-                                });
-                            } else {
-                                reply(JSON.stringify({
-                                    filename: fileName,
-                                    headers: file.hapi.headers
-                                }));
-                            }
+                                    } else {
+                                        reply(JSON.stringify({
+                                            filename: fileName,
+                                            headers: file.hapi.headers
+                                        }));
+                                    }
+                                }
+                            });
                         }
+                    })
+                    .catch((err) => {
+                        if (err) reply('').code(401);
                     });
-                }
             }
         }
     });
