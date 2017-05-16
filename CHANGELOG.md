@@ -1,3 +1,13 @@
+<a name="8.8.0"></a>
+# [8.8.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.7.2...v8.8.0) (2017-05-16)
+
+
+### Features
+
+* multi factor authorization ([84a4f76](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/84a4f76))
+
+
+
 <a name="8.7.2"></a>
 ## [8.7.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.7.1...v8.7.2) (2017-04-24)
 
