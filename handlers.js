@@ -186,6 +186,9 @@ module.exports = function(port) {
                 if (msgOptions.language) {
                     $meta.language = msgOptions.language;
                 }
+                if (msgOptions.protection) {
+                    $meta.protection = msgOptions.protection;
+                }
                 var callback = function(response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
@@ -306,7 +309,16 @@ module.exports = function(port) {
                     'permission.get': ['*']
                 };
             }
-            return port.bus.importMethod(identityCheckFullName)(identityCheckParams);
+            var $meta = {
+                auth: request.auth.credentials,
+                method: request.payload.method,
+                opcode: request.payload.method.split('.').pop(),
+                mtid: (request.payload.id == null) ? 'notification' : 'request',
+                requestHeaders: request.headers,
+                ipAddress: request.info && request.info.remoteAddress,
+                frontEnd: request.headers && request.headers['user-agent']
+            };
+            return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
         .then((res) => {
             if (request.payload.method === identityCheckFullName) {
@@ -332,7 +344,8 @@ module.exports = function(port) {
             } else {
                 if (res['permission.get'] && res['permission.get'].length) {
                     return processMessage({
-                        language: res.language
+                        language: res.language,
+                        protection: res.protection
                     });
                 } else {
                     return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
