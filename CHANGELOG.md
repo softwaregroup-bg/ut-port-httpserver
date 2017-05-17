@@ -1,3 +1,13 @@
+<a name="8.8.1"></a>
+## [8.8.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.8.0...v8.8.1) (2017-05-17)
+
+
+### Bug Fixes
+
+* Add identity check before file upload ([6b34e83](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/6b34e83))
+
+
+
 <a name="8.8.0"></a>
 # [8.8.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.7.2...v8.8.0) (2017-05-16)
 
