@@ -42,7 +42,6 @@ SocketServer.prototype.start = function start(server) {
 SocketServer.prototype.registerPath = function registerPath(path, verifyClient, opts) {
     let id = ++this.routeId;
     this.router.add({
-        id: id,
         method: 'get',
         path: path
     }, id);
