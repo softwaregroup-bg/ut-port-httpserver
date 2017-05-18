@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "8.9.0-ws.1",
+  "version": "8.9.0-ws.2",
   "dependencies": {
     "fs-plus": "2.9.3",
     "hapi": "16.0.2",
@@ -8,7 +8,7 @@
     "hapi-auth-basic": "4.2.0",
     "hapi-swagger": "7.5.0",
     "inert": "4.0.4",
-    "boom": "4.2.0",
+    "boom": "4.x.x",
     "jsonwebtoken": "7.1.9",
     "lodash.assign": "4.2.0",
     "lodash.clonedeep": "4.5.0",
@@ -18,7 +18,6 @@
     "through2": "2.0.3",
     "when": "3.7.7",
     "ut-error": "^5.4.0",
-    "boom": "4.x.x",
     "vision": "4.1.1",
     "joi": "10.0.6",
     "ws": "1.1.1",
