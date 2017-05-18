@@ -75,6 +75,10 @@ function HttpServerPort() {
             verifyOptions: {
                 ignoreExpiration: true,
                 algorithms: ['HS256']
+            },
+            signOptions: {
+                expiresIn: '1h',
+                algorithm: 'HS256'
             }
         }
     };
@@ -157,7 +161,7 @@ HttpServerPort.prototype.start = function start() {
         this.hapiServer.route(handlers(this));
         if (this.socketSubscriptions.length) {
             this.socketServer = new SocketServer();
-            this.socketSubscriptions.forEach((path) => this.socketServer.registerPath(path));
+            this.socketSubscriptions.forEach((config) => this.socketServer.registerPath.apply(this.socketServer, config));
             this.socketServer.start(this.hapiServer.listener);
         }
         return this.hapiServer.start();
@@ -181,8 +185,8 @@ HttpServerPort.prototype.registerRequestHandler = function(handlers) {
     }
 };
 
-HttpServerPort.prototype.registerSocketSubscription = function(path) {
-    this.socketSubscriptions.push(path);
+HttpServerPort.prototype.registerSocketSubscription = function(path, beforeHandlerHook, opts) {
+    this.socketSubscriptions.push([path, beforeHandlerHook, opts]);
     return (params, message) => this.socketServer.publish({path: path, params: params}, message);
 };
 

@@ -332,8 +332,10 @@ module.exports = function(port) {
                     var jwtSigned = jwt.sign({
                         timezone: tz,
                         actorId: res['identity.check'].actorId,
-                        sessionId: res['identity.check'].sessionId
-                    }, port.config.jwt.key);
+                        sessionId: res['identity.check'].sessionId,
+                        permission: endReply.result['permission.get']
+                    }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
+                    endReply.result.jwt = {value: jwtSigned};
                     return reply(endReply)
                         .state(
                             port.config.jwt.cookieKey,
