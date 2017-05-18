@@ -15,10 +15,8 @@ var util = {
 
 function SocketServer() {
     this.router = new Router();
-    this.handlers = {};
     this.rooms = {};
     this.wss = null;
-    this.routeId = 0;
 }
 
 SocketServer.prototype.start = function start(server) {
@@ -29,49 +27,47 @@ SocketServer.prototype.start = function start(server) {
             if (context.isBoom) {
                 cb(false, context.output.payload.statusCode, context.output.payload.error);
             } else {
-                this.handlers[context.route].verifyClient(i, cb);
+                context.route.verifyClient(i, cb);
             }
         }
     });
     this.wss.on('connection', (socket) => {
-        var context = this.router.route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url);
-        this.handlers[context.route].handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
+        this.router
+            .route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url).route
+            .handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
     });
 };
 
-SocketServer.prototype.registerPath = function registerPath(path, verifyClient, opts) {
-    let id = ++this.routeId;
+SocketServer.prototype.registerPath = function registerPath(path, verifyClient) {
     this.router.add({
         method: 'get',
         path: path
-    }, id);
-    if (!this.handlers[id]) {
-        this.handlers[id] = {};
-    }
-    this.handlers[id].handler = (roomId, socket) => {
-        if (!this.rooms[roomId]) {
-            this.rooms[roomId] = [];
-        }
-        var i = this.rooms[roomId].push(socket) - 1;
-        socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
-    };
-    this.handlers[id].verifyClient = (info, cb) => {
-        if (verifyClient && typeof (verifyClient) === 'function') {
-            verifyClient(info.req, this.router.analyze(info.req.url).fingerprint, (err) => {
-                if (err) {
-                    if (err.isBoom) {
-                        cb(false, err.output.payload.statusCode, err.output.payload.error);
+    }, {
+        handler: (roomId, socket) => {
+            if (!this.rooms[roomId]) {
+                this.rooms[roomId] = [];
+            }
+            var i = this.rooms[roomId].push(socket) - 1;
+            socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
+        },
+        verifyClient: (info, cb) => {
+            if (verifyClient && typeof (verifyClient) === 'function') {
+                verifyClient(info.req, this.router.analyze(info.req.url).fingerprint, (err) => {
+                    if (err) {
+                        if (err.isBoom) {
+                            cb(false, err.output.payload.statusCode, err.output.payload.error);
+                        } else {
+                            cb(false, 500, 'Internal Server Error');
+                        }
                     } else {
-                        cb(false, 500, 'Internal Server Error');
+                        cb(true);
                     }
-                } else {
-                    cb(true);
-                }
-            });
-        } else {
-            cb(true);
+                });
+            } else {
+                cb(true);
+            }
         }
-    };
+    });
 };
 
 SocketServer.prototype.publish = function publish(data, message) {
