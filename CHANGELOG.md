@@ -1,3 +1,13 @@
+<a name="8.8.2"></a>
+## [8.8.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.8.1...v8.8.2) (2017-05-18)
+
+
+### Bug Fixes
+
+* check for jsonrpc ([2f38169](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/2f38169))
+
+
+
 <a name="8.8.1"></a>
 ## [8.8.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.8.0...v8.8.1) (2017-05-17)
 
