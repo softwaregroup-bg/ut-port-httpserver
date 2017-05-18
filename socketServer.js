@@ -34,17 +34,15 @@ SocketServer.prototype.registerPath = function registerPath(path, beforeHandlerH
         method: 'get',
         path: path
     }, (roomId, socket) => {
-        let afterHandlerHook = ((socket, roomId) => {
-            return (err, resp) => {
-                if (err) {
-                    return socket.close();
-                }
-                if (!this.rooms[roomId]) {
-                    this.rooms[roomId] = [];
-                }
-                var i = this.rooms[roomId].push(socket) - 1;
-                socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
-            };
+        let afterHandlerHook = ((socket, roomId) => (err, resp) => {
+            if (err) {
+                return socket.close();
+            }
+            if (!this.rooms[roomId]) {
+                this.rooms[roomId] = [];
+            }
+            var i = this.rooms[roomId].push(socket) - 1;
+            socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
         })(socket, roomId);
         if (beforeHandlerHook && typeof (beforeHandlerHook) === 'function') {
             beforeHandlerHook(socket, roomId, afterHandlerHook);
