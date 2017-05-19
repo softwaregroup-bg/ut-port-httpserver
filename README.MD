@@ -70,7 +70,8 @@ module.exports = {
     jwt: { // jwt options (https://github.com/auth0/node-jsonwebtoken)
         verifyOptions: {...} // options that are used when verifying
         signOptions: {...} // options that are used when signing
-    }
+    },
+    ssoAuthUrl: '...', // to where client should be redirected in order to make single sign on authentication
     identityNamespace: 'identity', // default value: identity, if identityNamespace is set to false, no identity check will be applied. this is useful when other namespace than identity will be used for identity check
     cookiePaths:'/rpc', // cookie paths, to which paths to bound cookies to, default: /rpc
     fileUpload: {
