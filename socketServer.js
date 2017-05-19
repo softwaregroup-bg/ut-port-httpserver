@@ -13,28 +13,35 @@ var util = {
     }
 };
 
-function SocketServer() {
+function SocketServer(httpServer) {
     this.router = new Router();
     this.rooms = {};
     this.wss = null;
+    this.httpServer = httpServer;
 }
 
 SocketServer.prototype.start = function start(server) {
     this.wss = new ws.Server({
-        server: server,
-        verifyClient: (i, cb) => {
-            var context = this.router.route(i.req.method.toLowerCase(), i.req.url);
-            if (context.isBoom) {
-                cb(false, context.output.payload.statusCode, context.output.payload.error);
-            } else {
-                context.route.verifyClient(i, cb);
-            }
-        }
+        server: server
     });
     this.wss.on('connection', (socket) => {
-        this.router
-            .route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url).route
-            .handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
+        var p = new Promise((resolve, reject) => {
+            var context = this.router.route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url);
+            if (context.isBoom) {
+                throw context;
+            }
+            resolve(context);
+        });
+        p.then((context) => (context.route.verifyClient(socket)))
+        .then(() => {
+            return this.router
+                .route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url).route
+                .handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
+        })
+        .catch((err) => {
+            this.httpServer.log && this.httpServer.log.warn && this.httpServer.log.warn(Object.assign({connection: 'WS'}, err.output));
+            socket.close(4000 + parseInt(err.output.payload.statusCode)); // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
+        });
     });
 };
 
@@ -50,22 +57,14 @@ SocketServer.prototype.registerPath = function registerPath(path, verifyClient) 
             var i = this.rooms[roomId].push(socket) - 1;
             socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
         },
-        verifyClient: (info, cb) => {
-            if (verifyClient && typeof (verifyClient) === 'function') {
-                verifyClient(info.req, this.router.analyze(info.req.url).fingerprint, (err) => {
-                    if (err) {
-                        if (err.isBoom) {
-                            cb(false, err.output.payload.statusCode, err.output.payload.error);
-                        } else {
-                            cb(false, 500, 'Internal Server Error');
-                        }
-                    } else {
-                        cb(true);
+        verifyClient: (socket) => {
+            return Promise.resolve()
+                .then(() => {
+                    if (verifyClient && typeof (verifyClient) === 'function') {
+                        return verifyClient(socket, this.router.analyze(socket.upgradeReq.url).fingerprint);
                     }
+                    return 0;
                 });
-            } else {
-                cb(true);
-            }
         }
     });
 };
