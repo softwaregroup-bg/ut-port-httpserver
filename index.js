@@ -160,7 +160,7 @@ HttpServerPort.prototype.start = function start() {
         this.hapiServer.route(this.routes);
         this.hapiServer.route(handlers(this));
         if (this.socketSubscriptions.length) {
-            this.socketServer = new SocketServer();
+            this.socketServer = new SocketServer(this);
             this.socketSubscriptions.forEach((config) => this.socketServer.registerPath.apply(this.socketServer, config));
             this.socketServer.start(this.hapiServer.listener);
         }
@@ -185,8 +185,8 @@ HttpServerPort.prototype.registerRequestHandler = function(handlers) {
     }
 };
 
-HttpServerPort.prototype.registerSocketSubscription = function(path, beforeHandlerHook, opts) {
-    this.socketSubscriptions.push([path, beforeHandlerHook, opts]);
+HttpServerPort.prototype.registerSocketSubscription = function(path, verifyClient, opts) {
+    this.socketSubscriptions.push([path, verifyClient, opts]);
     return (params, message) => this.socketServer.publish({path: path, params: params}, message);
 };
 
