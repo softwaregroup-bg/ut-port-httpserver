@@ -21,24 +21,52 @@ function SocketServer() {
 
 SocketServer.prototype.start = function start(server) {
     this.wss = new ws.Server({
-        server: server
+        server: server,
+        verifyClient: (i, cb) => {
+            var context = this.router.route(i.req.method.toLowerCase(), i.req.url);
+            if (context.isBoom) {
+                cb(false, context.output.payload.statusCode, context.output.payload.error);
+            } else {
+                context.route.verifyClient(i, cb);
+            }
+        }
     });
     this.wss.on('connection', (socket) => {
-        var context = this.router.route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url);
-        context.isBoom ? socket.terminate() : context.route(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
+        this.router
+            .route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url).route
+            .handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
     });
 };
 
-SocketServer.prototype.registerPath = function registerPath(path) {
+SocketServer.prototype.registerPath = function registerPath(path, verifyClient) {
     this.router.add({
         method: 'get',
         path: path
-    }, (roomId, socket) => {
-        if (!this.rooms[roomId]) {
-            this.rooms[roomId] = [];
+    }, {
+        handler: (roomId, socket) => {
+            if (!this.rooms[roomId]) {
+                this.rooms[roomId] = [];
+            }
+            var i = this.rooms[roomId].push(socket) - 1;
+            socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
+        },
+        verifyClient: (info, cb) => {
+            if (verifyClient && typeof (verifyClient) === 'function') {
+                verifyClient(info.req, this.router.analyze(info.req.url).fingerprint, (err) => {
+                    if (err) {
+                        if (err.isBoom) {
+                            cb(false, err.output.payload.statusCode, err.output.payload.error);
+                        } else {
+                            cb(false, 500, 'Internal Server Error');
+                        }
+                    } else {
+                        cb(true);
+                    }
+                });
+            } else {
+                cb(true);
+            }
         }
-        var i = this.rooms[roomId].push(socket) - 1;
-        socket.on('close', () => this.rooms[roomId].splice(i, 1));
     });
 };
 

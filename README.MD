@@ -67,6 +67,10 @@ module.exports = {
     port: 8003,//or use property ports, see below
     ports: [8003, 8004],
     imports:[],
+    jwt: { // jwt options (https://github.com/auth0/node-jsonwebtoken)
+        verifyOptions: {...} // options that are used when verifying
+        signOptions: {...} // options that are used when signing
+    }
     identityNamespace: 'identity', // default value: identity, if identityNamespace is set to false, no identity check will be applied. this is useful when other namespace than identity will be used for identity check
     cookiePaths:'/rpc', // cookie paths, to which paths to bound cookies to, default: /rpc
     fileUpload: {
