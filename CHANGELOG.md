@@ -1,3 +1,13 @@
+<a name="8.9.2"></a>
+## [8.9.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.1...v8.9.2) (2017-05-19)
+
+
+### Bug Fixes
+
+* promisify + better error handling ([#66](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/66)) ([b073cdd](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/b073cdd))
+
+
+
 <a name="8.9.1"></a>
 ## [8.9.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.0...v8.9.1) (2017-05-19)
 
