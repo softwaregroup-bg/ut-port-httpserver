@@ -1,3 +1,13 @@
+<a name="8.9.0"></a>
+# [8.9.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.8.2...v8.9.0) (2017-05-19)
+
+
+### Features
+
+* ws security ([07de99a](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/07de99a))
+
+
+
 <a name="8.8.2"></a>
 ## [8.8.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.8.1...v8.8.2) (2017-05-18)
 
