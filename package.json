@@ -8,7 +8,6 @@
     "hapi-auth-basic": "4.2.0",
     "hapi-swagger": "7.5.0",
     "inert": "4.0.4",
-    "boom": "4.x.x",
     "jsonwebtoken": "7.1.9",
     "lodash.assign": "4.2.0",
     "lodash.clonedeep": "4.5.0",
