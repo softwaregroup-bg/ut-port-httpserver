@@ -1,3 +1,8 @@
+<a name="8.9.6"></a>
+## [8.9.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.5...v8.9.6) (2017-05-22)
+
+
+
 <a name="8.9.5"></a>
 ## [8.9.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.4...v8.9.5) (2017-05-22)
 
