@@ -341,7 +341,7 @@ module.exports = function(port) {
                         timezone: tz,
                         actorId: res['identity.check'].actorId,
                         sessionId: res['identity.check'].sessionId,
-                        permission: endReply.result['permission.get']
+                        permission: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (e.actionId.indexOf('ctp') >= 0 || e.actionId.indexOf('%') === 0))
                     }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
                     endReply.result.jwt = {value: jwtSigned};
                     return reply(endReply)
@@ -514,7 +514,7 @@ module.exports = function(port) {
                         var file = request.payload.file;
                         var isValid = isUploadValid(request, port.config.fileUpload);
                         if (!isValid) {
-                            reply('').code(400);
+                            return reply('').code(400);
                         } else {
                             var fileName = (new Date()).getTime() + '_' + file.hapi.filename;
                             var path = port.bus.config.workDir + '/uploads/' + fileName;
@@ -524,7 +524,7 @@ module.exports = function(port) {
                                 reply('');
                             });
                             file.pipe(ws);
-                            file.on('end', function(err) {
+                            return file.on('end', function(err) {
                                 if (err) {
                                     port.log.error && port.log.error(err);
                                     reply('');
