@@ -1,3 +1,13 @@
+<a name="8.9.8"></a>
+## [8.9.8](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.7...v8.9.8) (2017-05-23)
+
+
+### Bug Fixes
+
+* MCTUNE-2903 ([e1db2f0](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/e1db2f0))
+
+
+
 <a name="8.9.7"></a>
 ## [8.9.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.6...v8.9.7) (2017-05-22)
 
