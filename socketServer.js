@@ -25,22 +25,25 @@ SocketServer.prototype.start = function start(server) {
         server: server
     });
     this.wss.on('connection', (socket) => {
-        var p = new Promise((resolve, reject) => {
-            var context = this.router.route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url);
-            if (context.isBoom) {
-                throw context;
-            }
-            resolve(context);
-        });
-        p.then((context) => (context.route.verifyClient(socket)))
-        .then(() => {
-            return this.router
-                .route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url).route
-                .handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
-        })
-        .catch((err) => {
-            this.httpServer.log && this.httpServer.log.warn && this.httpServer.log.warn(Object.assign({connection: 'WS'}, err.output));
-            socket.close(4000 + parseInt(err.output.payload.statusCode)); // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
+        socket.on('message', (message, raw) => {
+            let jwtString = message.split('login:').pop();
+            var p = new Promise((resolve, reject) => {
+                var context = this.router.route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url);
+                if (context.isBoom) {
+                    throw context;
+                }
+                resolve(context);
+            });
+            p.then((context) => (context.route.verifyClient(socket, jwtString)))
+            .then(() => {
+                return this.router
+                    .route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url).route
+                    .handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
+            })
+            .catch((err) => {
+                this.httpServer.log && this.httpServer.log.warn && this.httpServer.log.warn(Object.assign({connection: 'WS'}, err.output));
+                socket.close(4000 + parseInt(err.output.payload.statusCode)); // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
+            });
         });
     });
 };
@@ -57,11 +60,11 @@ SocketServer.prototype.registerPath = function registerPath(path, verifyClient) 
             var i = this.rooms[roomId].push(socket) - 1;
             socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
         },
-        verifyClient: (socket) => {
+        verifyClient: (socket, jwtString) => {
             return Promise.resolve()
                 .then(() => {
                     if (verifyClient && typeof (verifyClient) === 'function') {
-                        return verifyClient(socket, this.router.analyze(socket.upgradeReq.url).fingerprint);
+                        return verifyClient(jwtString, this.router.analyze(socket.upgradeReq.url).fingerprint);
                     }
                     return 0;
                 });

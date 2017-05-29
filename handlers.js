@@ -340,10 +340,13 @@ module.exports = function(port) {
                     var jwtSigned = jwt.sign({
                         timezone: tz,
                         actorId: res['identity.check'].actorId,
-                        sessionId: res['identity.check'].sessionId,
-                        permission: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (e.actionId.indexOf('ctp') >= 0 || e.actionId.indexOf('%') === 0))
+                        sessionId: res['identity.check'].sessionId
                     }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
-                    endReply.result.jwt = {value: jwtSigned};
+                    // this should be kept in local storage and send with a *request when backend needs to validate actual request
+                    var jwtPermissionSigned = jwt.sign({
+                        permission: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId}))
+                    }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
+                    endReply.result.jwt = {value: jwtPermissionSigned};
                     return reply(endReply)
                         .state(
                             port.config.jwt.cookieKey,
