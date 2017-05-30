@@ -1,3 +1,13 @@
+<a name="8.9.16"></a>
+## [8.9.16](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.15...v8.9.16) (2017-05-30)
+
+
+### Bug Fixes
+
+* response validation ([54ab09f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/54ab09f))
+
+
+
 <a name="8.9.15"></a>
 ## [8.9.15](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.14...v8.9.15) (2017-05-23)
 
