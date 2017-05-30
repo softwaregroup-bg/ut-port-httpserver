@@ -6,6 +6,7 @@ var fs = require('fs');
 var jwt = require('jsonwebtoken');
 var joi = require('joi');
 var errors = require('./errors');
+var uuid = require('uuid/v4');
 
 var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     var request = {
@@ -195,7 +196,17 @@ module.exports = function(port) {
                 return reply(msg);
             }
         }
-
+        var privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
+        var publicToken = request.headers && request.headers['x-xsrf-token'];
+        var auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
+        if ((auth && auth.indexOf('jwt') >= 0) && (privateToken === '' || publicToken === '' || privateToken !== publicToken)) {
+            port.log.error && port.log.error({httpServerSecurity: 'fail', reason: 'private token != public token; cors error'});
+            return handleError({
+                code: '404',
+                message: 'Not found',
+                errorPrint: 'Not found'
+            });
+        }
         if (request.params && request.params.isRpc && (!request.payload || !request.payload.jsonrpc)) {
             return handleError({
                 code: '-1',
@@ -338,11 +349,14 @@ module.exports = function(port) {
                 endReply.result = res;
                 if (res['identity.check'] && res['identity.check'].sessionId) {
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
+                    var thirdPartyAppName = (request.payload && request.payload.params && request.payload.params.appName) || '';
+                    var uuId = uuid();
                     var jwtSigned = jwt.sign({
                         timezone: tz,
+                        xsrfToken: uuId,
                         actorId: res['identity.check'].actorId,
                         sessionId: res['identity.check'].sessionId,
-                        permission: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (e.actionId.indexOf('ctp') >= 0 || e.actionId.indexOf('%') === 0))
+                        scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (e.actionId.includes(thirdPartyAppName) >= 0 || e.actionId.indexOf('%') === 0))
                     }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
                     endReply.result.jwt = {value: jwtSigned};
                     return reply(endReply)
@@ -350,6 +364,11 @@ module.exports = function(port) {
                             port.config.jwt.cookieKey,
                             jwtSigned,
                             Object.assign({path: port.config.cookiePaths}, port.config.cookie)
+                        )
+                        .state(
+                            'xsrf-token',
+                            uuId,
+                            Object.assign({path: port.config.cookiePaths}, port.config.cookie, {isHttpOnly: false})
                         );
                 } else {
                     return reply(endReply);
@@ -437,6 +456,7 @@ module.exports = function(port) {
                 }
             };
         }
+        var auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
         pendingRoutes.unshift(merge({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
@@ -455,7 +475,7 @@ module.exports = function(port) {
                     req.params.isRpc = isRpc;
                     return rpcHandler(req, repl);
                 },
-                auth: ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth),
+                auth,
                 description: currentMethodConfig.description || config[method].method,
                 notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
                 tags: (currentMethodConfig.tags || []).concat(tags),

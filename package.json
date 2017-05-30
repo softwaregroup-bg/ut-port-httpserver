@@ -20,6 +20,7 @@
     "vision": "4.1.1",
     "joi": "10.0.6",
     "ws": "1.1.1",
+    "uuid": "3.0.1",
     "call": "3.0.3"
   },
   "devDependencies": {
