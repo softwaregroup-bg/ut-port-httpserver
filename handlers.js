@@ -348,17 +348,18 @@ module.exports = function(port) {
             if (request.payload.method === identityCheckFullName) {
                 endReply.result = res;
                 if (res['identity.check'] && res['identity.check'].sessionId) {
+                    var appId = request.payload.params && request.payload.params.appId;
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
-                    var thirdPartyAppName = (request.payload && request.payload.params && request.payload.params.appName) || '';
                     var uuId = uuid();
                     var jwtSigned = jwt.sign({
                         timezone: tz,
                         xsrfToken: uuId,
                         actorId: res['identity.check'].actorId,
                         sessionId: res['identity.check'].sessionId,
-                        scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (e.actionId.includes(thirdPartyAppName) >= 0 || e.actionId.indexOf('%') === 0))
+                        scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
                     }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
                     endReply.result.jwt = {value: jwtSigned};
+
                     return reply(endReply)
                         .state(
                             port.config.jwt.cookieKey,
