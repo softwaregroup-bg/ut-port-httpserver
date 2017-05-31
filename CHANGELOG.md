@@ -1,3 +1,13 @@
+<a name="8.9.17"></a>
+## [8.9.17](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.16...v8.9.17) (2017-05-31)
+
+
+### Bug Fixes
+
+* XSRF protection ([#70](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/70)) ([a7f6d18](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/a7f6d18))
+
+
+
 <a name="8.9.16"></a>
 ## [8.9.16](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.15...v8.9.16) (2017-05-30)
 
