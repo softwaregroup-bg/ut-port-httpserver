@@ -359,6 +359,7 @@ module.exports = function(port) {
                         scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
                     }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
                     endReply.result.jwt = {value: jwtSigned};
+                    endReply.result.xsrf = {uuId};
 
                     return reply(endReply)
                         .state(
