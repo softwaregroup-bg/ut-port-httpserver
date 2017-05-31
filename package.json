@@ -1,12 +1,13 @@
 {
   "name": "ut-port-httpserver",
-  "version": "8.9.16",
+  "version": "8.9.17-pass-headers.2",
   "dependencies": {
     "fs-plus": "2.9.3",
     "hapi": "16.0.2",
     "hapi-auth-jwt2": "7.2.4",
     "hapi-auth-basic": "4.2.0",
     "hapi-swagger": "7.5.0",
+    "boom": "^4.0.1",
     "inert": "4.0.4",
     "jsonwebtoken": "7.1.9",
     "lodash.assign": "4.2.0",
@@ -20,6 +21,7 @@
     "vision": "4.1.1",
     "joi": "10.0.6",
     "ws": "1.1.1",
+    "uuid": "3.0.1",
     "call": "3.0.3"
   },
   "devDependencies": {
