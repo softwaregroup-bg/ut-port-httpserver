@@ -1,6 +1,49 @@
 var ws = require('ws');
 var Router = require('call').Router;
+const Boom = require('boom');
+var jwt = require('jsonwebtoken');
+
 var interpolationRegex = /\{([^}]*)\}/g;
+function getTokens(strs, separators) {
+    if (!separators.length) {
+        return {key: strs.shift(), value: strs.shift()};
+    }
+    var separator = separators.shift();
+    return strs
+        .map((s) => (getTokens(s.split(separator), separators)))
+        .reduce((accum, c) => {
+            if (!c.key) {
+                return Object.assign(accum, c);
+            }
+            accum[c.key] = c.value;
+            return accum;
+        }, {});
+}
+function jwtXsrfCheck(query, cookie, hashKey, verifyOptions) {
+    return new Promise((resolve, reject) => {
+        if (query.xsrf === '' || !cookie || cookie === '') { // return unauthorized if something is wrong with xsrf get query param or with cookie itself
+            throw Boom.unauthorized();
+        }
+        jwt.verify(cookie, hashKey, verifyOptions, (err, decoded) => { // verify cookie
+            if (err) { // if wild error appears, mark this request as unauthorized
+                return reject(Boom.unauthorized(err.name));
+            }
+            if (decoded.xsrfToken !== query.xsrf) { // if xsrf get param is not the same as xsrfToken from the cookie, mark this request as unauthorized
+                return reject(Boom.unauthorized('Xsrf mismatch'));
+            }
+            resolve(decoded.scopes); // yeah we are done, on later stage will check for correct permissions
+        });
+    });
+}
+function permissionVerify(ctx, roomId) {
+    let allowedList = ['%', roomId];
+    let permitCount = ctx.permissions.map((v) => (v.actionId)).reduce((accum, c) => ((allowedList.includes(c) && accum + 1) || accum), 0);
+
+    if (!(permitCount > 0)) {
+        throw Boom.unauthorized();
+    }
+    return ctx;
+}
 var util = {
     formatMessage: function(message) {
         var msg;
@@ -25,21 +68,35 @@ SocketServer.prototype.start = function start(server) {
         server: server
     });
     this.wss.on('connection', (socket) => {
-        var p = new Promise((resolve, reject) => {
-            var context = this.router.route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url);
+        let cookies = (socket.upgradeReq.headers && socket.upgradeReq.headers.cookie) || '';
+        let url = socket.upgradeReq.url.split('?').shift();
+        let fingerprint = this.router.analyze(url).fingerprint;
+        Promise.resolve()
+        .then(() => {
+            return jwtXsrfCheck(
+                getTokens([socket.upgradeReq.url.replace(/[^?]+\?/ig, '')], ['&', '=']), // parse url string into hash object
+                getTokens([cookies], [';', '='])[this.httpServer.config.jwt.cookieKey], // parse cookie string into hash object
+                this.httpServer.config.jwt.key,
+                Object.assign({}, this.httpServer.config.jwt.verifyOptions, {ignoreExpiration: false})
+            );
+        })
+        .then((p) => (new Promise((resolve, reject) => {
+            var context = this.router.route(socket.upgradeReq.method.toLowerCase(), url);
             if (context.isBoom) {
                 throw context;
             }
+            context.permissions = p;
             resolve(context);
-        });
-        p.then((context) => (context.route.verifyClient(socket)))
+        })))
+        .then((context) => (permissionVerify(context, fingerprint)))
+        .then((context) => (context.route.verifyClient(socket)))
         .then(() => {
             return this.router
-                .route(socket.upgradeReq.method.toLowerCase(), socket.upgradeReq.url).route
-                .handler(this.router.analyze(socket.upgradeReq.url).fingerprint, socket);
+                .route(socket.upgradeReq.method.toLowerCase(), url).route
+                .handler(fingerprint, socket);
         })
         .catch((err) => {
-            this.httpServer.log && this.httpServer.log.warn && this.httpServer.log.warn(Object.assign({connection: 'WS'}, err.output));
+            this.httpServer.log && this.httpServer.log.warn && this.httpServer.log.warn(Object.assign({connection: 'WS'}, err.output, {stack: err.stack}));
             socket.close(4000 + parseInt(err.output.payload.statusCode)); // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
         });
     });
