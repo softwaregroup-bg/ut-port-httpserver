@@ -58,6 +58,8 @@ function HttpServerPort() {
             strictHeader: true // don't allow violations of RFC 6265
         },
         cookiePaths: '/rpc',
+        disableXsrf: {http: false, ws: false}, // disable xsrf support for http and ws(web sockets)
+        disablePermissionVerify: {ws: false}, // disable verification of services, eg pass requests without checks
         fileUpload: {
             maxFileName: 100,
             payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)

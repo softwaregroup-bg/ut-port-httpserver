@@ -199,7 +199,7 @@ module.exports = function(port) {
         var privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
         var publicToken = request.headers && request.headers['x-xsrf-token'];
         var auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
-        if ((auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || publicToken === '' || privateToken !== publicToken)) {
+        if (!(port.config.disableXsrf && port.config.disableXsrf.http) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || publicToken === '' || privateToken !== publicToken)) {
             port.log.error && port.log.error({httpServerSecurity: 'fail', reason: 'private token != public token; cors error'});
             return handleError({
                 code: '404',
