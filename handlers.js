@@ -350,7 +350,7 @@ module.exports = function(port) {
                 if (res['identity.check'] && res['identity.check'].sessionId) {
                     var appId = request.payload.params && request.payload.params.appId;
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
-                    var uuId = uuid();
+                    var uuId = port.config.testXsrfValue || uuid();
                     var jwtSigned = jwt.sign({
                         timezone: tz,
                         xsrfToken: uuId,
