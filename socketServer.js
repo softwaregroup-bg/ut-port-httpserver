@@ -61,6 +61,8 @@ function SocketServer(httpServer) {
     this.rooms = {};
     this.wss = null;
     this.httpServer = httpServer;
+    this.disableXsrf = (httpServer.config.disableXsrf && httpServer.config.disableXsrf.ws);
+    this.disablePermissionVerify = (httpServer.config.disablePermissionVerify && httpServer.config.disablePermissionVerify.ws);
 }
 
 SocketServer.prototype.start = function start(server) {
@@ -72,14 +74,13 @@ SocketServer.prototype.start = function start(server) {
         let url = socket.upgradeReq.url.split('?').shift();
         let fingerprint = this.router.analyze(url).fingerprint;
         Promise.resolve()
-        .then(() => {
-            return jwtXsrfCheck(
+        .then(() => (!this.disableXsrf && jwtXsrfCheck(
                 getTokens([socket.upgradeReq.url.replace(/[^?]+\?/ig, '')], ['&', '=']), // parse url string into hash object
                 getTokens([cookies], [';', '='])[this.httpServer.config.jwt.cookieKey], // parse cookie string into hash object
                 this.httpServer.config.jwt.key,
                 Object.assign({}, this.httpServer.config.jwt.verifyOptions, {ignoreExpiration: false})
-            );
-        })
+            )
+        ))
         .then((p) => (new Promise((resolve, reject) => {
             var context = this.router.route(socket.upgradeReq.method.toLowerCase(), url);
             if (context.isBoom) {
@@ -88,7 +89,12 @@ SocketServer.prototype.start = function start(server) {
             context.permissions = p;
             resolve(context);
         })))
-        .then((context) => (permissionVerify(context, fingerprint)))
+        .then((context) => {
+            if (this.disablePermissionVerify) {
+                return permissionVerify(context, fingerprint);
+            }
+            return context;
+        })
         .then((context) => (context.route.verifyClient(socket)))
         .then(() => {
             return this.router

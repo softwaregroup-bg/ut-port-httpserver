@@ -71,6 +71,8 @@ module.exports = {
         verifyOptions: {...} // options that are used when verifying
         signOptions: {...} // options that are used when signing
     },
+    disableXsrf: {http: false, ws: false}, // disable xsrf support for http and ws(web sockets)
+    disablePermissionVerify: {ws: false}, // disable verification of services, eg pass requests without checks
     ssoAuthUrl: '...', // to where client should be redirected in order to make single sign on authentication
     identityNamespace: 'identity', // default value: identity, if identityNamespace is set to false, no identity check will be applied. this is useful when other namespace than identity will be used for identity check
     cookiePaths:'/rpc', // cookie paths, to which paths to bound cookies to, default: /rpc
