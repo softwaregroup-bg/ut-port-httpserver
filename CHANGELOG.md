@@ -1,3 +1,13 @@
+<a name="8.10.0"></a>
+# [8.10.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.18...v8.10.0) (2017-06-07)
+
+
+### Features
+
+* add configuration for disabling xsrf and permission checks ([#73](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/73)) ([ae349fe](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/ae349fe))
+
+
+
 <a name="8.9.18"></a>
 ## [8.9.18](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.17...v8.9.18) (2017-05-31)
 
