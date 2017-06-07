@@ -90,7 +90,7 @@ SocketServer.prototype.start = function start(server) {
             resolve(context);
         })))
         .then((context) => {
-            if (this.disablePermissionVerify) {
+            if (!this.disablePermissionVerify) {
                 return permissionVerify(context, fingerprint);
             }
             return context;
