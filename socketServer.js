@@ -1,9 +1,11 @@
-var ws = require('ws');
-var Router = require('call').Router;
+const ws = require('ws');
+const Router = require('call').Router;
 const Boom = require('boom');
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
+const util = require('util');
+const EventEmitter = require('events');
 
-var interpolationRegex = /\{([^}]*)\}/g;
+const interpolationRegex = /\{([^}]*)\}/g;
 function getTokens(strs, separators) {
     if (!separators.length) {
         return {key: strs.shift(), value: strs.shift()};
@@ -44,7 +46,7 @@ function permissionVerify(ctx, roomId) {
     }
     return ctx;
 }
-var util = {
+var helpers = {
     formatMessage: function(message) {
         var msg;
         try {
@@ -56,18 +58,20 @@ var util = {
     }
 };
 
-function SocketServer(httpServer) {
+function SocketServer(utHttpServer, config) {
     this.router = new Router();
     this.rooms = {};
     this.wss = null;
-    this.httpServer = httpServer;
-    this.disableXsrf = (httpServer.config.disableXsrf && httpServer.config.disableXsrf.ws);
-    this.disablePermissionVerify = (httpServer.config.disablePermissionVerify && httpServer.config.disablePermissionVerify.ws);
+    this.utHttpServer = utHttpServer;
+    this.utHttpServerConfig = config;
+    this.disableXsrf = (config.disableXsrf && config.disableXsrf.ws);
+    this.disablePermissionVerify = (config.disablePermissionVerify && config.disablePermissionVerify.ws);
 }
+util.inherits(SocketServer, EventEmitter);
 
-SocketServer.prototype.start = function start(server) {
+SocketServer.prototype.start = function start(httpServerListener) {
     this.wss = new ws.Server({
-        server: server
+        server: httpServerListener
     });
     this.wss.on('connection', (socket) => {
         let cookies = (socket.upgradeReq.headers && socket.upgradeReq.headers.cookie) || '';
@@ -76,9 +80,9 @@ SocketServer.prototype.start = function start(server) {
         Promise.resolve()
         .then(() => (!this.disableXsrf && jwtXsrfCheck(
                 getTokens([socket.upgradeReq.url.replace(/[^?]+\?/ig, '')], ['&', '=']), // parse url string into hash object
-                getTokens([cookies], [';', '='])[this.httpServer.config.jwt.cookieKey], // parse cookie string into hash object
-                this.httpServer.config.jwt.key,
-                Object.assign({}, this.httpServer.config.jwt.verifyOptions, {ignoreExpiration: false})
+                getTokens([cookies], [';', '='])[this.utHttpServerConfig.jwt.cookieKey], // parse cookie string into hash object
+                this.utHttpServerConfig.jwt.key,
+                Object.assign({}, this.utHttpServerConfig.jwt.verifyOptions, {ignoreExpiration: false})
             )
         ))
         .then((p) => (new Promise((resolve, reject) => {
@@ -101,8 +105,13 @@ SocketServer.prototype.start = function start(server) {
                 .route(socket.upgradeReq.method.toLowerCase(), url).route
                 .handler(fingerprint, socket);
         })
+        .then(() => (this.emit('connection')))
         .catch((err) => {
-            this.httpServer.log && this.httpServer.log.warn && this.httpServer.log.warn(Object.assign({connection: 'WS'}, err.output, {stack: err.stack}));
+            if (!err.isBoom) {
+                this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
+                return socket.close(4500);
+            }
+            this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
             socket.close(4000 + parseInt(err.output.payload.statusCode)); // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
         });
     });
@@ -140,7 +149,7 @@ SocketServer.prototype.publish = function publish(data, message) {
         throw e;
     }
     if (room && room.length) {
-        var formattedMessage = util.formatMessage(message);
+        var formattedMessage = helpers.formatMessage(message);
         room.forEach(function(socket) {
             if (socket.readyState === ws.OPEN) {
                 socket.send(formattedMessage);
@@ -150,7 +159,7 @@ SocketServer.prototype.publish = function publish(data, message) {
 };
 
 SocketServer.prototype.broadcast = function broadcast(message) {
-    var formattedMessage = util.formatMessage(message);
+    var formattedMessage = helpers.formatMessage(message);
     this.wss.clients.forEach(function(socket) {
         socket.send(formattedMessage);
     });

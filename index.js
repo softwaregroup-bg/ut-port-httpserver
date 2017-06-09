@@ -162,7 +162,7 @@ HttpServerPort.prototype.start = function start() {
         this.hapiServer.route(this.routes);
         this.hapiServer.route(handlers(this));
         if (this.socketSubscriptions.length) {
-            this.socketServer = new SocketServer(this);
+            this.socketServer = new SocketServer(this, this.config);
             this.socketSubscriptions.forEach((config) => this.socketServer.registerPath.apply(this.socketServer, config));
             this.socketServer.start(this.hapiServer.listener);
         }
