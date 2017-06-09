@@ -1,3 +1,13 @@
+<a name="8.10.1"></a>
+## [8.10.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.0...v8.10.1) (2017-06-09)
+
+
+### Bug Fixes
+
+* error handling + config ([0d1824f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/0d1824f))
+
+
+
 <a name="8.10.0"></a>
 # [8.10.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.9.18...v8.10.0) (2017-06-07)
 
