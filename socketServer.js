@@ -108,10 +108,10 @@ SocketServer.prototype.start = function start(httpServerListener) {
         .then(() => (this.emit('connection')))
         .catch((err) => {
             if (!err.isBoom) {
-                this.utHttpServer.log && this.utHttpServer.log.warn && this.utHttpServer.log.warn(Object.assign({connection: 'WS'}, {message: err.message, stack: err.stack}));
+                this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
                 return socket.close(4500);
             }
-            this.utHttpServer.log && this.utHttpServer.log.warn && this.utHttpServer.log.warn(Object.assign({connection: 'WS'}, err.output, {stack: err.stack}));
+            this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
             socket.close(4000 + parseInt(err.output.payload.statusCode)); // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
         });
     });
