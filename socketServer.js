@@ -126,8 +126,16 @@ SocketServer.prototype.registerPath = function registerPath(path, verifyClient) 
             if (!this.rooms[roomId]) {
                 this.rooms[roomId] = [];
             }
-            var i = this.rooms[roomId].push(socket) - 1;
-            socket.on('close', () => (this.rooms[roomId].splice(i, 1)));
+            this.rooms[roomId].push(socket);
+            socket.on('close', () => {
+                this.rooms[roomId] = this.rooms[roomId]
+                    .reduce((accumu, s, idx) => {
+                        if (socket !== s) {
+                            accumu.push(s);
+                        }
+                        return accumu;
+                    }, []);
+            });
         },
         verifyClient: (socket) => {
             return Promise.resolve()
