@@ -122,7 +122,12 @@ module.exports = function(port) {
         if (request.payload.method === identityCheckFullName) {
             identityCheckParams = assign({}, request.payload.params);
         } else {
-            identityCheckParams = { actionId: request.payload.method };
+            let requestMethodName = request.payload.method;
+            let dbPrefix = 'db/';
+            if (requestMethodName.startsWith(dbPrefix)) {
+                requestMethodName = requestMethodName.substr(dbPrefix.length); // remove 'db/'
+            }
+            identityCheckParams = { actionId: requestMethodName };
         }
         assign(
             identityCheckParams,
