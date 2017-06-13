@@ -1,3 +1,13 @@
+<a name="8.10.2"></a>
+## [8.10.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.1...v8.10.2) (2017-06-13)
+
+
+### Bug Fixes
+
+* remove proper socket ([0ada50a](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/0ada50a))
+
+
+
 <a name="8.10.1"></a>
 ## [8.10.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.0...v8.10.1) (2017-06-09)
 
