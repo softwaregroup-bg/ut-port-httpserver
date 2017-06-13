@@ -34,7 +34,7 @@ This port exposes the following functionality:
 1. For templates: our own module ut-template
 1. For API doc: https://www.npmjs.com/package/hapi-swagger
 
-## USAGE
+## USAGE 
 
 #### Configuration file required options:
 
