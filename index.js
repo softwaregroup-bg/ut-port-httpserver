@@ -104,7 +104,7 @@ HttpServerPort.prototype.init = function init() {
 
 HttpServerPort.prototype.start = function start() {
     this.bus && this.bus.importMethods(this.config, this.config.imports, undefined, this);
-    Port.prototype.start.apply(this, arguments);
+    var args = Array.prototype.slice.call(arguments);
     this.stream = through2.obj();
     this.pipeReverse(this.stream, {
         trace: 0,
@@ -141,16 +141,20 @@ HttpServerPort.prototype.start = function start() {
             }
         });
     }).then((dir) => {
-        return this.hapiServer.register([
-            basicAuth,
-            jwt,
-            inert,
-            vision, {
-                register: swagger,
-                options: this.config.swagger
-            }
-        ]);
-    }).then(() => {
+        return new Promise((resolve, reject) => {
+            this.hapiServer.register([
+                basicAuth,
+                jwt,
+                inert,
+                vision, {
+                    register: swagger,
+                    options: this.config.swagger
+                }
+            ], (e) => (e ? reject(e) : resolve()));
+        });
+    })
+    .then(() => Port.prototype.start.apply(this, args))
+    .then(() => {
         this.hapiServer.auth.strategy('basic', 'basic', {
             validateFunc: (request, username, password, cb) => {
                 cb(null, true, {username: username, password: password});
@@ -166,7 +170,9 @@ HttpServerPort.prototype.start = function start() {
             this.socketSubscriptions.forEach((config) => this.socketServer.registerPath.apply(this.socketServer, config));
             this.socketServer.start(this.hapiServer.listener);
         }
-        return this.hapiServer.start();
+        return new Promise((resolve, reject) => {
+            this.hapiServer.start((e) => (e ? reject(e) : resolve()));
+        });
     }).then(() => {
         this.log.info && this.log.info({
             message: 'HTTP server started',
