@@ -153,7 +153,6 @@ HttpServerPort.prototype.start = function start() {
             ], (e) => (e ? reject(e) : resolve()));
         });
     })
-    .then(() => Port.prototype.start.apply(this, args))
     .then(() => {
         this.hapiServer.auth.strategy('basic', 'basic', {
             validateFunc: (request, username, password, cb) => {
@@ -163,6 +162,9 @@ HttpServerPort.prototype.start = function start() {
         this.hapiServer.auth.strategy('jwt', 'jwt', true, _.assign({
             validateFunc: (decoded, request, cb) => (cb(null, true)) // errors will be matched in the rpc handler
         }, this.config.jwt));
+        return 0;
+    })
+    .then(() => {
         this.hapiServer.route(this.routes);
         this.hapiServer.route(handlers(this));
         if (this.socketSubscriptions.length) {
@@ -170,10 +172,13 @@ HttpServerPort.prototype.start = function start() {
             this.socketSubscriptions.forEach((config) => this.socketServer.registerPath.apply(this.socketServer, config));
             this.socketServer.start(this.hapiServer.listener);
         }
-        return new Promise((resolve, reject) => {
-            this.hapiServer.start((e) => (e ? reject(e) : resolve()));
-        });
-    }).then(() => {
+        return 0;
+    })
+    .then(() => Port.prototype.start.apply(this, args))
+    .then(() => new Promise((resolve, reject) => {
+        this.hapiServer.start((e) => (e ? reject(e) : resolve()));
+    }))
+    .then(() => {
         this.log.info && this.log.info({
             message: 'HTTP server started',
             $meta: {
