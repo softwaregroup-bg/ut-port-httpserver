@@ -1,3 +1,13 @@
+<a name="8.10.4"></a>
+## [8.10.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.3...v8.10.4) (2017-06-15)
+
+
+### Bug Fixes
+
+* call start on right place ([923438c](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/923438c))
+
+
+
 <a name="8.10.3"></a>
 ## [8.10.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.2...v8.10.3) (2017-06-14)
 
