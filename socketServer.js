@@ -37,9 +37,18 @@ function jwtXsrfCheck(query, cookie, hashKey, verifyOptions) {
         });
     });
 }
-function permissionVerify(ctx, roomId) {
-    let allowedList = ['%', roomId];
-    let permitCount = ctx.permissions.map((v) => (v.actionId)).reduce((accum, c) => ((allowedList.includes(c) && accum + 1) || accum), 0);
+function permissionVerify(ctx, roomId, appId) {
+    let allowedActionList = ['%'];
+    if (appId) {
+        allowedActionList.push(appId);
+    }
+    let allowedObjectList = ['%', roomId];
+    let permitCount = ctx
+        .permissions
+        .filter((v) => (
+          allowedActionList.includes(v.actionId) &&
+          allowedObjectList.includes(v.objectId)
+        )).length;
 
     if (!(permitCount > 0)) {
         throw Boom.unauthorized();
@@ -95,7 +104,7 @@ SocketServer.prototype.start = function start(httpServerListener) {
         })))
         .then((context) => {
             if (!this.disablePermissionVerify) {
-                return permissionVerify(context, fingerprint);
+                return permissionVerify(context, fingerprint, this.utHttpServerConfig.appId);
             }
             return context;
         })
