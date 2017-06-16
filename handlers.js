@@ -587,5 +587,18 @@ module.exports = function(port) {
             }
         }
     });
+
+    pendingRoutes.push({
+        method: 'OPTIONS',
+        path: '/{p*}',
+        config: {
+            auth: {strategy: 'jwt'},
+            cors: {
+                origin: ['*'],
+                credentials: true
+            },
+            handler: (rq, rs) => (rs())
+        }
+    });
     return pendingRoutes;
 };
