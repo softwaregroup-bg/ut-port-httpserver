@@ -1,3 +1,13 @@
+<a name="8.11.1"></a>
+## [8.11.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.0...v8.11.1) (2017-06-16)
+
+
+### Bug Fixes
+
+* ACCU-640 ([#81](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/81)) ([a20e916](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/a20e916))
+
+
+
 <a name="8.11.0"></a>
 # [8.11.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.4...v8.11.0) (2017-06-16)
 
