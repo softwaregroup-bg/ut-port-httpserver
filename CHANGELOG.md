@@ -1,3 +1,13 @@
+<a name="8.11.0"></a>
+# [8.11.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.4...v8.11.0) (2017-06-16)
+
+
+### Features
+
+* set cors for all reuqests with options method ([#80](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/80)) ([4889341](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/4889341))
+
+
+
 <a name="8.10.4"></a>
 ## [8.10.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.10.3...v8.10.4) (2017-06-15)
 
