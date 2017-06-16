@@ -34,7 +34,7 @@ This port exposes the following functionality:
 1. For templates: our own module ut-template
 1. For API doc: https://www.npmjs.com/package/hapi-swagger
 
-## USAGE 
+## USAGE
 
 #### Configuration file required options:
 
@@ -74,6 +74,7 @@ module.exports = {
     disableXsrf: {http: false, ws: false}, // disable xsrf support for http and ws(web sockets)
     disablePermissionVerify: {ws: false}, // disable verification of services, eg pass requests without checks
     ssoAuthUrl: '...', // to where client should be redirected in order to make single sign on authentication
+    appId: 'appName', // required for permission verify in socket-server
     identityNamespace: 'identity', // default value: identity, if identityNamespace is set to false, no identity check will be applied. this is useful when other namespace than identity will be used for identity check
     cookiePaths:'/rpc', // cookie paths, to which paths to bound cookies to, default: /rpc
     fileUpload: {
