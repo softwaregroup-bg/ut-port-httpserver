@@ -1,3 +1,13 @@
+<a name="8.11.4"></a>
+## [8.11.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.3...v8.11.4) (2017-06-19)
+
+
+### Bug Fixes
+
+* order by wich start method gets executed ([deed983](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/deed983))
+
+
+
 <a name="8.11.3"></a>
 ## [8.11.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.2...v8.11.3) (2017-06-19)
 
