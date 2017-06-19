@@ -199,7 +199,7 @@ module.exports = function(port) {
         var privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
         var publicToken = request.headers && request.headers['x-xsrf-token'];
         var auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
-        if (!(request.route.settings.disableXsrf && port.config.disableXsrf && port.config.disableXsrf.http) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || publicToken === '' || privateToken !== publicToken)) {
+        if (!(request.params.disableXsrf && port.config.disableXsrf && port.config.disableXsrf.http) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
             port.log.error && port.log.error({httpServerSecurity: 'fail', reason: 'private token != public token; cors error'});
             return handleError({
                 code: '404',
@@ -475,6 +475,7 @@ module.exports = function(port) {
                     }
                     req.params.method = method;
                     req.params.isRpc = isRpc;
+                    req.params.disableXsrf = config[method].disableXsrf;
                     return rpcHandler(req, repl);
                 },
                 auth,
@@ -493,6 +494,9 @@ module.exports = function(port) {
     Object.keys(httpMethods).forEach(function(key) {
         if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) {
             httpMethods[key].forEach(function(routeConfig) {
+                if (routeConfig.config.route === '/rpc/batch/download/{batchId}') {
+                    // debugger;
+                }
                 if (routeConfig.config.isRpc === false) {
                     config[routeConfig.method] = routeConfig;
                     if (routeConfig.config.route) {
