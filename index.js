@@ -167,6 +167,10 @@ HttpServerPort.prototype.start = function start() {
     .then(() => {
         this.hapiServer.route(this.routes);
         this.hapiServer.route(handlers(this));
+        return 0;
+    })
+    .then(() => Port.prototype.start.apply(this, args))
+    .then(() => {
         if (this.socketSubscriptions.length) {
             this.socketServer = new SocketServer(this, this.config);
             this.socketSubscriptions.forEach((config) => this.socketServer.registerPath.apply(this.socketServer, config));
@@ -174,7 +178,6 @@ HttpServerPort.prototype.start = function start() {
         }
         return 0;
     })
-    .then(() => Port.prototype.start.apply(this, args))
     .then(() => new Promise((resolve, reject) => {
         this.hapiServer.start((e) => (e ? reject(e) : resolve()));
     }))
