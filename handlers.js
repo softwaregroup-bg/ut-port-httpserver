@@ -476,7 +476,6 @@ module.exports = function(port) {
                     }
                     req.params.method = method;
                     req.params.isRpc = isRpc;
-                    req.params.disableXsrf = config[method].disableXsrf;
                     return rpcHandler(req, repl);
                 },
                 auth,
