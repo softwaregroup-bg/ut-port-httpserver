@@ -494,9 +494,6 @@ module.exports = function(port) {
     Object.keys(httpMethods).forEach(function(key) {
         if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) {
             httpMethods[key].forEach(function(routeConfig) {
-                if (routeConfig.config.route === '/rpc/batch/download/{batchId}') {
-                    // debugger;
-                }
                 if (routeConfig.config.isRpc === false) {
                     config[routeConfig.method] = routeConfig;
                     if (routeConfig.config.route) {
