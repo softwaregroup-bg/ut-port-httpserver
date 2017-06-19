@@ -1,3 +1,16 @@
+<a name="8.11.3"></a>
+## [8.11.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.2...v8.11.3) (2017-06-19)
+
+
+### Bug Fixes
+
+* cleanup ([2660be2](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/2660be2))
+* cleanup ([778a281](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/778a281))
+* correct route config get ([9d1ac17](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/9d1ac17))
+* disableXsrf ([31983dd](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/31983dd))
+
+
+
 <a name="8.11.2"></a>
 ## [8.11.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.1...v8.11.2) (2017-06-19)
 
