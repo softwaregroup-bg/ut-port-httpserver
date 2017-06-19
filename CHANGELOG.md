@@ -1,3 +1,13 @@
+<a name="8.11.2"></a>
+## [8.11.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.1...v8.11.2) (2017-06-19)
+
+
+### Bug Fixes
+
+* disable xesf thorugh router settings ([407af85](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/407af85))
+
+
+
 <a name="8.11.1"></a>
 ## [8.11.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.0...v8.11.1) (2017-06-16)
 
