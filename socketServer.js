@@ -24,7 +24,7 @@ function getTokens(strs, separators) {
 function jwtXsrfCheck(query, cookie, hashKey, verifyOptions) {
     return new Promise((resolve, reject) => {
         if (query.xsrf === '' || !cookie || cookie === '') { // return unauthorized if something is wrong with xsrf get query param or with cookie itself
-            throw Boom.unauthorized();
+            return reject(Boom.unauthorized());
         }
         jwt.verify(cookie, hashKey, verifyOptions, (err, decoded) => { // verify cookie
             if (err) { // if wild error appears, mark this request as unauthorized
