@@ -1,3 +1,13 @@
+<a name="8.11.5"></a>
+## [8.11.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.4...v8.11.5) (2017-06-21)
+
+
+### Bug Fixes
+
+* reject instead of throw ([752268b](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/752268b))
+
+
+
 <a name="8.11.4"></a>
 ## [8.11.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.3...v8.11.4) (2017-06-19)
 
