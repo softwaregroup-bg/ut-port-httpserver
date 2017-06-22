@@ -1,3 +1,13 @@
+<a name="8.11.6"></a>
+## [8.11.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.5...v8.11.6) (2017-06-22)
+
+
+### Bug Fixes
+
+* remove cors since it makes more problems than helps ([8017631](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8017631))
+
+
+
 <a name="8.11.5"></a>
 ## [8.11.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.4...v8.11.5) (2017-06-21)
 
