@@ -84,6 +84,7 @@ module.exports = {
     },
     validationPassThrough: (true|false), // if true, validation is not mandatory for methods. default policy: restrictive
     entryPoint: './abc/index.js', // app entry point (webpack helper)
+    appId: 'monitoring', // will help when socket server matches permissions.
     server:{
         /*.......*/
     }
