@@ -113,7 +113,7 @@ HttpServerPort.prototype.start = function start() {
 
     if (this.config.connections && this.config.connections.length) {
         this.config.connections.forEach((connection) => {
-            this.hapiServer.connection(connection);
+            this.hapiServer.connection(Object.assign({port: this.config.port || 8080}, connection));
         });
     } else {
         this.hapiServer.connection({
