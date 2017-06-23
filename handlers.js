@@ -146,7 +146,9 @@ module.exports = function(port) {
             mtid: (request.payload.id == null) ? 'notification' : 'request',
             requestHeaders: request.headers,
             ipAddress: request.info && request.info.remoteAddress,
-            frontEnd: request.headers && request.headers['user-agent']
+            frontEnd: request.headers && request.headers['user-agent'],
+            latitude:request.headers && request.headers['latitude'],
+            longitude:request.headers && request.headers['longitude']
         };
         return $meta;
     };
