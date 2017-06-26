@@ -147,8 +147,8 @@ module.exports = function(port) {
             requestHeaders: request.headers,
             ipAddress: request.info && request.info.remoteAddress,
             frontEnd: request.headers && request.headers['user-agent'],
-            latitude:request.headers && request.headers['latitude'],
-            longitude:request.headers && request.headers['longitude']
+            latitude: request.headers && request.headers['latitude'],
+            longitude: request.headers && request.headers['longitude']
         };
         return $meta;
     };
