@@ -7,6 +7,7 @@ var jwt = require('jsonwebtoken');
 var joi = require('joi');
 var errors = require('./errors');
 var uuid = require('uuid/v4');
+var os = require('os');
 
 var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     var request = {
@@ -148,7 +149,12 @@ module.exports = function(port) {
             ipAddress: request.info && request.info.remoteAddress,
             frontEnd: request.headers && request.headers['user-agent'],
             latitude: request.headers && request.headers['latitude'],
-            longitude: request.headers && request.headers['longitude']
+            longitude: request.headers && request.headers['longitude'],
+            localAddress: request.connection.info.address,
+            hostname: request.headers['X-Forwarded-Host'] ? request.headers['X-Forwarded-Host'] : request.connection.info.host,
+            os: [os.type(), os.platform(), os.release()].join(':'),
+            version: port.bus.config.version
+
         };
         return $meta;
     };
