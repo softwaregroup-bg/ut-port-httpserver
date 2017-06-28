@@ -43,8 +43,7 @@ function permissionVerify(ctx, roomId, appId) {
         allowedActionList.push(appId);
     }
     let allowedObjectList = ['%', roomId];
-    let permitCount = ctx
-        .permissions
+    let permitCount = (ctx.permissions || [])
         .filter((v) => (
           allowedActionList.includes(v.actionId) &&
           allowedObjectList.includes(v.objectId)
