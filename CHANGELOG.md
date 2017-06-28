@@ -1,3 +1,13 @@
+<a name="8.11.7"></a>
+## [8.11.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.6...v8.11.7) (2017-06-28)
+
+
+### Bug Fixes
+
+* handle case when there are no permissions in context ([99fcbad](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/99fcbad))
+
+
+
 <a name="8.11.6"></a>
 ## [8.11.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.5...v8.11.6) (2017-06-22)
 
