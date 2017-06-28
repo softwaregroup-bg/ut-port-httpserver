@@ -151,7 +151,7 @@ module.exports = function(port) {
             latitude: request.headers && request.headers['latitude'],
             longitude: request.headers && request.headers['longitude'],
             localAddress: request.connection.info.address,
-            hostname: request.headers['X-Forwarded-Host'] ? request.headers['X-Forwarded-Host'] : request.connection.info.host,
+            hostName: request.headers['X-Forwarded-Host'] ? request.headers['X-Forwarded-Host'] : request.connection.info.host,
             os: [os.type(), os.platform(), os.release()].join(':'),
             version: port.bus.config.version
 
