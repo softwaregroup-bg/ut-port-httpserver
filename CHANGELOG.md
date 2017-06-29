@@ -1,3 +1,13 @@
+<a name="8.12.0"></a>
+# [8.12.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.7...v8.12.0) (2017-06-29)
+
+
+### Features
+
+* capture data for audit log ([fb21bb9](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/fb21bb9))
+
+
+
 <a name="8.11.7"></a>
 ## [8.11.7](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.6...v8.11.7) (2017-06-28)
 
