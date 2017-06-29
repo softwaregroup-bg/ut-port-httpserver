@@ -153,7 +153,7 @@ module.exports = function(port) {
             longitude: request.headers && request.headers['longitude'],
             localAddress: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localAddress,
             hostName: request.headers['X-Forwarded-Host'] || request.info.hostname,
-            hostPort: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localPort,
+            localPort: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localPort,
             machineName: request.connection && request.connection.info && request.connection.info.host,
             os: osName,
             version: port.bus.config.version
