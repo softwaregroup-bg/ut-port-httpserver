@@ -139,10 +139,11 @@ module.exports = function(port) {
     };
 
     var initMetadataFromRequest = function initMetadataFromRequest(request) {
+        let method = request.payload.method || request.params.method;
         var $meta = {
             auth: request.auth.credentials,
-            method: request.payload.method,
-            opcode: request.payload.method ? request.payload.method.split('.').pop() : '',
+            method: method,
+            opcode: method ? method.split('.').pop() : '',
             mtid: (request.payload.id == null) ? 'notification' : 'request',
             requestHeaders: request.headers,
             ipAddress: request.info && request.info.remoteAddress,
