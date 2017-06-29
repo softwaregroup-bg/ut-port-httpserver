@@ -7,6 +7,8 @@ var jwt = require('jsonwebtoken');
 var joi = require('joi');
 var errors = require('./errors');
 var uuid = require('uuid/v4');
+var os = require('os');
+var osName = [os.type(), os.platform(), os.release()].join(':');
 
 var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     var request = {
@@ -146,7 +148,16 @@ module.exports = function(port) {
             mtid: (request.payload.id == null) ? 'notification' : 'request',
             requestHeaders: request.headers,
             ipAddress: request.info && request.info.remoteAddress,
-            frontEnd: request.headers && request.headers['user-agent']
+            frontEnd: request.headers && request.headers['user-agent'],
+            latitude: request.headers && request.headers.latitude,
+            longitude: request.headers && request.headers.longitude,
+            localAddress: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localAddress,
+            hostName: request.headers['x-forwarded-host'] || request.info.hostname,
+            localPort: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localPort,
+            machineName: request.connection && request.connection.info && request.connection.info.host,
+            os: osName,
+            version: port.bus.config.version,
+            deviceId: request.headers && request.headers.deviceId
         };
         return $meta;
     };
