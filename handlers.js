@@ -156,7 +156,8 @@ module.exports = function(port) {
             localPort: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localPort,
             machineName: request.connection && request.connection.info && request.connection.info.host,
             os: osName,
-            version: port.bus.config.version
+            version: port.bus.config.version,
+            deviceId: request.headers && request.headers['deviceId']
         };
         return $meta;
     };
