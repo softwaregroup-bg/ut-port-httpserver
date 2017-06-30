@@ -1,3 +1,13 @@
+<a name="8.12.1"></a>
+## [8.12.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.0...v8.12.1) (2017-06-30)
+
+
+### Bug Fixes
+
+* upgrade ws ([e627a53](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/e627a53))
+
+
+
 <a name="8.12.0"></a>
 # [8.12.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.11.7...v8.12.0) (2017-06-29)
 
