@@ -29,7 +29,8 @@
     "hapi-webpack-plugin": "1.3.0",
     "react-hot-loader": "3.0.0-beta.6",
     "webpack": "2.1.0-beta.27",
-    "webpack-hot-middleware": "2.13.2"
+    "webpack-hot-middleware": "2.13.2",
+    "ws": "1.1.4"
   },
   "peerDependencies": {
     "ut-bus": "^5.9.0"
