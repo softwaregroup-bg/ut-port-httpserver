@@ -117,12 +117,12 @@ SocketServer.prototype.start = function start(httpServerListener) {
         .catch((err) => {
             if (!err.isBoom) {
                 this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
-                return socket.close(4500, '500');
+                return socket.close(4500, '4500');
             }
             this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
             socket.close(
                 4000 + parseInt(err.output.payload.statusCode), // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
-                err.output.payload.statusCode.toString() // Send status code as reason because Firefox/Edge show 1005 only as code
+                (4000 + parseInt(err.output.payload.statusCode)).toString() // Send status code as reason because Firefox/Edge show 1005 only as code
             );
         });
     });
