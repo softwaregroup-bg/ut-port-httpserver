@@ -50,7 +50,7 @@ function permissionVerify(ctx, roomId, appId) {
         )).length;
 
     if (!(permitCount > 0)) {
-        throw Boom.unauthorized();
+        throw Boom.forbidden();
     }
     return ctx;
 }
