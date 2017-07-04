@@ -1,3 +1,13 @@
+<a name="8.12.3"></a>
+## [8.12.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.2...v8.12.3) (2017-07-04)
+
+
+### Bug Fixes
+
+* correct response code in socket server ([bd3e197](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/bd3e197))
+
+
+
 <a name="8.12.2"></a>
 ## [8.12.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.1...v8.12.2) (2017-06-30)
 
