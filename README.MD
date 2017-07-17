@@ -68,8 +68,9 @@ module.exports = {
     ports: [8003, 8004],
     imports:[],
     jwt: { // jwt options (https://github.com/auth0/node-jsonwebtoken)
-        verifyOptions: {...} // options that are used when verifying
-        signOptions: {...} // options that are used when signing
+        verifyOptions: {...}, // options that are used when verifying
+        signOptions: {...}, // options that are used when signing
+        key: '...' // jwt sign key
     },
     disableXsrf: {http: false, ws: false}, // disable xsrf support for http and ws(web sockets)
     disablePermissionVerify: {ws: false}, // disable verification of services, eg pass requests without checks
