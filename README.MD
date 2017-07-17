@@ -74,6 +74,7 @@ module.exports = {
     },
     disableXsrf: {http: false, ws: false}, // disable xsrf support for http and ws(web sockets)
     disablePermissionVerify: {ws: false}, // disable verification of services, eg pass requests without checks
+    setSecurityHeaders: false, // enable security headers for every request. Usefull when this headers are not set in HTTP server (nginx)
     ssoAuthUrl: '...', // to where client should be redirected in order to make single sign on authentication
     appId: 'appName', // required for permission verify in socket-server
     identityNamespace: 'identity', // default value: identity, if identityNamespace is set to false, no identity check will be applied. this is useful when other namespace than identity will be used for identity check

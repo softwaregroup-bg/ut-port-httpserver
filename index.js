@@ -60,6 +60,7 @@ function HttpServerPort() {
         cookiePaths: '/rpc',
         disableXsrf: {http: false, ws: false}, // disable xsrf support for http and ws(web sockets)
         disablePermissionVerify: {ws: false}, // disable verification of services, eg pass requests without checks
+        setSecurityHeaders: false,
         fileUpload: {
             maxFileName: 100,
             payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)
@@ -118,6 +119,17 @@ HttpServerPort.prototype.start = function start() {
     } else {
         this.hapiServer.connection({
             port: this.config.port || 8080
+        });
+    }
+
+    if (this.config.setSecurityHeaders) {
+        this.hapiServer.ext('onPreResponse', function(request, reply) {
+            if (request.response && request.response.header) {
+                request.response.header('X-Content-Type-Options', 'nosniff');
+                request.response.header('X-Frame-Options', 'SAMEORIGIN');
+                request.response.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+            }
+            return reply.continue();
         });
     }
 
