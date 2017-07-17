@@ -1,3 +1,14 @@
+<a name="8.12.4"></a>
+## [8.12.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.3...v8.12.4) (2017-07-17)
+
+
+### Bug Fixes
+
+* added cross browser close error code workaround ([bf13411](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/bf13411))
+* use same error code for reason ([6958db8](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/6958db8))
+
+
+
 <a name="8.12.3"></a>
 ## [8.12.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.2...v8.12.3) (2017-07-04)
 
