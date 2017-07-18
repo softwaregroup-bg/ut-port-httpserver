@@ -1,3 +1,13 @@
+<a name="8.12.5"></a>
+## [8.12.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.4...v8.12.5) (2017-07-18)
+
+
+### Bug Fixes
+
+* add configuration for security headers on every response ([8b1fcfe](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8b1fcfe))
+
+
+
 <a name="8.12.4"></a>
 ## [8.12.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.3...v8.12.4) (2017-07-17)
 
