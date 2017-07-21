@@ -360,7 +360,11 @@ module.exports = function(port) {
         .then((res) => {
             if (request.payload.method === identityCheckFullName) {
                 endReply.result = res;
-                if (res['identity.check'] && res['identity.check'].sessionId) {
+                var reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
+                        (request.auth &&
+                        request.auth.credentials &&
+                        request.auth.credentials.sessionId));
+                if (res['identity.check'] && res['identity.check'].sessionId && !reuseCookie()) {
                     var appId = request.payload.params && request.payload.params.appId;
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
                     var uuId = uuid();
