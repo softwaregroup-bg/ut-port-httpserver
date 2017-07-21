@@ -1,3 +1,14 @@
+<a name="8.13.0"></a>
+# [8.13.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.5...v8.13.0) (2017-07-21)
+
+
+### Features
+
+* allow cookie to be reused after identity.check ([0d0b88a](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/0d0b88a))
+* allow listening on random port and expose it ([f0a9629](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/f0a9629))
+
+
+
 <a name="8.12.5"></a>
 ## [8.12.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.4...v8.12.5) (2017-07-18)
 
