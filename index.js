@@ -114,11 +114,11 @@ HttpServerPort.prototype.start = function start() {
 
     if (this.config.connections && this.config.connections.length) {
         this.config.connections.forEach((connection) => {
-            this.hapiServer.connection(Object.assign({port: this.config.port || 8080}, connection));
+            this.hapiServer.connection(Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection));
         });
     } else {
         this.hapiServer.connection({
-            port: this.config.port || 8080
+            port: (this.config.port == null) ? 8080 : this.config.port
         });
     }
 
@@ -303,6 +303,12 @@ HttpServerPort.prototype.stop = function stop() {
             when(Port.prototype.stop.apply(self, arguments)).then(resolve).catch(reject);
         });
     });
+};
+
+HttpServerPort.prototype.status = function status() {
+    return {
+        port: this.hapiServer.info && this.hapiServer.info.port
+    };
 };
 
 module.exports = HttpServerPort;
