@@ -1,3 +1,13 @@
+<a name="8.14.0"></a>
+# [8.14.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.13.0...v8.14.0) (2017-08-04)
+
+
+### Features
+
+* webpack upgrade ([56dcd33](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/56dcd33))
+
+
+
 <a name="8.13.0"></a>
 # [8.13.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.5...v8.13.0) (2017-07-21)
 
