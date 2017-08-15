@@ -157,6 +157,7 @@ module.exports = function(port) {
             machineName: request.connection && request.connection.info && request.connection.info.host,
             os: osName,
             version: port.bus.config.version,
+            serviceName: port.bus.config.implementation,
             deviceId: request.headers && request.headers.deviceId
         };
         return $meta;
