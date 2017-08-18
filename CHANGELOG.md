@@ -1,3 +1,13 @@
+<a name="8.15.0"></a>
+# [8.15.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.14.0...v8.15.0) (2017-08-18)
+
+
+### Features
+
+* add ut service name UIS-2973 ([#96](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/96)) ([9146ca1](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/9146ca1))
+
+
+
 <a name="8.14.0"></a>
 # [8.14.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.13.0...v8.14.0) (2017-08-04)
 
