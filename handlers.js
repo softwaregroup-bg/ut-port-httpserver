@@ -1,6 +1,5 @@
 var path = require('path');
-var assign = require('lodash.assign');
-var merge = require('lodash.merge');
+var mergeWith = require('lodash.mergewith');
 var when = require('when');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
@@ -122,11 +121,11 @@ module.exports = function(port) {
     var prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
         var identityCheckParams;
         if (request.payload.method === identityCheckFullName) {
-            identityCheckParams = assign({}, request.payload.params);
+            identityCheckParams = mergeWith({}, request.payload.params);
         } else {
             identityCheckParams = { actionId: request.payload.method };
         }
-        assign(
+        mergeWith(
             identityCheckParams,
             request.auth.credentials,
             {
@@ -416,7 +415,7 @@ module.exports = function(port) {
         ));
     };
 
-    pendingRoutes.unshift(merge({
+    pendingRoutes.unshift(mergeWith({
         config: {
             handler: rpcHandler,
             description: 'rpc common validation',
@@ -441,7 +440,13 @@ module.exports = function(port) {
                 }
             }
         }
-    }, port.config.routes.rpc));
+    }, port.config.routes.rpc, function(objValue, srcValue) {
+        if (Array.isArray(objValue)) {
+            // merge tags properly
+            // filter only unique tag values
+            return objValue.concat(srcValue).filter((val, i) => (objValue.indexOf(val) === i));
+        }
+    }));
     port.bus.importMethods(httpMethods, port.config.api);
 
     function routeAdd(method, path, registerInSwagger) {
@@ -477,7 +482,7 @@ module.exports = function(port) {
             };
         }
         var auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
-        pendingRoutes.unshift(merge({}, (isRpc ? port.config.routes.rpc : {}), {
+        pendingRoutes.unshift(mergeWith({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
             config: {
@@ -488,7 +493,7 @@ module.exports = function(port) {
                             id: req.id,
                             jsonrpc: '',
                             method,
-                            params: merge({}, req.params, {})
+                            params: mergeWith({}, req.params, {})
                         };
                     }
                     req.params.method = method;

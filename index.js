@@ -7,7 +7,7 @@ var vision = require('vision');
 var jwt = require('hapi-auth-jwt2');
 var basicAuth = require('hapi-auth-basic');
 var when = require('when');
-var mergeWith = require('lodash.mergeWith');
+var mergeWith = require('lodash.mergewith');
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
 var handlers = require('./handlers.js');
@@ -191,6 +191,7 @@ HttpServerPort.prototype.start = function start() {
                 return reject(e);
             } else if (this.bus.config.registry) {
                 let config = mergeWith({}, this.config.registry, {
+                    name: 'http',
                     address: this.hapiServer.info.host, // this.hapiServer.info.address is 0.0.0.0 so we use the host
                     port: this.hapiServer.info.port,
                     tags: ['http']
