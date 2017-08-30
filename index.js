@@ -200,7 +200,7 @@ HttpServerPort.prototype.start = function start() {
                         return objValue.concat(srcValue); // merge tags properly
                     }
                 });
-                return this.bus.importMethod('registry.service.add')(config);
+                return this.bus.importMethod('registry.service.add')(config).then(resolve).catch(reject);
             }
             return resolve();
         });
