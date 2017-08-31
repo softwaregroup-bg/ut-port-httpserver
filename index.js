@@ -189,7 +189,7 @@ HttpServerPort.prototype.start = function start() {
         this.hapiServer.start((e) => {
             if (e) {
                 return reject(e);
-            } else if (this.bus.config.registry) {
+            } else if (this.bus.config.registry && this.config.registry !== false) {
                 this.hapiServer.route({
                     method: 'GET',
                     path: '/health',
