@@ -190,14 +190,39 @@ HttpServerPort.prototype.start = function start() {
             if (e) {
                 return reject(e);
             } else if (this.bus.config.registry) {
-                let config = mergeWith({
-                    name: this.bus.config.implementation,
-                    address: this.hapiServer.info.host, // this.hapiServer.info.address is 0.0.0.0 so we use the host
-                    port: this.hapiServer.info.port,
-                    context: {
-                        type: 'http'
+                this.hapiServer.route({
+                    method: 'GET',
+                    path: '/health',
+                    config: {
+                        auth: false,
+                        handler: (request, reply) => {
+                            return this.isReady ? reply('ok') : reply('service not available').code(503);
+                        }
                     }
-                }, this.config.registry);
+                });
+                let info = this.hapiServer.info;
+                let config = mergeWith(
+                    // defaults
+                    {
+                        name: this.bus.config.implementation,
+                        address: info.host, // info.address is 0.0.0.0 so we use the host
+                        port: info.port,
+                        context: {
+                            type: 'http'
+                        },
+                        check: {
+                            interval: '5s'
+                        }
+                    },
+                    // custom
+                    this.config.registry,
+                    // override
+                    {
+                        check: {
+                            http: `${info.protocol}://${info.host}:${info.port}/health`
+                        }
+                    }
+                );
                 return this.bus.importMethod('registry.service.add')(config)
                     .then(resolve)
                     .catch(reject);
