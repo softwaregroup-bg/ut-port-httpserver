@@ -190,17 +190,17 @@ HttpServerPort.prototype.start = function start() {
             if (e) {
                 return reject(e);
             } else if (this.bus.config.registry) {
-                let config = mergeWith({}, this.config.registry, {
-                    name: 'http',
+                let config = mergeWith({
+                    name: this.bus.config.implementation,
                     address: this.hapiServer.info.host, // this.hapiServer.info.address is 0.0.0.0 so we use the host
                     port: this.hapiServer.info.port,
-                    tags: ['http']
-                }, function(objValue, srcValue) {
-                    if (Array.isArray(objValue)) {
-                        return objValue.concat(srcValue); // merge tags properly
+                    context: {
+                        type: 'http'
                     }
-                });
-                return this.bus.importMethod('registry.service.add')(config).then(resolve).catch(reject);
+                }, this.config.registry);
+                return this.bus.importMethod('registry.service.add')(config)
+                    .then(resolve)
+                    .catch(reject);
             }
             return resolve();
         });
