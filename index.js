@@ -211,7 +211,7 @@ HttpServerPort.prototype.start = function start() {
                             type: 'http'
                         },
                         check: {
-                            interval: '5s'
+                            interval: '10s'
                         }
                     },
                     // custom

@@ -444,7 +444,9 @@ module.exports = function(port) {
         if (Array.isArray(objValue)) {
             // merge tags properly
             // filter only unique tag values
-            return objValue.concat(srcValue).filter((val, i) => (objValue.indexOf(val) === i));
+            let result = objValue.concat(srcValue);
+            // filter duplicate elements
+            return result.filter((x, i) => (result.indexOf(x) === i));
         }
     }));
     port.bus.importMethods(httpMethods, port.config.api);
