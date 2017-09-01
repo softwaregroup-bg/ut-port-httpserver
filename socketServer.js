@@ -135,11 +135,11 @@ SocketServer.prototype.registerPath = function registerPath(path, verifyClient) 
     }, {
         handler: (roomId, socket) => {
             if (!this.rooms[roomId]) {
-                this.rooms[roomId] = [];
+                this.rooms[roomId] = new Set();
             }
-            this.rooms[roomId].push(socket);
+            this.rooms[roomId].add(socket);
             socket.on('close', () => {
-                this.rooms[roomId] = this.rooms[roomId].filter((s) => (!(s === socket)));
+                this.rooms[roomId].delete(socket);
             });
         },
         verifyClient: (socket) => {
@@ -161,7 +161,7 @@ SocketServer.prototype.publish = function publish(data, message) {
     } catch (e) {
         throw e;
     }
-    if (room && room.length) {
+    if (room && room.size) {
         var formattedMessage = helpers.formatMessage(message);
         room.forEach(function(socket) {
             if (socket.readyState === ws.OPEN) {
