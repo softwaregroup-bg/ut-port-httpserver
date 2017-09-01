@@ -1,6 +1,5 @@
 var path = require('path');
 var mergeWith = require('lodash.mergewith');
-var when = require('when');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
 var joi = require('joi');
@@ -194,12 +193,14 @@ module.exports = function(port) {
             };
             addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
-                return when(port.config.receive(msg, $meta)).then(function(result) {
-                    if (typeof customReply === 'function') {
-                        return customReply(reply, result, $meta);
-                    }
-                    return reply(result, $meta.responseHeaders, $meta.statusCode);
-                });
+                return Promise.resolve()
+                    .then(() => port.config.receive(msg, $meta))
+                    .then(function(result) {
+                        if (typeof customReply === 'function') {
+                            return customReply(reply, result, $meta);
+                        }
+                        return reply(result, $meta.responseHeaders, $meta.statusCode);
+                    });
             } else {
                 if (typeof customReply === 'function') {
                     return customReply(reply, msg, $meta);
@@ -440,15 +441,7 @@ module.exports = function(port) {
                 }
             }
         }
-    }, port.config.routes.rpc, function(objValue, srcValue) {
-        if (Array.isArray(objValue)) {
-            // merge tags properly
-            // filter only unique tag values
-            let result = objValue.concat(srcValue);
-            // filter duplicate elements
-            return result.filter((x, i) => (result.indexOf(x) === i));
-        }
-    }));
+    }, port.config.routes.rpc));
     port.bus.importMethods(httpMethods, port.config.api);
 
     function routeAdd(method, path, registerInSwagger) {

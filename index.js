@@ -6,7 +6,6 @@ var inert = require('inert');
 var vision = require('vision');
 var jwt = require('hapi-auth-jwt2');
 var basicAuth = require('hapi-auth-basic');
-var when = require('when');
 var mergeWith = require('lodash.mergewith');
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
@@ -256,7 +255,7 @@ HttpServerPort.prototype.registerSocketSubscription = function(path, verifyClien
 };
 
 HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
-    return when.promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         if (this.hotReload) {
             resolve(true);
         } else if (this.config.packer && this.config.packer.name === 'webpack') {
@@ -333,11 +332,13 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
 };
 
 HttpServerPort.prototype.stop = function stop() {
-    var self = this;
     this.socketServer && this.socketServer.stop();
-    return when.promise(function(resolve, reject) {
-        self.hapiServer.stop(function() {
-            when(Port.prototype.stop.apply(self, arguments)).then(resolve).catch(reject);
+    return new Promise((resolve, reject) => {
+        this.hapiServer.stop(function(err) {
+            return err ? reject(err) : Promise.resolve()
+                .then(() => Port.prototype.stop.call(this))
+                .then(resolve)
+                .catch(reject);
         });
     });
 };
