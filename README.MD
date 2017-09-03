@@ -89,13 +89,46 @@ module.exports = {
     appId: 'monitoring', // will help when socket server matches permissions.
     server:{
         /*.......*/
+    },
+    registry: {
+        name: 'httpserver007',
+        host: '17.0.0.1',
+        port: '8030',
+        context: {
+            key1: 'value1',
+            key2: 'value2'
+        }
     }
-
     /*.......*/
 };
 ```
 all properties from `server` will be passed to server as configuration and will be merged with `host` and `port` properties
 
+* `registry` this is an optional property instructing how the http server should regiter itself as a service in case service discovery have been enabled for the implementation (for more information about how to enable service discovery on implementation level can be found [here](https://github.com/softwaregroup-bg/ut-port-registry).
+This parameter is entirely optional. If not provided then the following default values will be used:
+```
+    {
+        name: 'the name of the implementation',
+        host: 'the host the http server is started on',
+        port: 'the port the http server is started on',
+        context: {
+            type: 'http'
+        }
+    }
+```
+If only the name needs to be changed from the default input then the following configuration must be passed:
+
+```
+    registry: {
+        name: 'custom name'
+    }
+```
+To disable service registration set
+```
+{
+    registry: false
+}
+```
 
 Optional configuration options:
 * `start`: function that will be called once on creation of port. It can be used for setting global variables and initializing objects.

@@ -12,17 +12,12 @@
     "inert": "4.0.4",
     "joi": "10.0.6",
     "jsonwebtoken": "7.1.9",
-    "lodash.assign": "4.2.0",
-    "lodash.clonedeep": "4.5.0",
-    "lodash.isobject": "3.0.2",
-    "lodash.isstring": "4.0.1",
-    "lodash.merge": "4.6.0",
+    "lodash.mergewith": "4.6.0",
     "os": "^0.1.1",
     "through2": "2.0.3",
     "ut-error": "^5.4.9",
     "uuid": "3.1.0",
     "vision": "4.1.1",
-    "when": "3.7.7",
     "ws": "2.3.1"
   },
   "devDependencies": {
