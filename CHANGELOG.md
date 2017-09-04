@@ -1,3 +1,13 @@
+<a name="8.16.1"></a>
+## [8.16.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.16.0...v8.16.1) (2017-09-04)
+
+
+### Bug Fixes
+
+* typo ([9f93d9c](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/9f93d9c))
+
+
+
 <a name="8.16.0"></a>
 # [8.16.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.15.0...v8.16.0) (2017-09-03)
 
