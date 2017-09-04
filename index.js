@@ -334,7 +334,7 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
 HttpServerPort.prototype.stop = function stop() {
     this.socketServer && this.socketServer.stop();
     return new Promise((resolve, reject) => {
-        this.hapiServer.stop(function(err) {
+        this.hapiServer.stop((err) => {
             return err ? reject(err) : Promise.resolve()
                 .then(() => Port.prototype.stop.call(this))
                 .then(resolve)
