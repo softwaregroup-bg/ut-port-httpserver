@@ -97,6 +97,8 @@ util.inherits(HttpServerPort, Port);
 HttpServerPort.prototype.init = function init() {
     Port.prototype.init.apply(this, arguments);
     this.latency = this.counter && this.counter('average', 'lt', 'Latency');
+    this.bytesSent = this.counter && this.counter('counter', 'bs', 'Bytes sent', 300);
+    this.bytesReceived = this.counter && this.counter('counter', 'br', 'Bytes received', 300);
     this.hapiServer = new hapi.Server();
     this.bus.registerLocal({
         registerRequestHandler: this.registerRequestHandler.bind(this)
@@ -112,14 +114,29 @@ HttpServerPort.prototype.start = function start() {
         callbacks: {}
     });
 
+    var captureMetrics = connection => {
+        connection.listener.on('connection', socket => {
+            socket.on('data', packet => {
+                packet && packet.length && this.bytesReceived && this.bytesReceived(packet.length);
+            });
+            var write = socket.write;
+            socket.write = (data, encoding, callback) => {
+                write.call(socket, data, encoding, (...params) => {
+                    this.bytesSent && this.bytesSent(Buffer.byteLength(data, encoding));
+                    callback && callback(...params);
+                });
+            };
+        });
+    };
+
     if (this.config.connections && this.config.connections.length) {
         this.config.connections.forEach((connection) => {
-            this.hapiServer.connection(Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection));
+            captureMetrics(this.hapiServer.connection(Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection)));
         });
     } else {
-        this.hapiServer.connection({
+        captureMetrics(this.hapiServer.connection({
             port: (this.config.port == null) ? 8080 : this.config.port
-        });
+        }));
     }
 
     if (this.config.setSecurityHeaders) {
