@@ -121,7 +121,7 @@ HttpServerPort.prototype.start = function start() {
             });
             var write = socket.write;
             socket.write = (data, encoding, callback) => {
-                write.call(socket, data, encoding, (...params) => {
+                return write.call(socket, data, encoding, (...params) => {
                     this.bytesSent && this.bytesSent(Buffer.byteLength(data, encoding));
                     callback && callback(...params);
                 });
