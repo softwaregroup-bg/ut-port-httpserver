@@ -12,7 +12,7 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
         mtid: (request.payload && request.payload.id == null) ? 'notification' : 'request',
         requestHeaders: request.headers,
-        ipAddress: request.info && request.info.remoteAddress,
+        ipAddress: ((request.headers && request.headers['x-forwarded-for']) || request.info.remoteAddress).split(',')[0],
         frontEnd: request.headers && request.headers['user-agent'],
         latitude: request.headers && request.headers.latitude,
         longitude: request.headers && request.headers.longitude,
