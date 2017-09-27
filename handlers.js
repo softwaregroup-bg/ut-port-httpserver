@@ -7,8 +7,7 @@ var jwt = require('jsonwebtoken');
 var joi = require('joi');
 var errors = require('./errors');
 var uuid = require('uuid/v4');
-var os = require('os');
-var osName = [os.type(), os.platform(), os.release()].join(':');
+let { initMetadataFromRequest } = require('./common');
 
 var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     var request = {
@@ -140,29 +139,6 @@ module.exports = function(port) {
         return identityCheckParams;
     };
 
-    var initMetadataFromRequest = function initMetadataFromRequest(request) {
-        var $meta = {
-            auth: request.auth.credentials,
-            method: request.payload.method,
-            opcode: request.payload.method ? request.payload.method.split('.').pop() : '',
-            mtid: (request.payload.id == null) ? 'notification' : 'request',
-            requestHeaders: request.headers,
-            ipAddress: (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(',')[0],
-            frontEnd: request.headers && request.headers['user-agent'],
-            latitude: request.headers && request.headers.latitude,
-            longitude: request.headers && request.headers.longitude,
-            localAddress: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localAddress,
-            hostName: request.headers['x-forwarded-host'] || request.info.hostname,
-            localPort: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localPort,
-            machineName: request.connection && request.connection.info && request.connection.info.host,
-            os: osName,
-            version: port.bus.config.version,
-            serviceName: port.bus.config.implementation,
-            deviceId: request.headers && request.headers.deviceId
-        };
-        return $meta;
-    };
-
     var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         var startTime = process.hrtime();
         port.log.trace && port.log.trace({payload: request && request.payload});
@@ -244,7 +220,7 @@ module.exports = function(port) {
             }
             msgOptions = msgOptions || {};
             try {
-                $meta = initMetadataFromRequest(request);
+                $meta = initMetadataFromRequest(request, port.bus);
                 if (msgOptions.language) {
                     $meta.language = msgOptions.language;
                 }
@@ -354,7 +330,7 @@ module.exports = function(port) {
                     'permission.get': ['*']
                 };
             }
-            let $meta = initMetadataFromRequest(request);
+            let $meta = initMetadataFromRequest(request, port.bus);
             let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
             return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
@@ -547,7 +523,7 @@ module.exports = function(port) {
             handler: function(request, reply) {
                 Promise.resolve()
                     .then(() => {
-                        let $meta = initMetadataFromRequest(request);
+                        let $meta = initMetadataFromRequest(request, port.bus);
                         let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                         return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
                     })
