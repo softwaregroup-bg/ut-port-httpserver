@@ -1,7 +1,5 @@
 var path = require('path');
-var assign = require('lodash.assign');
-var merge = require('lodash.merge');
-var when = require('when');
+var mergeWith = require('lodash.mergewith');
 var fs = require('fs');
 var jwt = require('jsonwebtoken');
 var joi = require('joi');
@@ -121,11 +119,11 @@ module.exports = function(port) {
     var prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
         var identityCheckParams;
         if (request.payload.method === identityCheckFullName) {
-            identityCheckParams = assign({}, request.payload.params);
+            identityCheckParams = mergeWith({}, request.payload.params);
         } else {
             identityCheckParams = { actionId: request.payload.method };
         }
-        assign(
+        mergeWith(
             identityCheckParams,
             request.auth.credentials,
             {
@@ -171,12 +169,14 @@ module.exports = function(port) {
             };
             addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
-                return when(port.config.receive(msg, $meta)).then(function(result) {
-                    if (typeof customReply === 'function') {
-                        return customReply(reply, result, $meta);
-                    }
-                    return reply(result, $meta.responseHeaders, $meta.statusCode);
-                });
+                return Promise.resolve()
+                    .then(() => port.config.receive(msg, $meta))
+                    .then(function(result) {
+                        if (typeof customReply === 'function') {
+                            return customReply(reply, result, $meta);
+                        }
+                        return reply(result, $meta.responseHeaders, $meta.statusCode);
+                    });
             } else {
                 if (typeof customReply === 'function') {
                     return customReply(reply, msg, $meta);
@@ -392,7 +392,7 @@ module.exports = function(port) {
         ));
     };
 
-    pendingRoutes.unshift(merge({
+    pendingRoutes.unshift(mergeWith({
         config: {
             handler: rpcHandler,
             description: 'rpc common validation',
@@ -453,7 +453,7 @@ module.exports = function(port) {
             };
         }
         var auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
-        pendingRoutes.unshift(merge({}, (isRpc ? port.config.routes.rpc : {}), {
+        pendingRoutes.unshift(mergeWith({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
             config: {
@@ -464,7 +464,7 @@ module.exports = function(port) {
                             id: req.id,
                             jsonrpc: '',
                             method,
-                            params: merge({}, req.params, {})
+                            params: mergeWith({}, req.params, {})
                         };
                     }
                     req.params.method = method;

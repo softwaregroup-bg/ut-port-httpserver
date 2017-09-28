@@ -6,13 +6,7 @@ var inert = require('inert');
 var vision = require('vision');
 var jwt = require('hapi-auth-jwt2');
 var basicAuth = require('hapi-auth-basic');
-var when = require('when');
-var _ = {
-    assign: require('lodash.assign'),
-    merge: require('lodash.merge'),
-    isObject: require('lodash.isobject'),
-    isString: require('lodash.isstring')
-};
+var mergeWith = require('lodash.mergewith');
 var swagger = require('hapi-swagger');
 var packageJson = require('./package.json');
 var handlers = require('./handlers.js');
@@ -188,7 +182,7 @@ HttpServerPort.prototype.start = function start() {
                 cb(null, true, {username: username, password: password});
             }
         });
-        this.hapiServer.auth.strategy('jwt', 'jwt', true, _.assign({
+        this.hapiServer.auth.strategy('jwt', 'jwt', true, mergeWith({
             validateFunc: (decoded, request, cb) => (cb(null, true)) // errors will be matched in the rpc handler
         }, this.config.jwt));
         return 0;
@@ -208,7 +202,49 @@ HttpServerPort.prototype.start = function start() {
         return 0;
     })
     .then(() => new Promise((resolve, reject) => {
-        this.hapiServer.start((e) => (e ? reject(e) : resolve()));
+        this.hapiServer.start((e) => {
+            if (e) {
+                return reject(e);
+            } else if (this.bus.config.registry && this.config.registry !== false) {
+                this.hapiServer.route({
+                    method: 'GET',
+                    path: '/health',
+                    config: {
+                        auth: false,
+                        handler: (request, reply) => {
+                            return this.isReady ? reply('ok') : reply('service not available').code(503);
+                        }
+                    }
+                });
+                let info = this.hapiServer.info;
+                let config = mergeWith(
+                    // defaults
+                    {
+                        name: this.bus.config.implementation,
+                        address: info.host, // info.address is 0.0.0.0 so we use the host
+                        port: info.port,
+                        context: {
+                            type: 'http'
+                        },
+                        check: {
+                            interval: '10s'
+                        }
+                    },
+                    // custom
+                    this.config.registry,
+                    // override
+                    {
+                        check: {
+                            http: `${info.protocol}://${info.host}:${info.port}/health`
+                        }
+                    }
+                );
+                return this.bus.importMethod('registry.service.add')(config)
+                    .then(resolve)
+                    .catch(reject);
+            }
+            return resolve();
+        });
     }))
     .then(() => {
         this.log.info && this.log.info({
@@ -236,18 +272,18 @@ HttpServerPort.prototype.registerSocketSubscription = function(path, verifyClien
 };
 
 HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
-    return when.promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         if (this.hotReload) {
             resolve(true);
         } else if (this.config.packer && this.config.packer.name === 'webpack') {
             var webpack = require('webpack');
-            if (!_.isObject(config.output)) {
+            if (typeof config.output !== 'object') {
                 return reject(new Error('config.output must be an Object'));
             }
-            if (!_.isString(config.output.publicPath)) {
+            if (typeof config.output.publicPath !== 'string') {
                 return reject(new Error('config.output.publicPath must be a String'));
             }
-            if (!_.isObject(config.entry)) {
+            if (typeof config.entry !== 'object') {
                 return reject(new Error('config.entry must be an Object'));
             }
             for (var name in config.entry) {
@@ -285,9 +321,9 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
                     watch: true
                 };
             }
-            assetsConfig = _.merge(assetsConfig, this.config.packer.assets);
-            var assets = _.assign(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
-            var hot = _.assign({
+            assetsConfig = mergeWith(assetsConfig, this.config.packer.assets);
+            var assets = mergeWith(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
+            var hot = mergeWith({
                 publicPath: config.output.publicPath
             }, (this.config.packer && this.config.packer.hotMiddleware) || {});
 
@@ -313,11 +349,13 @@ HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
 };
 
 HttpServerPort.prototype.stop = function stop() {
-    var self = this;
     this.socketServer && this.socketServer.stop();
-    return when.promise(function(resolve, reject) {
-        self.hapiServer.stop(function() {
-            when(Port.prototype.stop.apply(self, arguments)).then(resolve).catch(reject);
+    return new Promise((resolve, reject) => {
+        this.hapiServer.stop((err) => {
+            return err ? reject(err) : Promise.resolve()
+                .then(() => Port.prototype.stop.call(this))
+                .then(resolve)
+                .catch(reject);
         });
     });
 };

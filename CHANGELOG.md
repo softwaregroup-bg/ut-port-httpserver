@@ -1,3 +1,35 @@
+<a name="8.16.1"></a>
+## [8.16.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.16.0...v8.16.1) (2017-09-04)
+
+
+### Bug Fixes
+
+* typo ([9f93d9c](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/9f93d9c))
+
+
+
+<a name="8.16.0"></a>
+# [8.16.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.15.0...v8.16.0) (2017-09-03)
+
+
+### Bug Fixes
+
+* docs and improvements ([b2a72a6](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/b2a72a6))
+* implement consul health check endpoint ([873d929](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/873d929))
+* merge swagger definition tags ([dba7b27](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/dba7b27))
+* refactor httpserver to be named the same way as the implementation it runs in by default ([3e1a760](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/3e1a760))
+* remove when ([c6bf9d2](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/c6bf9d2))
+* return the promise ([c8ef4aa](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/c8ef4aa))
+* use a Set for managing socket subscriptions ([a3e63f7](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/a3e63f7))
+* use mergewith everywhere ([2137e3f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/2137e3f))
+
+
+### Features
+
+* auto register as a service ([8334edc](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8334edc))
+
+
+
 <a name="8.15.0"></a>
 # [8.15.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.14.0...v8.15.0) (2017-08-18)
 
