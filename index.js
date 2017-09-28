@@ -13,6 +13,7 @@ var handlers = require('./handlers.js');
 var through2 = require('through2');
 var fs = require('fs-plus');
 var SocketServer = require('./socketServer');
+var uuid = require('uuid/v4');
 
 function HttpServerPort() {
     Port.call(this);
@@ -223,22 +224,17 @@ HttpServerPort.prototype.start = function start() {
                         name: this.bus.config.implementation,
                         address: info.host, // info.address is 0.0.0.0 so we use the host
                         port: info.port,
+                        id: uuid(),
+                        check: {},
                         context: {
-                            type: 'http'
-                        },
-                        check: {
-                            interval: '10s'
+                            type: 'http',
+                            pid: process.pid
                         }
                     },
                     // custom
-                    this.config.registry,
-                    // override
-                    {
-                        check: {
-                            http: `${info.protocol}://${info.host}:${info.port}/health`
-                        }
-                    }
+                    this.config.registry
                 );
+                config.check.http = `${config.protocol || info.protocol}://${config.address}:${config.port}/health`;
                 return this.bus.importMethod('registry.service.add')(config)
                     .then(resolve)
                     .catch(reject);
