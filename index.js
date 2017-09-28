@@ -217,14 +217,17 @@ HttpServerPort.prototype.start = function start() {
                     }
                 });
                 let info = this.hapiServer.info;
+                let pid = process.pid.toString();
                 let config = mergeWith(
                     // defaults
                     {
                         name: this.bus.config.implementation,
                         address: info.host, // info.address is 0.0.0.0 so we use the host
                         port: info.port,
+                        id: pid,
                         context: {
-                            type: 'http'
+                            type: 'http',
+                            pid: pid
                         },
                         check: {
                             interval: '10s'
