@@ -1,3 +1,4 @@
+'use strict';
 const ws = require('ws');
 const Router = require('call').Router;
 const Boom = require('boom');
@@ -10,7 +11,7 @@ function getTokens(strs, separators) {
     if (!separators.length) {
         return {key: strs.shift(), value: strs.shift()};
     }
-    var separator = separators.shift();
+    let separator = separators.shift();
     return strs
         .map((s) => (getTokens(s.split(separator), separators)))
         .reduce((accum, c) => {
@@ -54,9 +55,9 @@ function permissionVerify(ctx, roomId, appId) {
     }
     return ctx;
 }
-var helpers = {
+let helpers = {
     formatMessage: function(message) {
-        var msg;
+        let msg;
         try {
             msg = typeof message === 'string' ? message : JSON.stringify(message);
         } catch (e) {
@@ -94,7 +95,7 @@ SocketServer.prototype.start = function start(httpServerListener) {
             )
         ))
         .then((p) => (new Promise((resolve, reject) => {
-            var context = this.router.route(socket.upgradeReq.method.toLowerCase(), url);
+            let context = this.router.route(socket.upgradeReq.method.toLowerCase(), url);
             if (context.isBoom) {
                 throw context;
             }
@@ -155,14 +156,14 @@ SocketServer.prototype.registerPath = function registerPath(path, verifyClient) 
 };
 
 SocketServer.prototype.publish = function publish(data, message) {
-    var room;
+    let room;
     try {
         room = this.rooms[data.path.replace(interpolationRegex, (placeholder, label) => (data.params[label] || placeholder))];
     } catch (e) {
         throw e;
     }
     if (room && room.size) {
-        var formattedMessage = helpers.formatMessage(message);
+        let formattedMessage = helpers.formatMessage(message);
         room.forEach(function(socket) {
             if (socket.readyState === ws.OPEN) {
                 socket.send(formattedMessage);
@@ -172,7 +173,7 @@ SocketServer.prototype.publish = function publish(data, message) {
 };
 
 SocketServer.prototype.broadcast = function broadcast(message) {
-    var formattedMessage = helpers.formatMessage(message);
+    let formattedMessage = helpers.formatMessage(message);
     this.wss.clients.forEach(function(socket) {
         socket.send(formattedMessage);
     });

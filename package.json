@@ -27,9 +27,6 @@
     "webpack": "3.4.1",
     "webpack-hot-middleware": "2.18.2"
   },
-  "peerDependencies": {
-    "ut-bus": "^5.12.3"
-  },
   "description": "UT port httpserver module",
   "scripts": {
     "lint": "ut-lint .",

@@ -1,21 +1,10 @@
-var create = require('ut-error').define;
-
-var HttpServer = create('HttpServer');
-var MethodNotFound = create('MethodNotFound', 'HttpServer');
-var NotPermitted = create('NotPermitted', 'HttpServer');
-var ValidationNotFound = create('ValidationNotFound', 'HttpServer');
-var InvalidRequest = create('InvalidRequest', 'HttpServer');
+'use strict';
+const create = require('ut-error').define;
+const HttpServer = create('HttpServer');
 module.exports = {
     HttpServer: HttpServer,
-    ValidationNotFound: ValidationNotFound,
-    NotPermitted: NotPermitted,
-    MethodNotFound: MethodNotFound,
-    InvalidRequest: InvalidRequest
+    ValidationNotFound: create('validationNotFound', 'HttpServer'),
+    NotPermitted: create('notPermitted', 'HttpServer'),
+    MethodNotFound: create('methodNotFound', 'HttpServer'),
+    InvalidRequest: create('invalidRequest', 'HttpServer')
 };
-
-Object.getOwnPropertyNames(module.exports).forEach(function(key) {
-    var Method = module.exports[key];
-    Method.reject = function() {
-        return Promise.reject(new Method(arguments)); // todo improve arguments passing
-    };
-});

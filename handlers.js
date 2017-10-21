@@ -1,14 +1,15 @@
-var path = require('path');
-var mergeWith = require('lodash.mergewith');
-var fs = require('fs');
-var jwt = require('jsonwebtoken');
-var joi = require('joi');
-var errors = require('./errors');
-var uuid = require('uuid/v4');
-let { initMetadataFromRequest } = require('./common');
+'use strict';
+const path = require('path');
+const mergeWith = require('lodash.mergewith');
+const fs = require('fs');
+const jwt = require('jsonwebtoken');
+const joi = require('joi');
+const errors = require('./errors');
+const uuid = require('uuid/v4');
+const {initMetadataFromRequest} = require('./common');
 
-var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
-    var request = {
+const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
+    let request = {
         payload: routeConfig.config.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
             id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
@@ -19,7 +20,7 @@ var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method)
         })
     };
-    var response = routeConfig.config.response || (routeConfig.config.result && joi.object({
+    let response = routeConfig.config.response || (routeConfig.config.result && joi.object({
         jsonrpc: joi.string().valid('2.0').required(),
         id: joi.alternatives().try(joi.number(), joi.string()).required(),
         result: routeConfig.config.result.label('result'),
@@ -37,7 +38,7 @@ var getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     return {request, response};
 };
 
-var getReqRespValidation = function getReqRespValidation(routeConfig) {
+const getReqRespValidation = function getReqRespValidation(routeConfig) {
     return {
         request: {
             payload: routeConfig.config.payload,
@@ -47,22 +48,22 @@ var getReqRespValidation = function getReqRespValidation(routeConfig) {
     };
 };
 
-var isUploadValid = function isUploadValid(request, uploadConfig) {
-    var file = request.payload.file;
+const isUploadValid = function isUploadValid(request, uploadConfig) {
+    let file = request.payload.file;
     if (!file) {
         return false;
     }
-    var fileName = file.hapi.filename;
-    var isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
-    var uploadExtension = fileName.split('.').pop();
-    var isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
+    let fileName = file.hapi.filename;
+    let isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
+    let uploadExtension = fileName.split('.').pop();
+    let isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
     if (file && isNameValid && isExtensionAllowed) {
         return true;
     }
     return false;
 };
 
-var assertRouteConfig = function assertRouteConfig(routeConfig) {
+const assertRouteConfig = function assertRouteConfig(routeConfig) {
     if (!routeConfig.config.params && !routeConfig.config.payload) {
         throw new Error(`Missing 'params'/'payload' in validation schema for method: ${routeConfig.method}`);
     } else if (routeConfig.config.params && !routeConfig.config.params.isJoi) {
@@ -77,17 +78,17 @@ var assertRouteConfig = function assertRouteConfig(routeConfig) {
 };
 
 module.exports = function(port) {
-    var httpMethods = {};
-    var pendingRoutes = [];
-    var config = {};
-    var validations = {};
+    let httpMethods = {};
+    let pendingRoutes = [];
+    let config = {};
+    let validations = {};
 
     function addDebugInfo(msg, err) {
         (err && port.config.debug) || ((port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err));
     }
 
-    var byMethodValidate = function byMethodValidate(checkType, method, data) {
-        var vr;
+    const byMethodValidate = function byMethodValidate(checkType, method, data) {
+        let vr;
         if (checkType === 'request') {
             vr = validations[method].request.payload.validate(data);
             vr.method = 'payload';
@@ -97,11 +98,11 @@ module.exports = function(port) {
         }
         return vr;
     };
-    var doValidate = function doValidate(checkType, method, data, next) {
+    const doValidate = function doValidate(checkType, method, data, next) {
         if (!method) {
             next(errors.NotPermitted(`Method not defined`));
         } else if (Object.keys(validations[method] || {}).length === 2) {
-            var validationResult = byMethodValidate(checkType, method, data);
+            let validationResult = byMethodValidate(checkType, method, data);
             if (validationResult.error) {
                 next(validationResult.error);
             } else {
@@ -116,8 +117,8 @@ module.exports = function(port) {
 
     let identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
 
-    var prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
-        var identityCheckParams;
+    const prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
+        let identityCheckParams;
         if (request.payload.method === identityCheckFullName) {
             identityCheckParams = mergeWith({}, request.payload.params);
         } else {
@@ -137,20 +138,11 @@ module.exports = function(port) {
         return identityCheckParams;
     };
 
-    var rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
-        var startTime = process.hrtime();
+    const rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         port.log.trace && port.log.trace({payload: request && request.payload});
 
-        function addTime() {
-            if (port.latency) {
-                var diff = process.hrtime(startTime);
-                port.latency(diff[0] * 1000 + diff[1] / 1000000, 1);
-            }
-        }
-
-        var reply = function(resp, headers, statusCode) {
-            addTime();
-            var repl = _reply(resp);
+        const reply = function(resp, headers, statusCode) {
+            let repl = _reply(resp);
             headers && Object.keys(headers).forEach(function(header) {
                 repl.header(header, headers[header]);
             });
@@ -161,8 +153,8 @@ module.exports = function(port) {
         };
 
         function handleError(error, response) {
-            var $meta = {};
-            var msg = {
+            let $meta = {};
+            let msg = {
                 jsonrpc: (request.payload && request.payload.jsonrpc) || '',
                 id: (request.payload && request.payload.id) || '',
                 error: error
@@ -184,10 +176,10 @@ module.exports = function(port) {
                 return reply(msg);
             }
         }
-        var privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
-        var publicToken = request.headers && request.headers['x-xsrf-token'];
-        var auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
-        var routeConfig = ((config[request.params.method] || {}).config || {});
+        let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
+        let publicToken = request.headers && request.headers['x-xsrf-token'];
+        let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
+        let routeConfig = ((config[request.params.method] || {}).config || {});
 
         if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
             port.log.error && port.log.error({httpServerSecurity: 'fail', reason: 'private token != public token; cors error'});
@@ -204,13 +196,13 @@ module.exports = function(port) {
                 errorPrint: 'Malformed JSON RPC Request'
             });
         }
-        var endReply = {
+        let endReply = {
             jsonrpc: request.payload.jsonrpc,
             id: (request && request.payload && request.payload.id)
         };
 
-        var processMessage = function(msgOptions) {
-            var $meta;
+        const processMessage = function(msgOptions) {
+            let $meta;
             function callReply(response) {
                 if (typeof customReply === 'function') {
                     customReply(reply, response, $meta);
@@ -227,12 +219,12 @@ module.exports = function(port) {
                 if (msgOptions.protection) {
                     $meta.protection = msgOptions.protection;
                 }
-                var callback = function(response) {
+                const callback = function(response) {
                     if (!response) {
                         throw new Error('Add return value of method ' + request.payload.method);
                     }
                     if (!$meta || $meta.mtid === 'error') {
-                        var erMs = $meta.errorMessage || response.message;
+                        let erMs = $meta.errorMessage || response.message;
                         endReply.error = {
                             code: $meta.errorCode || response.code || -1,
                             message: erMs,
@@ -256,7 +248,6 @@ module.exports = function(port) {
                     if ($meta && ($meta.staticFileName || $meta.tmpStaticFileName)) {
                         let fn = $meta.staticFileName || $meta.tmpStaticFileName;
                         fs.access(fn, fs.constants.R_OK, (err) => {
-                            addTime();
                             if (err) {
                                 endReply.error = {
                                     code: -1,
@@ -267,7 +258,7 @@ module.exports = function(port) {
                                 };
                                 handleError(endReply.error, response);
                             } else {
-                                var s = fs.createReadStream(fn);
+                                let s = fs.createReadStream(fn);
                                 if ($meta.tmpStaticFileName) {
                                     s.on('end', () => { // cleanup, remove file after it gets send to the client
                                         process.nextTick(() => {
@@ -295,12 +286,13 @@ module.exports = function(port) {
                     return true;
                 };
                 if ($meta.mtid === 'request') {
-                    $meta.callback = callback;
+                    $meta.reply = callback;
+                    $meta.trace = request.id;
                 } else {
                     endReply.result = true;
                     callReply(true);
                 }
-                port.stream.write([request.payload.params || {}, $meta]);
+                port.stream.push([request.payload.params || {}, $meta]);
             } catch (err) {
                 return handleError({
                     code: err.code || '-1',
@@ -337,15 +329,15 @@ module.exports = function(port) {
         .then((res) => {
             if (request.payload.method === identityCheckFullName) {
                 endReply.result = res;
-                var reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
+                const reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
                         (request.auth &&
                         request.auth.credentials &&
                         request.auth.credentials.sessionId));
                 if (res['identity.check'] && res['identity.check'].sessionId && !reuseCookie()) {
-                    var appId = request.payload.params && request.payload.params.appId;
-                    var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
-                    var uuId = uuid();
-                    var jwtSigned = jwt.sign({
+                    let appId = request.payload.params && request.payload.params.appId;
+                    let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
+                    let uuId = uuid();
+                    let jwtSigned = jwt.sign({
                         timezone: tz,
                         xsrfToken: uuId,
                         actorId: res['identity.check'].actorId,
@@ -422,8 +414,8 @@ module.exports = function(port) {
 
     function routeAdd(method, path, registerInSwagger) {
         port.log.trace && port.log.trace({methodRegistered: method, route: path});
-        var currentMethodConfig = (config[method] && config[method].config) || {};
-        var isRpc = !(currentMethodConfig.isRpc === false);
+        let currentMethodConfig = (config[method] && config[method].config) || {};
+        let isRpc = !(currentMethodConfig.isRpc === false);
         validations[method] = isRpc ? getReqRespRpcValidation(config[method]) : getReqRespValidation(config[method]);
         if (currentMethodConfig.paramsMethod) {
             currentMethodConfig.paramsMethod.reduce((prev, cur) => {
@@ -432,11 +424,11 @@ module.exports = function(port) {
                 }
             });
         }
-        var tags = [port.config.id, config[method].method];
+        let tags = [port.config.id, config[method].method];
         if (registerInSwagger) {
             tags.unshift('api');
         }
-        var responseValidation = {};
+        let responseValidation = {};
         if (validations[method].response) {
             responseValidation = {
                 config: {
@@ -452,7 +444,7 @@ module.exports = function(port) {
                 }
             };
         }
-        var auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
+        let auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
         pendingRoutes.unshift(mergeWith({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
@@ -528,14 +520,14 @@ module.exports = function(port) {
                         return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
                     })
                     .then((res) => {
-                        var file = request.payload.file;
-                        var isValid = isUploadValid(request, port.config.fileUpload);
+                        let file = request.payload.file;
+                        let isValid = isUploadValid(request, port.config.fileUpload);
                         if (!isValid) {
                             return reply('').code(400);
                         } else {
-                            var fileName = (new Date()).getTime() + '_' + file.hapi.filename;
-                            var path = port.bus.config.workDir + '/uploads/' + fileName;
-                            var ws = fs.createWriteStream(path);
+                            let fileName = (new Date()).getTime() + '_' + file.hapi.filename;
+                            let path = port.bus.config.workDir + '/uploads/' + fileName;
+                            let ws = fs.createWriteStream(path);
                             ws.on('error', function(err) {
                                 port.log.error && port.log.error(err);
                                 reply('');
@@ -550,9 +542,9 @@ module.exports = function(port) {
                                         fs.readFile(path, (err, fileContent) => {
                                             if (err) reply('');
                                             fileContent = fileContent.toString();
-                                            var matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+                                            let matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
                                             if (matches.length === 3) {
-                                                var imageBuffer = {};
+                                                let imageBuffer = {};
                                                 imageBuffer.type = matches[1];
                                                 imageBuffer.data = new Buffer(matches[2], 'base64');
                                                 fileContent = imageBuffer.data;

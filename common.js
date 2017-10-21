@@ -1,12 +1,13 @@
-var os = require('os');
-var osName = [os.type(), os.platform(), os.release()].join(':');
+'use strict';
+const os = require('os');
+const osName = [os.type(), os.platform(), os.release()].join(':');
 
 module.exports = {
     initMetadataFromRequest
 };
 
 function initMetadataFromRequest(request = {}, bus = {}) {
-    var $meta = {
+    return {
         auth: request.auth.credentials,
         method: request.payload && request.payload.method,
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
@@ -25,5 +26,4 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         serviceName: bus.config && bus.config.implementation,
         deviceId: request.headers && request.headers.deviceId
     };
-    return $meta;
 }
