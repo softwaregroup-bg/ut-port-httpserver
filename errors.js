@@ -1,6 +1,6 @@
 'use strict';
 const create = require('ut-error').define;
-const HttpServer = create('HttpServer');
+const HttpServer = create('httpServer');
 module.exports = {
     HttpServer: HttpServer,
     ValidationNotFound: create('validationNotFound', 'HttpServer'),
