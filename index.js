@@ -329,7 +329,7 @@ module.exports = function({parent}) {
                         assets,
                         hot
                     }
-                }, function(err) {
+                }, err => {
                     if (err) {
                         reject(err);
                     } else {
