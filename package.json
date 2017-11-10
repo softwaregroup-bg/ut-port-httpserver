@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "9.0.0-ut6.2",
+  "version": "9.0.0-ut6.3",
   "dependencies": {
     "boom": "^4.0.1",
     "call": "3.0.3",
