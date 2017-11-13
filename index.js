@@ -19,7 +19,7 @@ module.exports = function({parent}) {
         parent && parent.apply(this, arguments);
         this.config = mergeWith({
             id: null,
-            logLevel: '',
+            logLevel: 'info',
             type: 'httpserver',
             port: 8080,
             connections: [],
