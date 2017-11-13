@@ -4,7 +4,6 @@ const mergeWith = require('lodash.mergewith');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
-const errors = require('./errors');
 const uuid = require('uuid/v4');
 const {initMetadataFromRequest} = require('./common');
 
@@ -77,7 +76,7 @@ const assertRouteConfig = function assertRouteConfig(routeConfig) {
     }
 };
 
-module.exports = function(port) {
+module.exports = function(port, errors) {
     let httpMethods = {};
     let pendingRoutes = [];
     let config = {};
@@ -122,7 +121,7 @@ module.exports = function(port) {
         if (request.payload.method === identityCheckFullName) {
             identityCheckParams = mergeWith({}, request.payload.params);
         } else {
-            identityCheckParams = { actionId: request.payload.method };
+            identityCheckParams = {actionId: request.payload.method};
         }
         mergeWith(
             identityCheckParams,
@@ -540,7 +539,9 @@ module.exports = function(port) {
                                 } else {
                                     if (file.hapi.headers['content-type'] === 'base64/png') {
                                         fs.readFile(path, (err, fileContent) => {
-                                            if (err) reply('');
+                                            if (err) {
+                                                reply('');
+                                            }
                                             fileContent = fileContent.toString();
                                             let matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
                                             if (matches.length === 3) {

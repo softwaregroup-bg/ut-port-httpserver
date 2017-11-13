@@ -9,10 +9,11 @@ const basicAuth = require('hapi-auth-basic');
 const mergeWith = require('lodash.mergewith');
 const swagger = require('hapi-swagger');
 const packageJson = require('./package.json');
-const handlers = require('./handlers.js');
+const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('./socketServer');
 const uuid = require('uuid/v4');
+let errors;
 
 module.exports = function({parent}) {
     function HttpServerPort({config}) {
@@ -80,6 +81,7 @@ module.exports = function({parent}) {
                 }
             }
         }, config);
+        errors = errors || require('./errors')(this.defineError);
         this.hapiServer = {};
         this.socketServer = null;
         this.socketSubscriptions = [];
@@ -189,7 +191,7 @@ module.exports = function({parent}) {
         })
         .then(() => {
             this.hapiServer.route(this.routes);
-            this.hapiServer.route(handlers(this));
+            this.hapiServer.route(handlers(this, errors));
             return 0;
         })
         .then(() => parent && parent.prototype.start.apply(this, args))
