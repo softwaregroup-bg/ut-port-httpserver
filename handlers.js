@@ -229,7 +229,8 @@ module.exports = function(port, errors) {
                             message: erMs,
                             errorPrint: $meta.errorPrint || response.print || erMs,
                             type: $meta.errorType || response.type,
-                            fieldErrors: $meta.fieldErrors || response.fieldErrors
+                            fieldErrors: $meta.fieldErrors || response.fieldErrors,
+                            details: $meta.details || response.details
                         };
                         if (typeof customReply === 'function') {
                             addDebugInfo(endReply, response);
