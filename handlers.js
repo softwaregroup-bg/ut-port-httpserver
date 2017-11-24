@@ -29,6 +29,7 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             errorPrint: joi.string().optional().description('User friendly error message'),
             print: joi.string().optional().description('User friendly error message'),
             fieldErrors: joi.any().description('Field validation errors'),
+            details: joi.object().optional().description('Error udf details'),
             type: joi.string().description('Error type')
         }).label('error'),
         debug: joi.object().label('debug')
