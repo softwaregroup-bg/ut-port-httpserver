@@ -219,7 +219,7 @@ module.exports = function(port, errors) {
                     $meta.protection = msgOptions.protection;
                 }
                 const callback = function(response) {
-                    if (!response) {
+                    if (response === undefined) {
                         throw new Error('Add return value of method ' + request.payload.method);
                     }
                     if (!$meta || $meta.mtid === 'error') {
@@ -237,7 +237,7 @@ module.exports = function(port, errors) {
                         }
                         return handleError(endReply.error, response);
                     }
-                    if (response.auth) {
+                    if (response && response.auth) {
                         delete response.auth;
                     }
 
