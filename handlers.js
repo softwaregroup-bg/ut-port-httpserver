@@ -451,7 +451,6 @@ module.exports = function(port, errors) {
             path: path,
             config: {
                 handler: function(req, repl) {
-                    req.id = 1;
                     if (!isRpc && !req.payload) {
                         req.payload = {
                             id: req.id,
