@@ -1,3 +1,21 @@
+<a name="8.17.0"></a>
+# [8.17.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.16.1...v8.17.0) (2017-10-25)
+
+
+### Bug Fixes
+
+* add a common method to get meta from request ([#102](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/102)) ([8a567f8](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8a567f8))
+* get ip address from x-forwarded-for if available UIS-3337 ([27e036a](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/27e036a))
+* improve default service definition ([901b8d1](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/901b8d1))
+* improve health check definition ([8b68497](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8b68497))
+
+
+### Features
+
+* add traffic metrics ([98379bd](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/98379bd))
+
+
+
 <a name="8.16.1"></a>
 ## [8.16.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.16.0...v8.16.1) (2017-09-04)
 
