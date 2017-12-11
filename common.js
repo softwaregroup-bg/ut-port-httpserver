@@ -1,13 +1,30 @@
 'use strict';
 const os = require('os');
+const joi = require('joi');
 const osName = [os.type(), os.platform(), os.release()].join(':');
 
-module.exports = {
-    initMetadataFromRequest
-};
+const metaSchema = joi.object().keys({
+    auth: joi.any(),
+    method: joi.any(),
+    opcode: joi.any(),
+    mtid: joi.any(),
+    requestHeaders: joi.any(),
+    ipAddress: joi.any(),
+    frontEnd: joi.any(),
+    latitude: joi.any(),
+    longitude: joi.any(),
+    localAddress: joi.any(),
+    hostName: joi.any(),
+    localPort: joi.any(),
+    machineName: joi.any(),
+    os: joi.any(),
+    version: joi.any(),
+    serviceName: joi.any(),
+    deviceId: joi.any()
+});
 
 function initMetadataFromRequest(request = {}, bus = {}) {
-    return {
+    const {error, value} = metaSchema.validate({
         auth: request.auth.credentials,
         method: request.payload && request.payload.method,
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
@@ -25,5 +42,14 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         version: bus.config && bus.config.version,
         serviceName: bus.config && bus.config.implementation,
         deviceId: request.headers && request.headers.deviceId
-    };
+    }, {abortEarly: false});
+
+    if (error) {
+        throw error;
+    }
+    return value;
 }
+
+module.exports = {
+    initMetadataFromRequest
+};
