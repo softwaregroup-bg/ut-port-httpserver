@@ -4,6 +4,7 @@ const joi = require('joi');
 const osName = [os.type(), os.platform(), os.release()].join(':');
 
 const metaSchema = joi.object().keys({
+    timeout: joi.number().positive().integer(),
     auth: joi.object().keys({
         actorId: joi.number().positive().integer(),
         exp: joi.number().positive().integer(),
@@ -31,8 +32,10 @@ const metaSchema = joi.object().keys({
     deviceId: joi.string().max(50)
 });
 
-function initMetadataFromRequest(request = {}, bus = {}) {
+function initMetadataFromRequest(request = {}, port = {}) {
+    let bus = port.bus || {};
     const {error, value} = metaSchema.validate({
+        timeout: port.timing && request.payload.timeout && port.timing.after(request.payload.timeout),
         auth: request.auth.credentials,
         method: request.payload && request.payload.method,
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
@@ -48,7 +51,7 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         machineName: request.connection && request.connection.info && request.connection.info.host,
         os: osName,
         version: bus.config && bus.config.version,
-        serviceName: bus.config && bus.config.implementation,
+        serviceName: bus.config && (bus.config.implementation + (bus.config.service ? '/' + bus.config.service : '')),
         deviceId: request.headers && request.headers.deviceId
     }, {abortEarly: false});
 
