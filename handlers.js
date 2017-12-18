@@ -11,6 +11,7 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     let request = {
         payload: routeConfig.config.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
+            timeout: joi.number().optional(),
             id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
             method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required(),
             params: routeConfig.config.params.label('params').required()
@@ -87,6 +88,10 @@ module.exports = function(port, errors) {
         (err && port.config.debug) || ((port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err));
     }
 
+    function addMetaInfo(msg, $meta) {
+        ($meta && port.config.debug) || ((port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.$meta = $meta));
+    }
+
     const byMethodValidate = function byMethodValidate(checkType, method, data) {
         let vr;
         if (checkType === 'request') {
@@ -139,6 +144,7 @@ module.exports = function(port, errors) {
     };
 
     const rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
+        let $meta = initMetadataFromRequest(request, port);
         port.log.trace && port.log.trace({payload: request && request.payload});
 
         const reply = function(resp, headers, statusCode) {
@@ -202,7 +208,6 @@ module.exports = function(port, errors) {
         };
 
         const processMessage = function(msgOptions) {
-            let $meta;
             function callReply(response) {
                 if (typeof customReply === 'function') {
                     customReply(reply, response, $meta);
@@ -212,7 +217,6 @@ module.exports = function(port, errors) {
             }
             msgOptions = msgOptions || {};
             try {
-                $meta = initMetadataFromRequest(request, port.bus);
                 if (msgOptions.language) {
                     $meta.language = msgOptions.language;
                 }
@@ -280,6 +284,7 @@ module.exports = function(port, errors) {
                     }
 
                     endReply.result = response;
+                    addMetaInfo(endReply, $meta);
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
                         return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
                     }
@@ -323,7 +328,6 @@ module.exports = function(port, errors) {
                     'permission.get': ['*']
                 };
             }
-            let $meta = initMetadataFromRequest(request, port.bus);
             let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
             return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
@@ -454,7 +458,7 @@ module.exports = function(port, errors) {
                     if (!isRpc && !req.payload) {
                         req.payload = {
                             id: req.id,
-                            jsonrpc: '',
+                            jsonrpc: '2.0',
                             method,
                             params: mergeWith({}, req.params, {})
                         };
@@ -515,7 +519,7 @@ module.exports = function(port, errors) {
             handler: function(request, reply) {
                 Promise.resolve()
                     .then(() => {
-                        let $meta = initMetadataFromRequest(request, port.bus);
+                        let $meta = initMetadataFromRequest(request, port);
                         let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                         return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
                     })

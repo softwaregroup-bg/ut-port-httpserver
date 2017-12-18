@@ -6,8 +6,10 @@ module.exports = {
     initMetadataFromRequest
 };
 
-function initMetadataFromRequest(request = {}, bus = {}) {
+function initMetadataFromRequest(request = {}, port = {}) {
+    let bus = port.bus || {};
     return {
+        timeout: port.timing && request.payload.timeout && port.timing.after(request.payload.timeout),
         auth: request.auth.credentials,
         method: request.payload && request.payload.method,
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
@@ -23,7 +25,7 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         machineName: request.connection && request.connection.info && request.connection.info.host,
         os: osName,
         version: bus.config && bus.config.version,
-        serviceName: bus.config && bus.config.implementation,
+        serviceName: bus.config && (bus.config.implementation + (bus.config.service ? '/' + bus.config.service : '')),
         deviceId: request.headers && request.headers.deviceId
     };
 }
