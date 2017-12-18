@@ -4,23 +4,31 @@ const joi = require('joi');
 const osName = [os.type(), os.platform(), os.release()].join(':');
 
 const metaSchema = joi.object().keys({
-    auth: joi.any(),
-    method: joi.any(),
-    opcode: joi.any(),
-    mtid: joi.any(),
-    requestHeaders: joi.any(),
-    ipAddress: joi.any(),
-    frontEnd: joi.any(),
-    latitude: joi.any(),
-    longitude: joi.any(),
-    localAddress: joi.any(),
-    hostName: joi.any(),
-    localPort: joi.any(),
-    machineName: joi.any(),
-    os: joi.any(),
-    version: joi.any(),
-    serviceName: joi.any(),
-    deviceId: joi.any()
+    auth: joi.object().keys({
+        actorId: joi.number().positive().integer(),
+        exp: joi.number().positive().integer(),
+        iat: joi.number().positive().integer(),
+        scopes: joi.array(),
+        sessionId: joi.string().max(36),
+        timezone: joi.string(),
+        xsrfToken: joi.string().max(36)
+    }).allow(null),
+    method: joi.string().max(100),
+    opcode: joi.string(),
+    mtid: joi.string(),
+    requestHeaders: joi.object(),
+    ipAddress: joi.string().max(50),
+    frontEnd: joi.string().max(250),
+    latitude: joi.number(),
+    longitude: joi.number(),
+    localAddress: joi.string().max(50),
+    hostName: joi.string().max(50),
+    localPort: joi.number(),
+    machineName: joi.string().max(50),
+    os: joi.string().max(50),
+    version: joi.string(),
+    serviceName: joi.string().max(50),
+    deviceId: joi.string().max(50)
 });
 
 function initMetadataFromRequest(request = {}, bus = {}) {
