@@ -58,6 +58,7 @@ function initMetadataFromRequest(request = {}, port = {}) {
     if (error) {
         throw error;
     }
+    port && port.setTimer && port.setTimer(value);
     return value;
 }
 
