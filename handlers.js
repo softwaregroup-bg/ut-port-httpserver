@@ -33,7 +33,8 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             details: joi.object().optional().description('Error udf details'),
             type: joi.string().description('Error type')
         }).label('error'),
-        debug: joi.object().label('debug')
+        debug: joi.object().label('debug'),
+        $meta: joi.object()
     })
     .xor('result', 'error'));
     return {request, response};
@@ -419,7 +420,6 @@ module.exports = function(port, errors) {
     port.bus.importMethods(httpMethods, port.config.api);
 
     function routeAdd(method, path, registerInSwagger) {
-        port.log.trace && port.log.trace({methodRegistered: method, route: path});
         let currentMethodConfig = (config[method] && config[method].config) || {};
         let isRpc = !(currentMethodConfig.isRpc === false);
         validations[method] = isRpc ? getReqRespRpcValidation(config[method]) : getReqRespValidation(config[method]);
@@ -480,30 +480,33 @@ module.exports = function(port, errors) {
                 }
             }
         }, responseValidation));
+        return path;
     };
+    let paths = [];
     Object.keys(httpMethods).forEach(function(key) {
         if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) {
             httpMethods[key].forEach(function(routeConfig) {
                 if (routeConfig.config.isRpc === false) {
                     config[routeConfig.method] = routeConfig;
                     if (routeConfig.config.route) {
-                        return routeAdd(routeConfig.method, routeConfig.config.route, true);
+                        paths.push(routeAdd(routeConfig.method, routeConfig.config.route, true));
                     } else {
-                        return routeAdd(routeConfig.method, routeConfig.method.split('.').join('/'), true);
+                        paths.push(routeAdd(routeConfig.method, routeConfig.method.split('.').join('/'), true));
                     }
                 } else {
                     assertRouteConfig(routeConfig);
                     config[routeConfig.method] = routeConfig;
                     if (routeConfig.config && routeConfig.config.route) {
-                        routeAdd(routeConfig.method, routeConfig.config.route, true);
+                        paths.push(routeAdd(routeConfig.method, routeConfig.config.route, true));
                     } else {
-                        routeAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), true);
-                        routeAdd(routeConfig.method, '/rpc/' + routeConfig.method);
+                        paths.push(routeAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), true));
+                        paths.push(routeAdd(routeConfig.method, '/rpc/' + routeConfig.method));
                     }
                 }
             });
         }
     });
+    port.log.trace && port.log.trace({$meta: {mtid: 'config', opcode: 'paths'}, message: paths.sort()});
     pendingRoutes.push({
         method: 'POST',
         path: '/file-upload',
