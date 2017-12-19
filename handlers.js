@@ -158,7 +158,7 @@ module.exports = function(port, errors) {
             return repl;
         };
 
-        function handleError(error, response) {
+        function handleError(error, response, $responseMeta) {
             let $meta = {};
             let msg = {
                 jsonrpc: (request.payload && request.payload.jsonrpc) || '',
@@ -166,6 +166,7 @@ module.exports = function(port, errors) {
                 error: error
             };
             addDebugInfo(msg, response);
+            addMetaInfo(msg, $responseMeta);
             if (port.config.receive instanceof Function) {
                 return Promise.resolve()
                     .then(() => port.config.receive(msg, $meta))
@@ -223,48 +224,48 @@ module.exports = function(port, errors) {
                 if (msgOptions.protection) {
                     $meta.protection = msgOptions.protection;
                 }
-                const callback = function(response) {
+                const callback = function(response, $responseMeta) {
                     if (response === undefined) {
                         throw new Error('Add return value of method ' + request.payload.method);
                     }
-                    if (!$meta || $meta.mtid === 'error') {
-                        let erMs = $meta.errorMessage || response.message;
+                    if (!$responseMeta || $responseMeta.mtid === 'error') {
+                        let erMs = $responseMeta.errorMessage || response.message;
                         endReply.error = {
-                            code: $meta.errorCode || response.code || -1,
+                            code: $responseMeta.errorCode || response.code || -1,
                             message: erMs,
-                            errorPrint: $meta.errorPrint || response.print || erMs,
-                            type: $meta.errorType || response.type,
-                            fieldErrors: $meta.fieldErrors || response.fieldErrors,
-                            details: $meta.details || response.details
+                            errorPrint: $responseMeta.errorPrint || response.print || erMs,
+                            type: $responseMeta.errorType || response.type,
+                            fieldErrors: $responseMeta.fieldErrors || response.fieldErrors,
+                            details: $responseMeta.details || response.details
                         };
                         if (typeof customReply === 'function') {
                             addDebugInfo(endReply, response);
-                            return customReply(reply, endReply, $meta);
+                            return customReply(reply, endReply, $responseMeta);
                         }
-                        return handleError(endReply.error, response);
+                        return handleError(endReply.error, response, $responseMeta);
                     }
                     if (response && response.auth) {
                         delete response.auth;
                     }
 
-                    if ($meta && $meta.responseAsIs) { // return response in a way that we receive it.
-                        return reply(response, $meta.responseHeaders);
+                    if ($responseMeta && $responseMeta.responseAsIs) { // return response in a way that we receive it.
+                        return reply(response, $responseMeta.responseHeaders);
                     }
-                    if ($meta && ($meta.staticFileName || $meta.tmpStaticFileName)) {
-                        let fn = $meta.staticFileName || $meta.tmpStaticFileName;
+                    if ($responseMeta && ($responseMeta.staticFileName || $responseMeta.tmpStaticFileName)) {
+                        let fn = $responseMeta.staticFileName || $responseMeta.tmpStaticFileName;
                         fs.access(fn, fs.constants.R_OK, (err) => {
                             if (err) {
                                 endReply.error = {
                                     code: -1,
                                     message: 'File not found',
                                     errorPrint: 'File not found',
-                                    type: $meta.errorType || response.type,
-                                    fieldErrors: $meta.fieldErrors || response.fieldErrors
+                                    type: $responseMeta.errorType || response.type,
+                                    fieldErrors: $responseMeta.fieldErrors || response.fieldErrors
                                 };
-                                handleError(endReply.error, response);
+                                handleError(endReply.error, response, $responseMeta);
                             } else {
                                 let s = fs.createReadStream(fn);
-                                if ($meta.tmpStaticFileName) {
+                                if ($responseMeta.tmpStaticFileName) {
                                     s.on('end', () => { // cleanup, remove file after it gets send to the client
                                         process.nextTick(() => {
                                             try {
@@ -284,9 +285,9 @@ module.exports = function(port, errors) {
                     }
 
                     endReply.result = response;
-                    addMetaInfo(endReply, $meta);
+                    addMetaInfo(endReply, $responseMeta);
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
-                        return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
+                        return msgOptions.end.call(undefined, reply(endReply, $responseMeta.responseHeaders));
                     }
                     callReply(response);
                     return true;
@@ -305,7 +306,7 @@ module.exports = function(port, errors) {
                     message: err.message,
                     errorPrint: err.message,
                     type: err.type
-                }, err);
+                }, err, $meta);
             }
         };
 
@@ -385,7 +386,7 @@ module.exports = function(port, errors) {
                 message: err.message,
                 errorPrint: err.errorPrint || err.message,
                 type: err.type
-            }, err)
+            }, err, $meta)
         ));
     };
 
