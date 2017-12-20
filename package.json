@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "9.1.0-rc-bahur.4",
+  "version": "9.1.0-rc-bahur.5",
   "dependencies": {
     "boom": "^4.0.1",
     "call": "3.0.3",
