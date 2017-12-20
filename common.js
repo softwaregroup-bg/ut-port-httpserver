@@ -15,7 +15,7 @@ const metaSchema = joi.object().keys({
         xsrfToken: joi.string().max(36)
     }).allow(null),
     method: joi.string().max(100),
-    opcode: joi.string(),
+    opcode: joi.string().allow(''),
     mtid: joi.string(),
     requestHeaders: joi.object(),
     ipAddress: joi.string().max(50),
