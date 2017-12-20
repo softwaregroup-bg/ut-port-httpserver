@@ -4,7 +4,7 @@ const joi = require('joi');
 const osName = [os.type(), os.platform(), os.release()].join(':');
 
 const metaSchema = joi.object().keys({
-    timeout: joi.number().positive(),
+    timeout: joi.array().length(2).items(joi.number().min(0).integer()).optional().allow(null),
     auth: joi.object().keys({
         actorId: joi.number().positive().integer(),
         exp: joi.number().positive().integer(),
