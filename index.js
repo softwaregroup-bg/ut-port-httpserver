@@ -13,6 +13,7 @@ const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('./socketServer');
 const uuid = require('uuid/v4');
+const serverRequire = require;
 let errors;
 
 module.exports = function({parent}) {
@@ -273,7 +274,7 @@ module.exports = function({parent}) {
             if (this.hotReload) {
                 resolve(true);
             } else if (this.config.packer && this.config.packer.name === 'webpack') {
-                let webpack = require('webpack');
+                let webpack = serverRequire('webpack');
                 if (typeof config.output !== 'object') {
                     return reject(new Error('config.output must be an Object'));
                 }
