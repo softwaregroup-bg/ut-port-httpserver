@@ -408,10 +408,11 @@ module.exports = function(port, errors) {
                 schema: joi.object({}),
                 failAction: (request, reply, value, error) => {
                     doValidate('response', request.params.method || request.payload.method, value._object, (err, result) => {
+                        var valueObject = Object.assign({}, value._object);
                         if (err) {
                             port.log.error && port.log.error(err);
                         }
-                        reply(value._object);
+                        reply(valueObject);
                     });
                 }
             }
@@ -441,10 +442,11 @@ module.exports = function(port, errors) {
                     response: {
                         schema: validations[method].response,
                         failAction: (request, reply, value, error) => {
+                            var valueObject = Object.assign({}, value._object);
                             if (value instanceof Error) {
                                 port.log.error && port.log.error(value);
                             }
-                            reply(value._object);
+                            reply(valueObject);
                         }
                     }
                 }
