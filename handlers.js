@@ -261,6 +261,7 @@ module.exports = function(port) {
         port.bus.importMethod('identity.check')(identityCheckParams)
         .then((res) => {
             if (request.payload.method === 'identity.check') {
+                let permissions = res ? res['permission.get'] : [];
                 endReply.result = res;
                 if (res['identity.check'] && res['identity.check'].sessionId) {
                     var tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
@@ -268,7 +269,10 @@ module.exports = function(port) {
                         timezone: tz,
                         actorId: res['identity.check'].actorId,
                         sessionId: res['identity.check'].sessionId,
-                        username: identityCheckParams.username
+                        username: identityCheckParams.username,
+                        permissions: (permissions || []).map(p => {
+                            return p.actionId;
+                        }).filter(Boolean)
                     }, port.config.jwt.key);
                     return reply(endReply)
                         .state(
