@@ -104,20 +104,16 @@ module.exports = function(port, errors) {
         }
         return vr;
     };
-    const doValidate = function doValidate(checkType, method, data, next) {
+    const doValidate = function doValidate(checkType, method, data) {
         if (!method) {
-            next(errors.NotPermitted(`Method not defined`));
+            throw errors.NotPermitted(`Method not defined`);
         } else if (Object.keys(validations[method] || {}).length === 2) {
             let validationResult = byMethodValidate(checkType, method, data);
             if (validationResult.error) {
-                next(validationResult.error);
-            } else {
-                next(null, data);
+                throw validationResult.error;
             }
         } else if (!validations[method] && !port.config.validationPassThrough) {
-            next(errors.ValidationNotFound(`Method ${method} not found`));
-        } else {
-            next(null, data);
+            throw errors.ValidationNotFound(`Method ${method} not found`);
         }
     };
 
@@ -144,19 +140,19 @@ module.exports = function(port, errors) {
         return identityCheckParams;
     };
 
-    const rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
+    const rpcHandler = port.handler = function rpcHandler(request, h, customReply) {
         let $meta = initMetadataFromRequest(request, port);
         port.log.trace && port.log.trace({payload: request && request.payload});
 
         const reply = function(resp, headers, statusCode) {
-            let repl = _reply(resp);
+            let response = h.response(resp);
             headers && Object.keys(headers).forEach(function(header) {
-                repl.header(header, headers[header]);
+                response.header(header, headers[header]);
             });
             if (statusCode) {
-                repl.code(statusCode);
+                response.code(statusCode);
             }
-            return repl;
+            return response;
         };
 
         function handleError(error, response, $responseMeta) {
@@ -212,9 +208,9 @@ module.exports = function(port, errors) {
         const processMessage = function(msgOptions) {
             function callReply(response) {
                 if (typeof customReply === 'function') {
-                    customReply(reply, response, $meta);
+                    return customReply(reply, response, $meta);
                 } else {
-                    reply(endReply, $meta.responseHeaders, $meta.statusCode);
+                    return reply(endReply, $meta.responseHeaders, $meta.statusCode);
                 }
             }
             msgOptions = msgOptions || {};
@@ -263,7 +259,7 @@ module.exports = function(port, errors) {
                                     type: $responseMeta.errorType || response.type,
                                     fieldErrors: $responseMeta.fieldErrors || response.fieldErrors
                                 };
-                                handleError(endReply.error, response, $responseMeta);
+                                return handleError(endReply.error, response, $responseMeta);
                             } else {
                                 let s = fs.createReadStream(fn);
                                 if ($responseMeta.tmpStaticFileName) {
@@ -275,7 +271,7 @@ module.exports = function(port, errors) {
                                         });
                                     });
                                 }
-                                _reply(s)
+                                return h.response(s)
                                     .header('Content-Type', 'application/octet-stream')
                                     .header('Content-Disposition', `attachment; filename="${path.basename(fn)}"`)
                                     .header('Content-Transfer-Encoding', 'binary');
@@ -290,17 +286,20 @@ module.exports = function(port, errors) {
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
                         return msgOptions.end.call(undefined, reply(endReply, $responseMeta.responseHeaders));
                     }
-                    callReply(response);
-                    return true;
+                    return callReply(response);
                 };
                 if ($meta.mtid === 'request') {
-                    $meta.reply = callback;
-                    $meta.trace = request.id;
+                    return new Promise((resolve, reject) => {
+                        $meta.reply = (response, $responseMeta) => {
+                            resolve(callback(response, $responseMeta));
+                        };
+                        $meta.trace = request.id;
+                        port.stream.push([request.payload.params || {}, $meta]);
+                    });
                 } else {
                     endReply.result = true;
-                    callReply(true);
+                    return callReply(true);
                 }
-                port.stream.push([request.payload.params || {}, $meta]);
             } catch (err) {
                 return handleError({
                     code: err.code || '-1',
@@ -323,7 +322,7 @@ module.exports = function(port, errors) {
             return processMessage();
         }
 
-        Promise.resolve()
+        return Promise.resolve()
         .then(() => {
             if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
                 return {
@@ -392,27 +391,25 @@ module.exports = function(port, errors) {
     };
 
     pendingRoutes.unshift(mergeWith({
-        config: {
+        options: {
             handler: rpcHandler,
             description: 'rpc common validation',
             tags: ['api', 'rpc'],
             validate: {
                 options: {abortEarly: false},
                 query: false,
-                payload: (value, options, next) => {
-                    doValidate('request', value.method, value, next);
+                payload: value => {
+                    doValidate('request', value.method, value);
                 },
                 params: true
             },
             response: {
-                schema: joi.object({}),
-                failAction: (request, reply, value, error) => {
-                    doValidate('response', request.params.method || request.payload.method, value._object, (err, result) => {
-                        if (err) {
-                            port.log.error && port.log.error(err);
-                        }
-                        reply(value._object);
-                    });
+                schema: (value, options) => {
+                    doValidate('response', options.context.params.method || options.context.payload.method, value);
+                },
+                failAction: (request, h, error) => {
+                    port.log.error && port.log.error(error);
+                    return h.continue;
                 }
             }
         }
@@ -437,14 +434,12 @@ module.exports = function(port, errors) {
         let responseValidation = {};
         if (validations[method].response) {
             responseValidation = {
-                config: {
+                options: {
                     response: {
                         schema: validations[method].response,
-                        failAction: (request, reply, value, error) => {
-                            if (value instanceof Error) {
-                                port.log.error && port.log.error(value);
-                            }
-                            reply(value._object);
+                        failAction: (request, h, error) => {
+                            port.log.error && port.log.error(error);
+                            return h.continue;
                         }
                     }
                 }
@@ -454,7 +449,7 @@ module.exports = function(port, errors) {
         pendingRoutes.unshift(mergeWith({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
-            config: {
+            options: {
                 handler: function(req, repl) {
                     if (!isRpc && !req.payload) {
                         req.payload = {
@@ -474,8 +469,7 @@ module.exports = function(port, errors) {
                 tags: (currentMethodConfig.tags || []).concat(tags),
                 validate: {
                     options: {abortEarly: false},
-                    payload: validations[method].request.payload,
-                    params: validations[method].request.params,
+                    payload: validations[method].request.params,
                     query: false
                 }
             }
@@ -510,7 +504,7 @@ module.exports = function(port, errors) {
     pendingRoutes.push({
         method: 'POST',
         path: '/file-upload',
-        config: {
+        options: {
             auth: {
                 strategy: 'jwt'
             },
