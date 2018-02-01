@@ -254,6 +254,8 @@ module.exports = function(port, errors) {
                     }
                     if ($responseMeta && ($responseMeta.staticFileName || $responseMeta.tmpStaticFileName)) {
                         let fn = $responseMeta.staticFileName || $responseMeta.tmpStaticFileName;
+                        let downloadFileName = $responseMeta.downloadFileName || fn;
+
                         fs.access(fn, fs.constants.R_OK, (err) => {
                             if (err) {
                                 endReply.error = {
@@ -277,7 +279,7 @@ module.exports = function(port, errors) {
                                 }
                                 _reply(s)
                                     .header('Content-Type', 'application/octet-stream')
-                                    .header('Content-Disposition', `attachment; filename="${path.basename(fn)}"`)
+                                    .header('Content-Disposition', `attachment; filename="${path.basename(downloadFileName)}"`)
                                     .header('Content-Transfer-Encoding', 'binary');
                             }
                         });
