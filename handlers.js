@@ -300,7 +300,9 @@ module.exports = function(port, errors) {
                     endReply.result = true;
                     callReply(true);
                 }
-                port.stream.push([request.payload.params || {}, $meta]);
+                port.stream.push([(request.params.isRpc
+                    ? request.payload.params
+                    : request.payload) || {}, $meta]);
             } catch (err) {
                 return handleError({
                     code: err.code || '-1',
