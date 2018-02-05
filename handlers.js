@@ -250,6 +250,8 @@ module.exports = function(port, errors) {
                     }
                     if ($responseMeta && ($responseMeta.staticFileName || $responseMeta.tmpStaticFileName)) {
                         let fn = $responseMeta.staticFileName || $responseMeta.tmpStaticFileName;
+                        let downloadFileName = $responseMeta.downloadFileName || fn;
+
                         fs.access(fn, fs.constants.R_OK, (err) => {
                             if (err) {
                                 endReply.error = {
@@ -273,7 +275,7 @@ module.exports = function(port, errors) {
                                 }
                                 return h.response(s)
                                     .header('Content-Type', 'application/octet-stream')
-                                    .header('Content-Disposition', `attachment; filename="${path.basename(fn)}"`)
+                                    .header('Content-Disposition', `attachment; filename="${path.basename(downloadFileName)}"`)
                                     .header('Content-Transfer-Encoding', 'binary');
                             }
                         });
@@ -294,7 +296,9 @@ module.exports = function(port, errors) {
                             resolve(callback(response, $responseMeta));
                         };
                         $meta.trace = request.id;
-                        port.stream.push([request.payload.params || {}, $meta]);
+                        port.stream.push([request.params.isRpc
+                            ? request.payload.params
+                            : request.payload || {}, $meta]);
                     });
                 } else {
                     endReply.result = true;
