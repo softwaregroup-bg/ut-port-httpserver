@@ -302,9 +302,9 @@ module.exports = function(port, errors) {
                     endReply.result = true;
                     callReply(true);
                 }
-                port.stream.push([(request.params.isRpc
-                    ? request.payload.params
-                    : request.payload) || {}, $meta]);
+                port.stream.push([(request.params.isRpc === false
+                    ? request.payload
+                    : request.payload.params) || {}, $meta]);
             } catch (err) {
                 return handleError({
                     code: err.code || '-1',
