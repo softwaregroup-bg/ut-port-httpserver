@@ -296,9 +296,9 @@ module.exports = function(port, errors) {
                             resolve(callback(response, $responseMeta));
                         };
                         $meta.trace = request.id;
-                        port.stream.push([request.params.isRpc
-                            ? request.payload.params
-                            : request.payload || {}, $meta]);
+                        port.stream.push([(request.params.isRpc === false
+                            ? request.payload
+                            : request.payload.params) || {}, $meta]);
                     });
                 } else {
                     endReply.result = true;
