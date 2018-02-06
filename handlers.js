@@ -473,7 +473,8 @@ module.exports = function(port, errors) {
                 tags: (currentMethodConfig.tags || []).concat(tags),
                 validate: {
                     options: {abortEarly: false},
-                    payload: validations[method].request.params,
+                    payload: validations[method].request.payload,
+                    params: (path.indexOf('{') >= 0) ? validations[method].request.params : undefined,
                     query: false
                 }
             }
