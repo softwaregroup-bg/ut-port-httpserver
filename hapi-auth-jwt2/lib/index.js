@@ -99,7 +99,7 @@ internals.implementation = function (server, options) {
       if (!token) {
         return h.unauthenticated(raiseError('unauthorized', null, tokenType), {credentials: tokenType});
       }
-      
+
       // quick check for validity of token format
       if (!extract.isValid(token)) {
         return h.unauthenticated(raiseError('unauthorized',
@@ -114,10 +114,12 @@ internals.implementation = function (server, options) {
         return h.unauthenticated(raiseError('unauthorized',
         'Invalid token format', tokenType), { credentials: token });
       }
-      const { key, ...extraInfo } = internals.isFunction(options.key) ? await options.key(decoded) : {key: options.key };
+      let extraInfo = Object.assign({}, internals.isFunction(options.key) ? await options.key(decoded) : {key: options.key });
+      const key = extraInfo.key;
+      delete extraInfo.key;
       // if keyFunc is function allow dynamic key lookup: https://git.io/vXjvY
       if (typeof options.validate === 'function') {
-        
+
         let verifyOptions = options.verifyOptions || {};
         let keys = (Array.isArray(key)) ? key : [key];
         let keysTried = 0;
@@ -125,7 +127,7 @@ internals.implementation = function (server, options) {
         if (extraInfo) {
           request.plugins[pkg.name] = {extraInfo};
         }
-        
+
         let k;
         for(let i = 0; i < keys.length; ++i) {
           k = keys[i];

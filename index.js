@@ -329,7 +329,7 @@ module.exports = function({parent}) {
                 }, (this.config.packer && this.config.packer.hotMiddleware) || {});
 
                 this.hapiServers[0].register({
-                    register: require('hapi-webpack-plugin'),
+                    register: serverRequire('hapi-webpack-plugin'),
                     options: {
                         compiler,
                         assets,
