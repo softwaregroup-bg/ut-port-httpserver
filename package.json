@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "10.0.0-rc-cubalibre.3",
+  "version": "10.0.0-rc-cubalibre.4",
   "dependencies": {
     "boom": "7.1.1",
     "call": "5.0.1",
