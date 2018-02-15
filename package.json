@@ -6,7 +6,6 @@
     "call": "5.0.1",
     "fs-plus": "3.0.2",
     "hapi": "17.2.0",
-    "hapi-auth-jwt2": "7.4.1",
     "hapi-auth-basic": "5.0.0",
     "hapi-swagger": "9.0.2",
     "inert": "5.1.0",
