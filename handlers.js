@@ -36,7 +36,7 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
         debug: joi.object().label('debug'),
         $meta: joi.object()
     })
-    .xor('result', 'error'));
+        .xor('result', 'error'));
     return {request, response};
 };
 
@@ -327,71 +327,71 @@ module.exports = function(port, errors) {
         }
 
         return Promise.resolve()
-        .then(() => {
-            if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
-                return {
-                    'permission.get': ['*']
-                };
-            }
-            let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
-            return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
-        })
-        .then((res) => {
-            if (request.payload.method === identityCheckFullName) {
-                endReply.result = res;
-                const reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
+            .then(() => {
+                if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
+                    return {
+                        'permission.get': ['*']
+                    };
+                }
+                let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
+            })
+            .then((res) => {
+                if (request.payload.method === identityCheckFullName) {
+                    endReply.result = res;
+                    const reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
                         (request.auth &&
                         request.auth.credentials &&
                         request.auth.credentials.sessionId));
-                if (res['identity.check'] && res['identity.check'].sessionId && !reuseCookie()) {
-                    let appId = request.payload.params && request.payload.params.appId;
-                    let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
-                    let uuId = uuid();
-                    let jwtSigned = jwt.sign({
-                        timezone: tz,
-                        xsrfToken: uuId,
-                        actorId: res['identity.check'].actorId,
-                        sessionId: res['identity.check'].sessionId,
-                        scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
-                    }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
-                    endReply.result.jwt = {value: jwtSigned};
-                    endReply.result.xsrf = {uuId};
+                    if (res['identity.check'] && res['identity.check'].sessionId && !reuseCookie()) {
+                        let appId = request.payload.params && request.payload.params.appId;
+                        let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
+                        let uuId = uuid();
+                        let jwtSigned = jwt.sign({
+                            timezone: tz,
+                            xsrfToken: uuId,
+                            actorId: res['identity.check'].actorId,
+                            sessionId: res['identity.check'].sessionId,
+                            scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
+                        }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
+                        endReply.result.jwt = {value: jwtSigned};
+                        endReply.result.xsrf = {uuId};
 
-                    return reply(endReply)
-                        .state(
-                            port.config.jwt.cookieKey,
-                            jwtSigned,
-                            Object.assign({path: port.config.cookiePaths}, port.config.cookie)
-                        )
-                        .state(
-                            'xsrf-token',
-                            uuId,
-                            Object.assign({path: port.config.cookiePaths}, port.config.cookie, {isHttpOnly: false})
-                        );
+                        return reply(endReply)
+                            .state(
+                                port.config.jwt.cookieKey,
+                                jwtSigned,
+                                Object.assign({path: port.config.cookiePaths}, port.config.cookie)
+                            )
+                            .state(
+                                'xsrf-token',
+                                uuId,
+                                Object.assign({path: port.config.cookiePaths}, port.config.cookie, {isHttpOnly: false})
+                            );
+                    } else {
+                        return reply(endReply);
+                    }
+                } else if (request.payload.method === 'permission.get') {
+                    return processMessage();
                 } else {
-                    return reply(endReply);
+                    if (res['permission.get'] && res['permission.get'].length) {
+                        return processMessage({
+                            language: res.language,
+                            protection: res.protection
+                        });
+                    } else {
+                        return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
+                    }
                 }
-            } else if (request.payload.method === 'permission.get') {
-                return processMessage();
-            } else {
-                if (res['permission.get'] && res['permission.get'].length) {
-                    return processMessage({
-                        language: res.language,
-                        protection: res.protection
-                    });
-                } else {
-                    return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
-                }
-            }
-        })
-        .catch((err) => (
-            handleError({
-                code: err.code || '-1',
-                message: err.message,
-                errorPrint: err.errorPrint || err.message,
-                type: err.type
-            }, err, $meta)
-        ));
+            })
+            .catch((err) => (
+                handleError({
+                    code: err.code || '-1',
+                    message: err.message,
+                    errorPrint: err.errorPrint || err.message,
+                    type: err.type
+                }, err, $meta)
+            ));
     };
 
     pendingRoutes.unshift(mergeWith({
@@ -555,7 +555,7 @@ module.exports = function(port, errors) {
                                             if (matches.length === 3) {
                                                 let imageBuffer = {};
                                                 imageBuffer.type = matches[1];
-                                                imageBuffer.data = new Buffer(matches[2], 'base64');
+                                                imageBuffer.data = Buffer.from(matches[2], 'base64');
                                                 fileContent = imageBuffer.data;
                                                 fs.writeFile(path, fileContent, (err) => {
                                                     if (err) reply('');
