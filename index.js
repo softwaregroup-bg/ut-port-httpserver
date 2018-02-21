@@ -20,7 +20,13 @@ module.exports = function({parent}) {
     function HttpServerPort({config}) {
         parent && parent.apply(this, arguments);
         if (config && config.routes && config.routes.rpc && config.routes.rpc.config) {
-            throw new Error('Rename routes.rpc.config to routes.rpc.options in port ' + config.id);
+            if (config.routes.rpc.options) {
+                throw new Error('Rename routes.rpc.config to routes.rpc.options in port ' + config.id);
+            } else {
+                config.routes.rpc.options = config.routes.rpc.config;
+                delete config.routes.rpc.config;
+                this.log.warn && this.log.warn('Rename routes.rpc.config to routes.rpc.options in port ' + config.id);
+            }
         }
         this.config = mergeWith({
             id: null,
@@ -179,75 +185,76 @@ module.exports = function({parent}) {
                     resolve('Temp dir for file uploads has been verified: ' + fileUploadTempDir);
                 }
             });
-        }).then(() => {
-            var servers = [];
-            if (this.config.connections && this.config.connections.length) {
-                servers = this.config.connections.map(connection => this.createServer(
-                    Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection))
-                );
-            } else {
-                servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port})];
-            }
-            return Promise.all(servers);
         })
-        .then(servers => {
-            this.hapiServers = servers;
-            return parent && parent.prototype.start.apply(this, args);
-        })
-        .then(() => {
-            if (this.socketSubscriptions.length) {
-                this.hapiServers.forEach(server => {
-                    var socketServer = new SocketServer(this, this.config);
-                    this.socketSubscriptions.forEach(config => socketServer.registerPath.apply(this.socketServer, config));
-                    this.socketServers.push(socketServer);
-                    socketServer.start();
-                });
-            };
-            return 0;
-        })
-        .then(() => Promise.all(this.hapiServers.map(server => server.start())))
-        .then(() => Promise.all(this.hapiServers.map(server => {
-            if (this.bus.config.registry && this.config.registry !== false) {
-                server.route({
-                    method: 'GET',
-                    path: '/health',
-                    options: {
-                        auth: false,
-                        handler: (request, reply) => {
-                            return this.isReady ? reply('ok') : reply('service not available').code(503);
+            .then(() => {
+                var servers = [];
+                if (this.config.connections && this.config.connections.length) {
+                    servers = this.config.connections.map(connection => this.createServer(
+                        Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection))
+                    );
+                } else {
+                    servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port})];
+                }
+                return Promise.all(servers);
+            })
+            .then(servers => {
+                this.hapiServers = servers;
+                return parent && parent.prototype.start.apply(this, args);
+            })
+            .then(() => {
+                if (this.socketSubscriptions.length) {
+                    this.hapiServers.forEach(server => {
+                        var socketServer = new SocketServer(this, this.config);
+                        this.socketSubscriptions.forEach(config => socketServer.registerPath.apply(this.socketServer, config));
+                        this.socketServers.push(socketServer);
+                        socketServer.start();
+                    });
+                };
+                return 0;
+            })
+            .then(() => Promise.all(this.hapiServers.map(server => server.start())))
+            .then(() => Promise.all(this.hapiServers.map(server => {
+                if (this.bus.config.registry && this.config.registry !== false) {
+                    server.route({
+                        method: 'GET',
+                        path: '/health',
+                        options: {
+                            auth: false,
+                            handler: (request, reply) => {
+                                return this.isReady ? reply('ok') : reply('service not available').code(503);
+                            }
                         }
+                    });
+                    let info = this.server.info;
+                    let config = mergeWith(
+                    // defaults
+                        {
+                            name: this.bus.config.implementation,
+                            address: info.host, // info.address is 0.0.0.0 so we use the host
+                            port: info.port,
+                            id: uuid(),
+                            check: {},
+                            context: {
+                                type: 'http',
+                                pid: process.pid
+                            }
+                        },
+                        // custom
+                        this.config.registry
+                    );
+                    config.check.http = `${config.protocol || info.protocol}://${config.address}:${config.port}/health`;
+                    return this.bus.importMethod('registry.service.add')(config);
+                };
+            }))).then(() => {
+                this.log.info && this.log.info({
+                    message: 'HTTP server started',
+                    $meta: {
+                        mtid: 'event',
+                        opcode: 'port.started'
                     }
                 });
-                let info = this.server.info;
-                let config = mergeWith(
-                    // defaults
-                    {
-                        name: this.bus.config.implementation,
-                        address: info.host, // info.address is 0.0.0.0 so we use the host
-                        port: info.port,
-                        id: uuid(),
-                        check: {},
-                        context: {
-                            type: 'http',
-                            pid: process.pid
-                        }
-                    },
-                    // custom
-                    this.config.registry
-                );
-                config.check.http = `${config.protocol || info.protocol}://${config.address}:${config.port}/health`;
-                return this.bus.importMethod('registry.service.add')(config);
-            };
-        }))).then(() => {
-            this.log.info && this.log.info({
-                message: 'HTTP server started',
-                $meta: {
-                    mtid: 'event',
-                    opcode: 'port.started'
-                }
+                return true;
             });
-            return true;
-        });
     };
 
     HttpServerPort.prototype.registerRequestHandler = function(handlers) {
