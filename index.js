@@ -114,7 +114,16 @@ module.exports = function({parent}) {
     };
 
     HttpServerPort.prototype.createServer = async function createServer(config) {
-        var server = new hapi.Server(config);
+        var server = new hapi.Server(mergeWith({
+            routes: {
+                validate: {
+                    failAction: (request, h, err) => {
+                        this.log.error && this.log.error(err);
+                        return err; // todo check for OWASP issues, when returning validation error details
+                    }
+                }
+            }
+        }, config));
 
         server.ext('onPreResponse', (request, h) => {
             if (request.response.isBoom) {
