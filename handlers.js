@@ -519,36 +519,34 @@ module.exports = function(port, errors) {
                 parse: true,
                 allow: 'multipart/form-data'
             },
-            handler: function(request, reply) {
-                Promise.resolve()
-                    .then(() => {
-                        let $meta = initMetadataFromRequest(request, port);
-                        let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
-                        return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
-                    })
-                    .then((res) => {
+            handler: function(request, h) {
+                return new Promise((resolve, reject) => {
+                    let $meta = initMetadataFromRequest(request, port);
+                    let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                    port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta).then((res) => {
                         let file = request.payload.file;
                         let isValid = isUploadValid(request, port.config.fileUpload);
                         if (!isValid) {
-                            return reply('').code(400);
+                            resolve(h.response('Invalid file name').code(400));
                         } else {
                             let fileName = (new Date()).getTime() + '_' + file.hapi.filename;
                             let path = port.bus.config.workDir + '/uploads/' + fileName;
                             let ws = fs.createWriteStream(path);
                             ws.on('error', function(err) {
                                 port.log.error && port.log.error(err);
-                                reply('');
+                                reject(err);
                             });
                             file.pipe(ws);
                             return file.on('end', function(err) {
                                 if (err) {
                                     port.log.error && port.log.error(err);
-                                    reply('');
+                                    reject(err);
                                 } else {
                                     if (file.hapi.headers['content-type'] === 'base64/png') {
                                         fs.readFile(path, (err, fileContent) => {
                                             if (err) {
-                                                reply('');
+                                                reject(err);
+                                                return;
                                             }
                                             fileContent = fileContent.toString();
                                             let matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
@@ -558,27 +556,29 @@ module.exports = function(port, errors) {
                                                 imageBuffer.data = Buffer.from(matches[2], 'base64');
                                                 fileContent = imageBuffer.data;
                                                 fs.writeFile(path, fileContent, (err) => {
-                                                    if (err) reply('');
-                                                    reply(JSON.stringify({
-                                                        filename: fileName,
-                                                        headers: file.hapi.headers
-                                                    }));
+                                                    if (err) {
+                                                        reject(err);
+                                                    } else {
+                                                        resolve(h.response(JSON.stringify({
+                                                            filename: fileName,
+                                                            headers: file.hapi.headers
+                                                        })));
+                                                    }
                                                 });
-                                            } else reply('');
+                                            } else resolve(h.response('Invalid file content').code(400));
                                         });
                                     } else {
-                                        reply(JSON.stringify({
+                                        resolve(h.response(JSON.stringify({
                                             filename: fileName,
                                             headers: file.hapi.headers
-                                        }));
+                                        })));
                                     }
                                 }
                             });
                         }
-                    })
-                    .catch((err) => {
-                        if (err) reply('').code(401);
-                    });
+                        return true;
+                    }).catch(err => reject(err));
+                });
             }
         }
     });
