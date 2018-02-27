@@ -42,7 +42,7 @@ module.exports = function extract (request, options) {
   } else if (cookieKey && request.headers.cookie) {
     auth = Cookie.parse(request.headers.cookie)[cookieKey];
   }
-  
+
   // strip pointless "Bearer " label & any whitespace > http://git.io/xP4F
   return auth ? auth.replace(/Bearer/gi, '').replace(/ /g, '') : null;
 };
@@ -54,4 +54,14 @@ module.exports = function extract (request, options) {
  */
 module.exports.isValid = function isValid (token) {
   return token.split('.').length === 3;
+};
+
+/**
+ * isHeadless is a check to see if the header section of the JWT exists
+ *
+ * @param token - the token extracted from Header/Cookie/query
+ * @returns {boolean} true|false - true if JWT is without a header section, false if it is not
+ */
+module.exports.isHeadless = function isHeadless(token) {
+  return token.split('.').length === 2;
 };

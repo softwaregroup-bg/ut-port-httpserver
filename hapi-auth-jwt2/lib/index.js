@@ -71,7 +71,8 @@ internals.implementation = function (server, options) {
     if (options.errorFunc && internals.isFunction(options.errorFunc)) {
       errorContext = options.errorFunc(errorContext);
 
-      if (errorContext) {
+      /* istanbul ignore else */
+      if (errorContext) { // if errorContext is undefined don't set attributes!
         _errorType = errorContext.errorType;
         _message = errorContext.message;
         _scheme = errorContext.scheme;
@@ -100,6 +101,12 @@ internals.implementation = function (server, options) {
         return h.unauthenticated(raiseError('unauthorized', null, tokenType), {credentials: tokenType});
       }
 
+      // If we are receiving a headerless JWT token let reconstruct it using the custom function
+      if(options.headless && typeof options.headless === 'object' && extract.isHeadless(token)){
+          token = `${Buffer.from(JSON.stringify(options.headless)).toString("base64")}.${token}`;
+      }
+
+
       // quick check for validity of token format
       if (!extract.isValid(token)) {
         return h.unauthenticated(raiseError('unauthorized',
@@ -124,6 +131,7 @@ internals.implementation = function (server, options) {
         let keys = (Array.isArray(key)) ? key : [key];
         let keysTried = 0;
 
+        /* istanbul ignore else */
         if (extraInfo) {
           request.plugins[pkg.name] = {extraInfo};
         }
@@ -172,8 +180,9 @@ internals.implementation = function (server, options) {
           return h.unauthenticated(raiseError('unauthorized', 'Invalid credentials',
           tokenType), { credentials: decoded });
         }
+
         return h.authenticated({
-          credentials: credentials || decoded,
+          credentials: credentials,
           artifacts: token
         });
       } catch(verify_error) {
