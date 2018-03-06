@@ -21,18 +21,12 @@ This port exposes the following functionality:
 1. Fingerprinted resource URLs
 1. WebSockets
 1. Recommendations from http://stackoverflow.com/questions/549/the-definitive-guide-to-form-based-website-authentication
-1. Automatic documentation of the exposed APIs
 
-# Planned node modules to be used
+# Planned node modules to be researched
 
-1. For HTTP server: https://www.npmjs.com/package/hapi
-1. For login: https://www.npmjs.com/package/jsrp
-1. For fingerprinted URLs: https://www.npmjs.com/package/raptor-optimizer
 1. For debugging: https://www.npmjs.com/package/tv
 1. For caching: https://www.npmjs.com/package/catbox
 1. For WebSockets: https://www.npmjs.com/package/shoe
-1. For templates: our own module ut-template
-1. For API doc: https://www.npmjs.com/package/hapi-swagger
 
 ## USAGE
 
