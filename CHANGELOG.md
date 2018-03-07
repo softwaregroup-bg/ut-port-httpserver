@@ -1,3 +1,24 @@
+<a name="9.1.1"></a>
+## [9.1.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.0...v9.1.1) (2018-03-02)
+
+
+
+<a name="9.1.0"></a>
+# [9.1.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.0.0...v9.1.0) (2018-01-31)
+
+
+### Bug Fixes
+
+* add support for pkg ([55757ef](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/55757ef))
+* handle passed timeout ([61156a4](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/61156a4))
+* improve logging ([2117e57](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/2117e57))
+* meta validations ([fde5850](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/fde5850))
+* start timer early ([4026ee6](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/4026ee6))
+* timeout validation ([985001e](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/985001e))
+* use response meta ([2a786bb](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/2a786bb))
+
+
+
 <a name="9.0.0"></a>
 # [9.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.0.0-ut6.10...v9.0.0) (2017-12-06)
 
