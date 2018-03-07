@@ -145,3 +145,4 @@ module.exports = {
 
 ## Return streamed file (used for large files)
 if `staticFileName` is set file will be returned to client, but if `tmpStaticFileName` is set after file gets returned will be deleted.
+Downloaded file name could be set explicitly with `downloadFileName`, otherwise `staticFileName` or `tmpStaticFileName` would be used as default.
