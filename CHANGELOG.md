@@ -1,3 +1,13 @@
+<a name="8.13.1"></a>
+## [8.13.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.13.0...v8.13.1) (2018-03-07)
+
+
+### Features
+
+* include returnResultSize in $meta to reuturn resultSize ([561980f](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/561980f))
+
+
+
 <a name="8.13.0"></a>
 # [8.13.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.12.5...v8.13.0) (2017-07-21)
 
