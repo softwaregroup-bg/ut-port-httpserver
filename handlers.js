@@ -311,6 +311,9 @@ module.exports = function(port) {
                     }
 
                     endReply.result = response;
+                    if ($meta.returnResultSize && Array.isArray(endReply.result)) {
+                        endReply[$meta.returnResultSize] = endReply.result.length;
+                    }
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
                         return msgOptions.end.call(void 0, reply(endReply, $meta.responseHeaders));
                     }
