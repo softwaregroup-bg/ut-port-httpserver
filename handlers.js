@@ -98,6 +98,7 @@ module.exports = function(port) {
             vr = validations[method].response.validate(data);
             vr.method = 'response';
         }
+		
         return vr || {};
     };
     var doValidate = function doValidate(checkType, method, data, next) {
