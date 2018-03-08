@@ -1,3 +1,13 @@
+<a name="8.13.2"></a>
+## [8.13.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.13.1...v8.13.2) (2018-03-08)
+
+
+### Bug Fixes
+
+* check for response in validations in method byMethodValidate ([b4cfd99](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/b4cfd99))
+
+
+
 <a name="8.13.1"></a>
 ## [8.13.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v8.13.0...v8.13.1) (2018-03-07)
 
