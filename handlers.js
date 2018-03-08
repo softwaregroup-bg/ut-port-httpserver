@@ -94,11 +94,11 @@ module.exports = function(port) {
         if (checkType === 'request') {
             vr = validations[method].request.payload.validate(data);
             vr.method = 'payload';
-        } else if (checkType === 'response') {
+        } else if (checkType === 'response' && validations[method].response) {
             vr = validations[method].response.validate(data);
             vr.method = 'response';
         }
-        return vr;
+        return vr || {};
     };
     var doValidate = function doValidate(checkType, method, data, next) {
         if (!method) {
