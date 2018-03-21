@@ -472,6 +472,7 @@ module.exports = function(port, errors) {
                     req.params.isRpc = isRpc;
                     return rpcHandler(req, repl);
                 },
+                app: currentMethodConfig.app,
                 auth,
                 description: currentMethodConfig.description || config[method].method,
                 notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
