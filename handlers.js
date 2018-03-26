@@ -187,12 +187,12 @@ module.exports = function(port, errors) {
 
         try {
             $meta = initMetadataFromRequest(request, port);
-        } catch(error) {
+        } catch (error) {
             return handleError({
                 code: '400',
                 message: 'Validation Error',
                 errorPrint: error.message
-            })
+            });
         }
 
         let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
