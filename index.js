@@ -345,20 +345,19 @@ module.exports = function({parent}) {
                 }, (this.config.packer && this.config.packer.hotMiddleware) || {});
 
                 this.hapiServers[0].register({
-                    register: serverRequire('hapi-webpack-plugin'),
+                    plugin: serverRequire('hapi-webpack-plugin'),
                     options: {
                         compiler,
                         assets,
                         hot
                     }
-                }, err => {
-                    if (err) {
-                        reject(err);
-                    } else {
+                })
+                    .then(() => {
                         this.hotReload = true;
                         resolve(true);
-                    }
-                });
+                        return true;
+                    })
+                    .catch(reject);
             } else {
                 // @TODO implement lasso hot reload
             }
