@@ -46,7 +46,7 @@ function permissionVerify(ctx, roomId, appId) {
     let allowedObjectList = ['%', roomId];
     let permitCount = (ctx.permissions || [])
         .filter((v) => (
-          allowedActionList.includes(v.actionId) &&
+            allowedActionList.includes(v.actionId) &&
           allowedObjectList.includes(v.objectId)
         )).length;
 
@@ -87,45 +87,45 @@ SocketServer.prototype.start = function start(httpServerListener) {
         let url = socket.upgradeReq.url.split('?').shift();
         let fingerprint = this.router.analyze(url).fingerprint;
         Promise.resolve()
-        .then(() => (!this.disableXsrf && jwtXsrfCheck(
+            .then(() => (!this.disableXsrf && jwtXsrfCheck(
                 getTokens([socket.upgradeReq.url.replace(/[^?]+\?/ig, '')], ['&', '=']), // parse url string into hash object
                 getTokens([cookies], [';', '='])[this.utHttpServerConfig.jwt.cookieKey], // parse cookie string into hash object
                 this.utHttpServerConfig.jwt.key,
                 Object.assign({}, this.utHttpServerConfig.jwt.verifyOptions, {ignoreExpiration: false})
             )
-        ))
-        .then((p) => (new Promise((resolve, reject) => {
-            let context = this.router.route(socket.upgradeReq.method.toLowerCase(), url);
-            if (context.isBoom) {
-                throw context;
-            }
-            context.permissions = p;
-            resolve(context);
-        })))
-        .then((context) => {
-            if (!this.disablePermissionVerify) {
-                return permissionVerify(context, fingerprint, this.utHttpServerConfig.appId);
-            }
-            return context;
-        })
-        .then((context) => (context.route.verifyClient(socket)))
-        .then(() => {
-            return this.router
-                .route(socket.upgradeReq.method.toLowerCase(), url).route
-                .handler(fingerprint, socket);
-        })
-        .then(() => (this.emit('connection')))
-        .catch((err) => {
-            if (!err.isBoom) {
+            ))
+            .then((p) => (new Promise((resolve, reject) => {
+                let context = this.router.route(socket.upgradeReq.method.toLowerCase(), url);
+                if (context.isBoom) {
+                    throw context;
+                }
+                context.permissions = p;
+                resolve(context);
+            })))
+            .then((context) => {
+                if (!this.disablePermissionVerify) {
+                    return permissionVerify(context, fingerprint, this.utHttpServerConfig.appId);
+                }
+                return context;
+            })
+            .then((context) => (context.route.verifyClient(socket)))
+            .then(() => {
+                return this.router
+                    .route(socket.upgradeReq.method.toLowerCase(), url).route
+                    .handler(fingerprint, socket);
+            })
+            .then(() => (this.emit('connection')))
+            .catch((err) => {
+                if (!err.isBoom) {
+                    this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
+                    return socket.close(4500, '4500');
+                }
                 this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
-                return socket.close(4500, '4500');
-            }
-            this.utHttpServer.log && this.utHttpServer.log.error && this.utHttpServer.log.error(err);
-            socket.close(
-                4000 + parseInt(err.output.payload.statusCode), // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
-                (4000 + parseInt(err.output.payload.statusCode)).toString() // Send status code as reason because Firefox/Edge show 1005 only as code
-            );
-        });
+                socket.close(
+                    4000 + parseInt(err.output.payload.statusCode), // based on https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes
+                    (4000 + parseInt(err.output.payload.statusCode)).toString() // Send status code as reason because Firefox/Edge show 1005 only as code
+                );
+            });
     });
 };
 
