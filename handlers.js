@@ -141,7 +141,7 @@ module.exports = function(port, errors) {
     };
 
     const rpcHandler = port.handler = function rpcHandler(request, h, customReply) {
-        let $meta = initMetadataFromRequest(request, port);
+        let $meta = {};
         port.log.trace && port.log.trace({payload: request && request.payload});
 
         const reply = function(resp, headers, statusCode) {
@@ -180,6 +180,17 @@ module.exports = function(port, errors) {
                 return reply(msg);
             }
         }
+
+        try {
+            $meta = initMetadataFromRequest(request, port);
+        } catch (error) {
+            return handleError({
+                code: '400',
+                message: 'Validation Error',
+                errorPrint: error.message
+            });
+        }
+
         let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
         let publicToken = request.headers && request.headers['x-xsrf-token'];
         let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
@@ -467,6 +478,7 @@ module.exports = function(port, errors) {
                     req.params.isRpc = isRpc;
                     return rpcHandler(req, repl);
                 },
+                app: currentMethodConfig.app,
                 auth,
                 description: currentMethodConfig.description || config[method].method,
                 notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),

@@ -1,3 +1,13 @@
+<a name="9.1.3"></a>
+## [9.1.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.2...v9.1.3) (2018-03-21)
+
+
+### Bug Fixes
+
+* add app prop to route ([b8f44fb](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/b8f44fb))
+
+
+
 <a name="9.1.2"></a>
 ## [9.1.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.1...v9.1.2) (2018-03-07)
 
