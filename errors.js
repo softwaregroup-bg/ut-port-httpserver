@@ -2,10 +2,9 @@
 module.exports = create => {
     const HttpServer = create('httpServerPort');
     return {
-        HttpServer: HttpServer,
-        ValidationNotFound: create('validationNotFound', HttpServer),
-        NotPermitted: create('notPermitted', HttpServer),
-        MethodNotFound: create('methodNotFound', HttpServer),
-        InvalidRequest: create('invalidRequest', HttpServer)
+        validationNotFound: create('validationNotFound', HttpServer, 'Validation for method {method} not found'),
+        notPermitted: create('notPermitted', HttpServer, 'Missing Permission for {method}'),
+        xsrfTokenMismatch: create('xsrfTokenMismatch', HttpServer, 'private token != public token; cors error'),
+        methodNotFound: create('methodNotFound', HttpServer, 'Method not found')
     };
 };

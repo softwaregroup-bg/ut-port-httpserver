@@ -1,6 +1,5 @@
 'use strict';
 const path = require('path');
-const mergeWith = require('lodash.mergewith');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
@@ -106,14 +105,14 @@ module.exports = function(port, errors) {
     };
     const doValidate = function doValidate(checkType, method, data) {
         if (!method) {
-            throw errors.NotPermitted(`Method not defined`);
+            throw errors.methodNotFound();
         } else if (Object.keys(validations[method] || {}).length === 2) {
             let validationResult = byMethodValidate(checkType, method, data);
             if (validationResult.error) {
                 throw validationResult.error;
             }
         } else if (!validations[method] && !port.config.validationPassThrough) {
-            throw errors.ValidationNotFound(`Method ${method} not found`);
+            throw errors.validationNotFound({params: {method}});
         }
     };
 
@@ -122,11 +121,11 @@ module.exports = function(port, errors) {
     const prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
         let identityCheckParams;
         if (request.payload.method === identityCheckFullName) {
-            identityCheckParams = mergeWith({}, request.payload.params);
+            identityCheckParams = port.merge({}, request.payload.params);
         } else {
             identityCheckParams = {actionId: request.payload.method};
         }
-        mergeWith(
+        port.merge(
             identityCheckParams,
             request.auth.credentials,
             {
@@ -197,7 +196,7 @@ module.exports = function(port, errors) {
         let routeConfig = ((config[request.params.method] || {}).config || {});
 
         if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
-            port.log.error && port.log.error({httpServerSecurity: 'fail', reason: 'private token != public token; cors error'});
+            port.log.error && port.log.error(errors.xsrfTokenMismatch());
             return handleError({
                 code: '404',
                 message: 'Not found',
@@ -391,7 +390,7 @@ module.exports = function(port, errors) {
                             protection: res.protection
                         });
                     } else {
-                        return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
+                        return handleError(errors.notPermitted({params: {method: request.payload.method}}));
                     }
                 }
             })
@@ -405,7 +404,7 @@ module.exports = function(port, errors) {
             ));
     };
 
-    pendingRoutes.unshift(mergeWith({
+    pendingRoutes.unshift(port.merge({
         options: {
             handler: rpcHandler,
             description: 'rpc common validation',
@@ -461,7 +460,7 @@ module.exports = function(port, errors) {
             };
         }
         let auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
-        pendingRoutes.unshift(mergeWith({}, (isRpc ? port.config.routes.rpc : {}), {
+        pendingRoutes.unshift(port.merge({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
             options: {
@@ -471,7 +470,7 @@ module.exports = function(port, errors) {
                             id: req.id,
                             jsonrpc: '2.0',
                             method,
-                            params: mergeWith({}, req.params, {})
+                            params: port.merge({}, req.params, {})
                         };
                     }
                     req.params.method = method;
