@@ -90,7 +90,20 @@ module.exports = function({parent}) {
                     algorithm: 'HS256'
                 }
             }
-        }, config);
+        }, config, (targetVal, sourceVal) => {
+            if (Array.isArray(targetVal) && sourceVal) {
+                if (Array.isArray(sourceVal)) {
+                    return sourceVal;
+                }
+                if (sourceVal instanceof Set) {
+                    return targetVal
+                        .concat(Array.from(sourceVal))
+                        .filter((value, index, arr) => {
+                            return value && arr.indexOf(value) === index;
+                        });
+                }
+            }
+        });
         errors = errors || require('./errors')(this.defineError);
         this.hapiServers = [];
         this.socketServers = [];
