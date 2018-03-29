@@ -32,6 +32,7 @@
     "release": "ut-release",
     "changelog": "ut-changelog",
     "check": "ut-check",
+    "precover": "ut-precover",
     "cover": "ut-cover",
     "lint-js": "ut-lint-js .",
     "postpublish": "ut-postpublish",
