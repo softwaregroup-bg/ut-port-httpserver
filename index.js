@@ -6,15 +6,14 @@ const inert = require('inert');
 const vision = require('vision');
 const jwt = require('./hapi-auth-jwt2');
 const basicAuth = require('hapi-auth-basic');
-const mergeWith = require('lodash.mergewith');
 const swagger = require('hapi-swagger');
 const packageJson = require('./package.json');
 const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('./socketServer');
 const uuid = require('uuid/v4');
+const errorsFactory = require('./errors');
 const serverRequire = require;
-let errors;
 
 module.exports = function({parent}) {
     function HttpServerPort({config}) {
@@ -28,7 +27,7 @@ module.exports = function({parent}) {
                 this.log.warn && this.log.warn('Rename routes.rpc.config to routes.rpc.options in port ' + config.id);
             }
         }
-        this.config = mergeWith({
+        this.config = this.merge({
             id: null,
             logLevel: 'info',
             type: 'httpserver',
@@ -91,7 +90,11 @@ module.exports = function({parent}) {
                 }
             }
         }, config);
-        errors = errors || require('./errors')(this.defineError);
+        if (this.errors) {
+            Object.assign(this.errors, errorsFactory(this.defineError));
+        } else {
+            this.errors = errorsFactory(this.defineError);
+        }
         this.hapiServers = [];
         this.socketServers = [];
         this.socketSubscriptions = [];
@@ -114,7 +117,7 @@ module.exports = function({parent}) {
     };
 
     HttpServerPort.prototype.createServer = async function createServer(config) {
-        var server = new hapi.Server(mergeWith({
+        var server = new hapi.Server(this.merge({
             routes: {
                 validate: {
                     failAction: (request, h, err) => {
@@ -158,13 +161,13 @@ module.exports = function({parent}) {
             }
         ]);
 
-        server.auth.strategy('jwt', 'jwt', mergeWith({
+        server.auth.strategy('jwt', 'jwt', this.merge({
             validate: () => ({isValid: true}) // errors will be matched in the rpc handler
         }, this.config.jwt));
         server.auth.default('jwt');
 
         server.route(this.routes);
-        server.route(handlers(this, errors));
+        server.route(handlers(this, this.errors));
 
         return server;
     };
@@ -235,7 +238,7 @@ module.exports = function({parent}) {
                         }
                     });
                     let info = this.server.info;
-                    let config = mergeWith(
+                    let config = this.merge(
                     // defaults
                         {
                             name: this.bus.config.implementation,
@@ -338,9 +341,9 @@ module.exports = function({parent}) {
                         watch: true
                     };
                 }
-                assetsConfig = mergeWith(assetsConfig, this.config.packer.assets);
-                let assets = mergeWith(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
-                let hot = mergeWith({
+                assetsConfig = this.merge(assetsConfig, this.config.packer.assets);
+                let assets = this.merge(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
+                let hot = this.merge({
                     publicPath: config.output.publicPath
                 }, (this.config.packer && this.config.packer.hotMiddleware) || {});
 
