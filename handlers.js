@@ -261,36 +261,35 @@ module.exports = function(port, errors) {
                     if ($responseMeta && ($responseMeta.staticFileName || $responseMeta.tmpStaticFileName)) {
                         let fn = $responseMeta.staticFileName || $responseMeta.tmpStaticFileName;
                         let downloadFileName = $responseMeta.downloadFileName || fn;
-
-                        fs.access(fn, fs.constants.R_OK, (err) => {
-                            if (err) {
-                                endReply.error = {
-                                    code: -1,
-                                    message: 'File not found',
-                                    errorPrint: 'File not found',
-                                    type: $responseMeta.errorType || response.type,
-                                    fieldErrors: $responseMeta.fieldErrors || response.fieldErrors
-                                };
-                                return handleError(endReply.error, response, $responseMeta);
-                            } else {
-                                let s = fs.createReadStream(fn);
-                                if ($responseMeta.tmpStaticFileName) {
-                                    s.on('end', () => { // cleanup, remove file after it gets send to the client
-                                        process.nextTick(() => {
-                                            try {
-                                                fs.unlink(fn, () => {});
-                                            } catch (e) {}
+                        return new Promise(function(resolve) {
+                            fs.access(fn, fs.constants.R_OK, (err) => {
+                                if (err) {
+                                    endReply.error = {
+                                        code: -1,
+                                        message: 'File not found',
+                                        errorPrint: 'File not found',
+                                        type: $responseMeta.errorType || response.type,
+                                        fieldErrors: $responseMeta.fieldErrors || response.fieldErrors
+                                    };
+                                    return resolve(handleError(endReply.error, response, $responseMeta));
+                                } else {
+                                    let s = fs.createReadStream(fn);
+                                    if ($responseMeta.tmpStaticFileName) {
+                                        s.on('end', () => { // cleanup, remove file after it gets send to the client
+                                            process.nextTick(() => {
+                                                try {
+                                                    fs.unlink(fn, () => {});
+                                                } catch (e) {}
+                                            });
                                         });
-                                    });
+                                    }
+                                    return resolve(h.response(s)
+                                        .header('Content-Type', 'application/octet-stream')
+                                        .header('Content-Disposition', `attachment; filename="${path.basename(downloadFileName)}"`)
+                                        .header('Content-Transfer-Encoding', 'binary'));
                                 }
-                                return h.response(s)
-                                    .header('Content-Type', 'application/octet-stream')
-                                    .header('Content-Disposition', `attachment; filename="${path.basename(downloadFileName)}"`)
-                                    .header('Content-Transfer-Encoding', 'binary');
-                            }
+                            });
                         });
-
-                        return true;
                     }
 
                     endReply.result = response;
