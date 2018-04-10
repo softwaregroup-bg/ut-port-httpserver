@@ -311,6 +311,9 @@ module.exports = function(port, errors) {
                     });
                 } else {
                     endReply.result = true;
+                    port.stream.push([(request.params.isRpc === false
+                        ? request.payload
+                        : request.payload.params) || {}, $meta]);
                     return callReply(true);
                 }
             } catch (err) {
