@@ -39,7 +39,7 @@ function initMetadataFromRequest(request = {}, port = {}) {
         auth: request.auth.credentials,
         method: request.payload && request.payload.method,
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
-        mtid: (request.payload && request.payload.id == null && request.payload.method === null) ? 'notification' : 'request',
+        mtid: (request.payload && request.payload.id == null) ? 'notification' : 'request',
         requestHeaders: request.headers,
         ipAddress: ((request.headers && request.headers['x-forwarded-for']) || request.info.remoteAddress).split(',')[0],
         frontEnd: request.headers && request.headers['user-agent'],
