@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "10.0.0-rc-cubalibre.17",
+  "version": "10.0.0-rc-cubalibre.18",
   "dependencies": {
     "boom": "7.1.1",
     "call": "5.0.1",
@@ -38,7 +38,6 @@
     "postpublish": "ut-postpublish",
     "postversion": "ut-postversion",
     "precommit": "ut-precommit",
-    "precover": "ut-precover",
     "prepublish": "ut-prepublish",
     "prepush": "ut-prepush",
     "pretest": "ut-pretest",
