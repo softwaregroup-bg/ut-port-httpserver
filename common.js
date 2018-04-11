@@ -19,7 +19,7 @@ const metaSchema = joi.object().keys({
     mtid: joi.string(),
     requestHeaders: joi.object(),
     ipAddress: joi.string().max(50),
-    frontEnd: joi.string().max(1024).allow('', null),
+    frontEnd: joi.string().max(250),
     latitude: joi.number(),
     longitude: joi.number(),
     localAddress: joi.string().max(50),
