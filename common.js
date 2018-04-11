@@ -48,7 +48,7 @@ function initMetadataFromRequest(request = {}, port = {}) {
         localAddress: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localAddress,
         hostName: (request.headers && request.headers['x-forwarded-host']) || request.info.hostname,
         localPort: request.raw && request.raw.req && request.raw.req.socket && request.raw.req.socket.localPort,
-        machineName: request.connection && request.connection.info && request.connection.info.host,
+        machineName: request.server && request.server.info && request.server.info.host,
         os: osName,
         version: bus.config && bus.config.version,
         serviceName: bus.config && (bus.config.implementation + (bus.config.service ? '/' + bus.config.service : '')),
