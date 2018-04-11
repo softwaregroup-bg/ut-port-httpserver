@@ -4,7 +4,7 @@ const joi = require('joi');
 const osName = [os.type(), os.platform(), os.release()].join(':');
 
 const metaSchema = joi.object().keys({
-    timeout: joi.array().length(2).items(joi.number().min(0).integer()).optional().allow(null),
+    timeout: joi.number().positive(),
     auth: joi.object().keys({
         actorId: joi.number().positive().integer(),
         exp: joi.number().positive().integer(),
@@ -35,7 +35,7 @@ const metaSchema = joi.object().keys({
 function initMetadataFromRequest(request = {}, port = {}) {
     let bus = port.bus || {};
     const {error, value} = metaSchema.validate({
-        timeout: port.timing && request.payload.timeout && port.timing.after(request.payload.timeout),
+        timeout: port.timing && request.payload.timeout,
         auth: request.auth.credentials,
         method: request.payload && request.payload.method,
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
@@ -58,6 +58,8 @@ function initMetadataFromRequest(request = {}, port = {}) {
     if (error) {
         throw error;
     }
+    if (value.timeout != null) value.timeout = port.timing.after(value.timeout);
+
     port && port.setTimer && port.setTimer(value);
     return value;
 }
