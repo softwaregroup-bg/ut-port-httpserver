@@ -469,7 +469,7 @@ module.exports = function(port, errors) {
                 handler: function(req, repl) {
                     if (!isRpc && !req.payload) {
                         req.payload = {
-                            id: req.id,
+                            id: req.info && req.info.id,
                             jsonrpc: '2.0',
                             method,
                             params: port.merge({}, req.params, {})
