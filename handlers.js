@@ -1,6 +1,5 @@
 'use strict';
 const path = require('path');
-const mergeWith = require('lodash.mergewith');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
@@ -36,7 +35,7 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
         debug: joi.object().label('debug'),
         $meta: joi.object()
     })
-    .xor('result', 'error'));
+        .xor('result', 'error'));
     return {request, response};
 };
 
@@ -104,20 +103,16 @@ module.exports = function(port, errors) {
         }
         return vr;
     };
-    const doValidate = function doValidate(checkType, method, data, next) {
+    const doValidate = function doValidate(checkType, method, data) {
         if (!method) {
-            next(errors.NotPermitted(`Method not defined`));
+            throw errors.methodNotFound();
         } else if (Object.keys(validations[method] || {}).length === 2) {
             let validationResult = byMethodValidate(checkType, method, data);
             if (validationResult.error) {
-                next(validationResult.error);
-            } else {
-                next(null, data);
+                throw validationResult.error;
             }
         } else if (!validations[method] && !port.config.validationPassThrough) {
-            next(errors.ValidationNotFound(`Method ${method} not found`));
-        } else {
-            next(null, data);
+            throw errors.validationNotFound({params: {method}});
         }
     };
 
@@ -126,11 +121,11 @@ module.exports = function(port, errors) {
     const prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
         let identityCheckParams;
         if (request.payload.method === identityCheckFullName) {
-            identityCheckParams = mergeWith({}, request.payload.params);
+            identityCheckParams = port.merge({}, request.payload.params);
         } else {
             identityCheckParams = {actionId: request.payload.method};
         }
-        mergeWith(
+        port.merge(
             identityCheckParams,
             request.auth.credentials,
             {
@@ -144,19 +139,19 @@ module.exports = function(port, errors) {
         return identityCheckParams;
     };
 
-    const rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
-        let $meta = initMetadataFromRequest(request, port);
+    const rpcHandler = port.handler = function rpcHandler(request, h, customReply) {
+        let $meta = {};
         port.log.trace && port.log.trace({payload: request && request.payload});
 
         const reply = function(resp, headers, statusCode) {
-            let repl = _reply(resp);
+            let response = h.response(resp);
             headers && Object.keys(headers).forEach(function(header) {
-                repl.header(header, headers[header]);
+                response.header(header, headers[header]);
             });
             if (statusCode) {
-                repl.code(statusCode);
+                response.code(statusCode);
             }
-            return repl;
+            return response;
         };
 
         function handleError(error, response, $responseMeta) {
@@ -184,13 +179,24 @@ module.exports = function(port, errors) {
                 return reply(msg);
             }
         }
+
+        try {
+            $meta = initMetadataFromRequest(request, port);
+        } catch (error) {
+            return handleError({
+                code: '400',
+                message: 'Validation Error',
+                errorPrint: error.message
+            });
+        }
+
         let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
         let publicToken = request.headers && request.headers['x-xsrf-token'];
         let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
         let routeConfig = ((config[request.params.method] || {}).config || {});
 
         if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
-            port.log.error && port.log.error({httpServerSecurity: 'fail', reason: 'private token != public token; cors error'});
+            port.log.error && port.log.error(errors.xsrfTokenMismatch());
             return handleError({
                 code: '404',
                 message: 'Not found',
@@ -212,9 +218,9 @@ module.exports = function(port, errors) {
         const processMessage = function(msgOptions) {
             function callReply(response) {
                 if (typeof customReply === 'function') {
-                    customReply(reply, response, $meta);
+                    return customReply(reply, response, $meta);
                 } else {
-                    reply(endReply, $meta.responseHeaders, $meta.statusCode);
+                    return reply(endReply, $meta.responseHeaders, $meta.statusCode);
                 }
             }
             msgOptions = msgOptions || {};
@@ -255,36 +261,35 @@ module.exports = function(port, errors) {
                     if ($responseMeta && ($responseMeta.staticFileName || $responseMeta.tmpStaticFileName)) {
                         let fn = $responseMeta.staticFileName || $responseMeta.tmpStaticFileName;
                         let downloadFileName = $responseMeta.downloadFileName || fn;
-
-                        fs.access(fn, fs.constants.R_OK, (err) => {
-                            if (err) {
-                                endReply.error = {
-                                    code: -1,
-                                    message: 'File not found',
-                                    errorPrint: 'File not found',
-                                    type: $responseMeta.errorType || response.type,
-                                    fieldErrors: $responseMeta.fieldErrors || response.fieldErrors
-                                };
-                                handleError(endReply.error, response, $responseMeta);
-                            } else {
-                                let s = fs.createReadStream(fn);
-                                if ($responseMeta.tmpStaticFileName) {
-                                    s.on('end', () => { // cleanup, remove file after it gets send to the client
-                                        process.nextTick(() => {
-                                            try {
-                                                fs.unlink(fn, () => {});
-                                            } catch (e) {}
+                        return new Promise(function(resolve) {
+                            fs.access(fn, fs.constants.R_OK, (err) => {
+                                if (err) {
+                                    endReply.error = {
+                                        code: -1,
+                                        message: 'File not found',
+                                        errorPrint: 'File not found',
+                                        type: $responseMeta.errorType || response.type,
+                                        fieldErrors: $responseMeta.fieldErrors || response.fieldErrors
+                                    };
+                                    return resolve(handleError(endReply.error, response, $responseMeta));
+                                } else {
+                                    let s = fs.createReadStream(fn);
+                                    if ($responseMeta.tmpStaticFileName) {
+                                        s.on('end', () => { // cleanup, remove file after it gets send to the client
+                                            process.nextTick(() => {
+                                                try {
+                                                    fs.unlink(fn, () => {});
+                                                } catch (e) {}
+                                            });
                                         });
-                                    });
+                                    }
+                                    return resolve(h.response(s)
+                                        .header('Content-Type', 'application/octet-stream')
+                                        .header('Content-Disposition', `attachment; filename="${path.basename(downloadFileName)}"`)
+                                        .header('Content-Transfer-Encoding', 'binary'));
                                 }
-                                _reply(s)
-                                    .header('Content-Type', 'application/octet-stream')
-                                    .header('Content-Disposition', `attachment; filename="${path.basename(downloadFileName)}"`)
-                                    .header('Content-Transfer-Encoding', 'binary');
-                            }
+                            });
                         });
-
-                        return true;
                     }
 
                     endReply.result = response;
@@ -292,19 +297,25 @@ module.exports = function(port, errors) {
                     if (msgOptions.end && typeof (msgOptions.end) === 'function') {
                         return msgOptions.end.call(undefined, reply(endReply, $responseMeta.responseHeaders));
                     }
-                    callReply(response);
-                    return true;
+                    return callReply(response);
                 };
                 if ($meta.mtid === 'request') {
-                    $meta.reply = callback;
-                    $meta.trace = request.id;
+                    return new Promise((resolve, reject) => {
+                        $meta.reply = (response, $responseMeta) => {
+                            resolve(callback(response, $responseMeta));
+                        };
+                        $meta.trace = request.id;
+                        port.stream.push([(request.params.isRpc === false
+                            ? request.payload
+                            : request.payload.params) || {}, $meta]);
+                    });
                 } else {
                     endReply.result = true;
-                    callReply(true);
+                    port.stream.push([(request.params.isRpc === false
+                        ? request.payload
+                        : request.payload.params) || {}, $meta]);
+                    return callReply(true);
                 }
-                port.stream.push([(request.params.isRpc === false
-                    ? request.payload
-                    : request.payload.params) || {}, $meta]);
             } catch (err) {
                 return handleError({
                     code: err.code || '-1',
@@ -327,96 +338,94 @@ module.exports = function(port, errors) {
             return processMessage();
         }
 
-        Promise.resolve()
-        .then(() => {
-            if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
-                return {
-                    'permission.get': ['*']
-                };
-            }
-            let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
-            return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
-        })
-        .then((res) => {
-            if (request.payload.method === identityCheckFullName) {
-                endReply.result = res;
-                const reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
+        return Promise.resolve()
+            .then(() => {
+                if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
+                    return {
+                        'permission.get': ['*']
+                    };
+                }
+                let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
+            })
+            .then((res) => {
+                if (request.payload.method === identityCheckFullName) {
+                    endReply.result = res;
+                    const reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
                         (request.auth &&
                         request.auth.credentials &&
                         request.auth.credentials.sessionId));
-                if (res['identity.check'] && res['identity.check'].sessionId && !reuseCookie()) {
-                    let appId = request.payload.params && request.payload.params.appId;
-                    let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
-                    let uuId = uuid();
-                    let jwtSigned = jwt.sign({
-                        timezone: tz,
-                        xsrfToken: uuId,
-                        actorId: res['identity.check'].actorId,
-                        sessionId: res['identity.check'].sessionId,
-                        scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
-                    }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
-                    endReply.result.jwt = {value: jwtSigned};
-                    endReply.result.xsrf = {uuId};
+                    if (res['identity.check'] && res['identity.check'].sessionId && !reuseCookie()) {
+                        let appId = request.payload.params && request.payload.params.appId;
+                        let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
+                        let uuId = uuid();
+                        let jwtSigned = jwt.sign({
+                            timezone: tz,
+                            xsrfToken: uuId,
+                            actorId: res['identity.check'].actorId,
+                            sessionId: res['identity.check'].sessionId,
+                            scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
+                        }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
+                        endReply.result.jwt = {value: jwtSigned};
+                        endReply.result.xsrf = {uuId};
 
-                    return reply(endReply)
-                        .state(
-                            port.config.jwt.cookieKey,
-                            jwtSigned,
-                            Object.assign({path: port.config.cookiePaths}, port.config.cookie)
-                        )
-                        .state(
-                            'xsrf-token',
-                            uuId,
-                            Object.assign({path: port.config.cookiePaths}, port.config.cookie, {isHttpOnly: false})
-                        );
+                        return reply(endReply)
+                            .state(
+                                port.config.jwt.cookieKey,
+                                jwtSigned,
+                                Object.assign({path: port.config.cookiePaths}, port.config.cookie)
+                            )
+                            .state(
+                                'xsrf-token',
+                                uuId,
+                                Object.assign({path: port.config.cookiePaths}, port.config.cookie, {isHttpOnly: false})
+                            );
+                    } else {
+                        return reply(endReply);
+                    }
+                } else if (request.payload.method === 'permission.get') {
+                    return processMessage();
                 } else {
-                    return reply(endReply);
+                    if (res['permission.get'] && res['permission.get'].length) {
+                        return processMessage({
+                            language: res.language,
+                            protection: res.protection
+                        });
+                    } else {
+                        return handleError(errors.notPermitted({params: {method: request.payload.method}}));
+                    }
                 }
-            } else if (request.payload.method === 'permission.get') {
-                return processMessage();
-            } else {
-                if (res['permission.get'] && res['permission.get'].length) {
-                    return processMessage({
-                        language: res.language,
-                        protection: res.protection
-                    });
-                } else {
-                    return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
-                }
-            }
-        })
-        .catch((err) => (
-            handleError({
-                code: err.code || '-1',
-                message: err.message,
-                errorPrint: err.errorPrint || err.message,
-                type: err.type
-            }, err, $meta)
-        ));
+            })
+            .catch((err) => (
+                handleError({
+                    code: err.code || '-1',
+                    message: err.message,
+                    errorPrint: err.errorPrint || err.message,
+                    type: err.type
+                }, err, $meta)
+            ));
     };
 
-    pendingRoutes.unshift(mergeWith({
-        config: {
+    pendingRoutes.unshift(port.merge({
+        options: {
             handler: rpcHandler,
             description: 'rpc common validation',
             tags: ['api', 'rpc'],
             validate: {
                 options: {abortEarly: false},
                 query: false,
-                payload: (value, options, next) => {
-                    doValidate('request', value.method, value, next);
+                payload: value => {
+                    doValidate('request', value.method, value);
                 },
                 params: true
             },
             response: {
-                schema: joi.object({}),
-                failAction: (request, reply, value, error) => {
-                    doValidate('response', request.params.method || request.payload.method, value._object, (err, result) => {
-                        if (err) {
-                            port.log.error && port.log.error(err);
-                        }
-                        reply(value._object);
-                    });
+                schema: (value, options) => {
+                    doValidate('response', options.context.params.method || options.context.payload.method, value);
+                },
+                failAction: (request, h, error) => {
+                    port.log.error && port.log.error(error);
+                    return h.continue;
                 }
             }
         }
@@ -441,31 +450,29 @@ module.exports = function(port, errors) {
         let responseValidation = {};
         if (validations[method].response) {
             responseValidation = {
-                config: {
+                options: {
                     response: {
                         schema: validations[method].response,
-                        failAction: (request, reply, value, error) => {
-                            if (value instanceof Error) {
-                                port.log.error && port.log.error(value);
-                            }
-                            reply(value._object);
+                        failAction: (request, h, error) => {
+                            port.log.error && port.log.error(error);
+                            return h.continue;
                         }
                     }
                 }
             };
         }
         let auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
-        pendingRoutes.unshift(mergeWith({}, (isRpc ? port.config.routes.rpc : {}), {
+        pendingRoutes.unshift(port.merge({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
-            config: {
+            options: {
                 handler: function(req, repl) {
                     if (!isRpc && !req.payload) {
                         req.payload = {
-                            id: req.id,
+                            id: uuid(),
                             jsonrpc: '2.0',
                             method,
-                            params: mergeWith({}, req.params, {})
+                            params: port.merge({}, req.params, {})
                         };
                     }
                     req.params.method = method;
@@ -480,7 +487,7 @@ module.exports = function(port, errors) {
                 validate: {
                     options: {abortEarly: false},
                     payload: validations[method].request.payload,
-                    params: validations[method].request.params,
+                    params: (path.indexOf('{') >= 0) ? validations[method].request.params : undefined,
                     query: false
                 }
             }
@@ -515,7 +522,7 @@ module.exports = function(port, errors) {
     pendingRoutes.push({
         method: 'POST',
         path: '/file-upload',
-        config: {
+        options: {
             auth: {
                 strategy: 'jwt'
             },
@@ -525,66 +532,66 @@ module.exports = function(port, errors) {
                 parse: true,
                 allow: 'multipart/form-data'
             },
-            handler: function(request, reply) {
-                Promise.resolve()
-                    .then(() => {
-                        let $meta = initMetadataFromRequest(request, port);
-                        let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
-                        return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
-                    })
-                    .then((res) => {
+            handler: function(request, h) {
+                return new Promise((resolve, reject) => {
+                    let $meta = initMetadataFromRequest(request, port);
+                    let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                    port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta).then((res) => {
                         let file = request.payload.file;
                         let isValid = isUploadValid(request, port.config.fileUpload);
                         if (!isValid) {
-                            return reply('').code(400);
+                            resolve(h.response('Invalid file name').code(400));
                         } else {
                             let fileName = (new Date()).getTime() + '_' + file.hapi.filename;
                             let path = port.bus.config.workDir + '/uploads/' + fileName;
                             let ws = fs.createWriteStream(path);
                             ws.on('error', function(err) {
                                 port.log.error && port.log.error(err);
-                                reply('');
+                                reject(err);
                             });
                             file.pipe(ws);
                             return file.on('end', function(err) {
                                 if (err) {
                                     port.log.error && port.log.error(err);
-                                    reply('');
+                                    reject(err);
                                 } else {
                                     if (file.hapi.headers['content-type'] === 'base64/png') {
                                         fs.readFile(path, (err, fileContent) => {
                                             if (err) {
-                                                reply('');
+                                                reject(err);
+                                                return;
                                             }
                                             fileContent = fileContent.toString();
                                             let matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
                                             if (matches.length === 3) {
                                                 let imageBuffer = {};
                                                 imageBuffer.type = matches[1];
-                                                imageBuffer.data = new Buffer(matches[2], 'base64');
+                                                imageBuffer.data = Buffer.from(matches[2], 'base64');
                                                 fileContent = imageBuffer.data;
                                                 fs.writeFile(path, fileContent, (err) => {
-                                                    if (err) reply('');
-                                                    reply(JSON.stringify({
-                                                        filename: fileName,
-                                                        headers: file.hapi.headers
-                                                    }));
+                                                    if (err) {
+                                                        reject(err);
+                                                    } else {
+                                                        resolve(h.response(JSON.stringify({
+                                                            filename: fileName,
+                                                            headers: file.hapi.headers
+                                                        })));
+                                                    }
                                                 });
-                                            } else reply('');
+                                            } else resolve(h.response('Invalid file content').code(400));
                                         });
                                     } else {
-                                        reply(JSON.stringify({
+                                        resolve(h.response(JSON.stringify({
                                             filename: fileName,
                                             headers: file.hapi.headers
-                                        }));
+                                        })));
                                     }
                                 }
                             });
                         }
-                    })
-                    .catch((err) => {
-                        if (err) reply('').code(401);
-                    });
+                        return true;
+                    }).catch(err => reject(err));
+                });
             }
         }
     });
