@@ -1,3 +1,8 @@
+<a name="10.0.0"></a>
+# [10.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.0.0-rc-cubalibre.20...v10.0.0) (2018-04-17)
+
+
+
 <a name="9.1.3"></a>
 ## [9.1.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.2...v9.1.3) (2018-03-21)
 
