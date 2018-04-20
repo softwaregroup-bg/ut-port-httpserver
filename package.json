@@ -7,6 +7,7 @@
     "fs-plus": "3.0.2",
     "hapi": "17.2.0",
     "hapi-auth-basic": "5.0.0",
+    "hapi-auth-jwt2": "8.1.0",
     "hapi-swagger": "9.1.1",
     "inert": "5.1.0",
     "jsonwebtoken": "8.1.1",
