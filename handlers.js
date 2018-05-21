@@ -433,9 +433,9 @@ module.exports = function(port, errors) {
     pendingRoutes.unshift({
         method: 'GET',
         path: '/healthCheck',
-        handler: () => 'healty',
+        handler: () => 'healthy',
         options: {
-            description: 'healt check url',
+            description: 'health check url',
             tags: ['api', 'healthcheck'],
             auth: false
         }
