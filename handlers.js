@@ -430,6 +430,16 @@ module.exports = function(port, errors) {
             }
         }
     }, port.config.routes.rpc));
+    pendingRoutes.unshift({
+        method: 'GET',
+        path: '/healthCheck',
+        handler: () => 'healthy',
+        options: {
+            description: 'health check url',
+            tags: ['api', 'healthcheck'],
+            auth: false
+        }
+    });
     port.bus.importMethods(httpMethods, port.config.api);
 
     function routeAdd(method, path, registerInSwagger) {
