@@ -1,12 +1,13 @@
 {
   "name": "ut-port-httpserver",
-  "version": "10.0.0",
+  "version": "10.1.0-rc-diesel.1",
   "dependencies": {
     "boom": "7.1.1",
     "call": "5.0.1",
     "fs-plus": "3.0.2",
     "hapi": "17.2.0",
     "hapi-auth-basic": "5.0.0",
+    "hapi-auth-jwt2": "8.1.0",
     "hapi-swagger": "9.1.1",
     "inert": "5.1.0",
     "jsonwebtoken": "8.1.1",
