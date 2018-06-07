@@ -1,3 +1,13 @@
+<a name="10.1.0"></a>
+# [10.1.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.0.0...v10.1.0) (2018-06-07)
+
+
+### Bug Fixes
+
+* timeout validation ([#122](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/122)) ([db556c4](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/db556c4))
+
+
+
 <a name="10.0.0"></a>
 # [10.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.0.0-rc-cubalibre.20...v10.0.0) (2018-04-17)
 
