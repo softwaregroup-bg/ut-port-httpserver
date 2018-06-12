@@ -15,7 +15,7 @@
     "vision": "5.3.1"
   },
   "devDependencies": {
-    "ut-tools": "^5.32.8"
+    "ut-tools": "^5.32.10"
   },
   "peerDependencies": {
     "hapi-webpack-plugin": "^3.0.0",
