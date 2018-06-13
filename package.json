@@ -2,8 +2,7 @@
   "name": "ut-port-httpserver",
   "version": "10.1.0",
   "dependencies": {
-    "boom": "7.1.1",
-    "call": "5.0.1",
+    "ut-wss": "0.1.1",
     "fs-plus": "3.0.2",
     "hapi": "17.2.0",
     "hapi-auth-basic": "5.0.0",
@@ -13,11 +12,10 @@
     "jsonwebtoken": "8.1.1",
     "os": "^0.1.1",
     "uuid": "3.2.1",
-    "vision": "5.3.1",
-    "ws": "2.3.1"
+    "vision": "5.3.1"
   },
   "devDependencies": {
-    "ut-tools": "^5.32.8"
+    "ut-tools": "^5.32.10"
   },
   "peerDependencies": {
     "hapi-webpack-plugin": "^3.0.0",
