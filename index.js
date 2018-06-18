@@ -290,7 +290,11 @@ module.exports = function({parent}) {
 
     HttpServerPort.prototype.registerSocketSubscription = function(path, verifyClient, opts) {
         this.socketSubscriptions.push([path, verifyClient, opts]);
-        return (params, message) => this.socketServers && this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message));
+        return (params, message) =>
+            this.socketServers &&
+            (this.socketServers.length === 1) && // TODO: fix this... prevent pulbishing on multiple socett servers for now
+            this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message)
+        );
     };
 
     HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
