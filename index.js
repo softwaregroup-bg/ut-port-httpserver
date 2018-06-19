@@ -217,9 +217,11 @@ module.exports = function({parent}) {
                 if (this.socketSubscriptions.length) {
                     this.hapiServers.forEach(server => {
                         var socketServer = new SocketServer(this, this.config);
-                        this.socketSubscriptions.forEach(config => socketServer.registerPath.apply(this.socketServer, config));
+                        this.socketSubscriptions.forEach(config => socketServer.registerPath.apply(socketServer, config));
                         this.socketServers.push(socketServer);
-                        socketServer.start();
+                        if (this.hapiServers.length === 1) { // @TODO: fix this.... put this here because there is no concept how to separate soc. serv. from multiple hapi servers
+                            socketServer.start(this.hapiServers[0].listener);
+                        }
                     });
                 };
                 return 0;
@@ -288,7 +290,11 @@ module.exports = function({parent}) {
 
     HttpServerPort.prototype.registerSocketSubscription = function(path, verifyClient, opts) {
         this.socketSubscriptions.push([path, verifyClient, opts]);
-        return (params, message) => this.socketServer.publish({path: path, params: params}, message);
+        return (params, message) =>
+            this.socketServers &&
+            (this.socketServers.length === 1) && // TODO: fix this... prevent pulbishing on multiple socett servers for now
+            this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message)
+        );
     };
 
     HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
@@ -368,7 +374,7 @@ module.exports = function({parent}) {
     };
 
     HttpServerPort.prototype.stop = function stop() {
-        this.socketServer && this.socketServer.stop();
+        this.socketServers && this.socketServers.map((socketServer) => socketServer.stop());
         return Promise.all(this.hapiServers.map(server => server.stop()))
             .then(() => parent && parent.prototype.stop.call(this));
     };
