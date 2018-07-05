@@ -12,7 +12,7 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
         payload: routeConfig.config.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
             timeout: joi.number().optional(),
-            id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
+            id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')),
             method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required(),
             params: routeConfig.config.params.label('params').required()
         }),
