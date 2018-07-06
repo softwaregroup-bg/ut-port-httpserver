@@ -480,6 +480,7 @@ module.exports = function(port, errors) {
                     return rpcHandler(req, repl);
                 },
                 app: currentMethodConfig.app,
+                timeout: currentMethodConfig.timeout,
                 auth,
                 description: currentMethodConfig.description || config[method].method,
                 notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
