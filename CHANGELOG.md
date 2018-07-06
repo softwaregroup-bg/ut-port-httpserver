@@ -1,3 +1,14 @@
+<a name="9.1.4"></a>
+## [9.1.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.3...v9.1.4) (2018-07-06)
+
+
+### Bug Fixes
+
+* payload.id should not be equal to null ([2548a03](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/2548a03))
+* payload.id should not be required ([d473aa0](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/d473aa0))
+
+
+
 <a name="9.1.3"></a>
 ## [9.1.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.2...v9.1.3) (2018-03-21)
 
