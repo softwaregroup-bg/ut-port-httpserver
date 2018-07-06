@@ -1,3 +1,13 @@
+<a name="9.1.6"></a>
+## [9.1.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.5...v9.1.6) (2018-07-06)
+
+
+### Bug Fixes
+
+* httpserver timeout ([3670606](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/3670606))
+
+
+
 <a name="9.1.5"></a>
 ## [9.1.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v9.1.4...v9.1.5) (2018-07-06)
 
