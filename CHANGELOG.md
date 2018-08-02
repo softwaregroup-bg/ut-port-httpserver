@@ -1,3 +1,8 @@
+<a name="10.2.0"></a>
+# [10.2.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.2.0-rc-einstein.5...v10.2.0) (2018-08-02)
+
+
+
 <a name="10.1.0"></a>
 # [10.1.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.0.0...v10.1.0) (2018-06-07)
 
