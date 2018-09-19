@@ -90,11 +90,8 @@ module.exports = function({parent}) {
                 }
             }
         }, config);
-        if (this.errors) {
-            Object.assign(this.errors, errorsFactory(this.bus.errors));
-        } else {
-            this.errors = errorsFactory(this.bus.errors);
-        }
+
+        Object.assign(this.errors, errorsFactory(this.bus.errors));
         this.hapiServers = [];
         this.socketServers = [];
         this.socketSubscriptions = [];
