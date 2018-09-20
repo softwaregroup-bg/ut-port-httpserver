@@ -70,6 +70,17 @@ module.exports = function(server, options, next) {
             };
             return reply(endReply);
         }
+        
+        var alphaNumRegex = /([a-zA-Z0-9]+)$/;
+        if (!alphaNumRegex.test(request.payload.id)) {
+            endReply.error = {
+                code: '-1',
+                message: ('Request id should be alphanumeric only'),
+                errorPrint: 'Invalid request!'
+            };
+            return reply(endReply);
+        }
+
         endReply.id = request.payload.id;
 
         var procesMessage = function() {
