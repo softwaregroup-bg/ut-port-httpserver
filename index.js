@@ -274,7 +274,7 @@ module.exports = function({parent}) {
     HttpServerPort.prototype.registerRequestHandler = function(items) {
         items.map(handler => (handler.config && this.log.warn && this.log.warn('Rename "config" to "options" for handler ' + handler.path)));
         if (this.hapiServers.length) {
-            this.hapiServers.forEach(server => server.route(items));
+            this.hapiServers.map(server => server.route(items));
         } else {
             Array.prototype.push.apply(this.routes, items);
         }
