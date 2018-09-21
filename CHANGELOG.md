@@ -1,3 +1,13 @@
+<a name="10.3.0"></a>
+# [10.3.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.3.0-rc-godfather.0...v10.3.0) (2018-09-21)
+
+
+### Bug Fixes
+
+* global health check + cleanup ([487ea64](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/487ea64))
+
+
+
 <a name="10.2.0"></a>
 # [10.2.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.2.0-rc-einstein.5...v10.2.0) (2018-08-02)
 
