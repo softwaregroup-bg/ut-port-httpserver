@@ -148,6 +148,7 @@ module.exports = function(port, errors) {
             headers && Object.keys(headers).forEach(function(header) {
                 response.header(header, headers[header]);
             });
+            $meta.method && response.header('x-envoy-decorator-operation', $meta.method);
             if (statusCode) {
                 response.code(statusCode);
             }

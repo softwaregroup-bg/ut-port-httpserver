@@ -293,8 +293,7 @@ module.exports = function({parent}) {
         return (params, message) =>
             this.socketServers &&
             (this.socketServers.length === 1) && // TODO: fix this... prevent pulbishing on multiple socett servers for now
-            this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message)
-        );
+            this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message));
     };
 
     HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
