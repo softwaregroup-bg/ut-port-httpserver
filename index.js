@@ -228,17 +228,15 @@ module.exports = function({parent}) {
             })
             .then(() => Promise.all(this.hapiServers.map(server => server.start())))
             .then(() => Promise.all(this.hapiServers.map(server => {
+                server.route({
+                    method: 'GET',
+                    path: '/health',
+                    options: {
+                        auth: false,
+                        handler: (request, h) => ((this.isReady && 'ok') || h.response('service not available').code(503))
+                    }
+                });
                 if (this.bus.config.registry && this.config.registry !== false) {
-                    server.route({
-                        method: 'GET',
-                        path: '/health',
-                        options: {
-                            auth: false,
-                            handler: (request, reply) => {
-                                return this.isReady ? reply('ok') : reply('service not available').code(503);
-                            }
-                        }
-                    });
                     let info = this.server.info;
                     let config = this.merge(
                     // defaults
@@ -271,20 +269,12 @@ module.exports = function({parent}) {
             });
     };
 
-    HttpServerPort.prototype.registerRequestHandler = function(handlers) {
-        if (!(handlers instanceof Array)) {
-            handlers = [handlers];
-        }
-        handlers.forEach(handler => {
-            if (handler.config) {
-                this.log.warn && this.log.warn('Rename "config" to "options" for handler ' + handler.path);
-                // throw new Error('Rename "config" to "options" for handler ' + handler.path);
-            }
-        });
+    HttpServerPort.prototype.registerRequestHandler = function(items) {
+        items.map(handler => (handler.config && this.log.warn && this.log.warn('Rename "config" to "options" for handler ' + handler.path)));
         if (this.hapiServers.length) {
-            this.hapiServers.forEach(server => server.route(handlers));
+            this.hapiServers.map(server => server.route(items));
         } else {
-            Array.prototype.push.apply(this.routes, handlers);
+            Array.prototype.push.apply(this.routes, items);
         }
     };
 
@@ -292,7 +282,7 @@ module.exports = function({parent}) {
         this.socketSubscriptions.push([path, verifyClient, opts]);
         return (params, message) =>
             this.socketServers &&
-            (this.socketServers.length === 1) && // TODO: fix this... prevent pulbishing on multiple socett servers for now
+            (this.socketServers.length === 1) && // TODO: fix this... prevent publishing on multiple socket servers for now
             this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message)
         );
     };
