@@ -18,6 +18,15 @@ const metaSchema = joi.object().keys({
     opcode: joi.string().allow(''),
     mtid: joi.string(),
     requestHeaders: joi.object(),
+    forward: joi.object().keys({
+        'x-request-id': joi.string(),
+        'x-b3-traceid': joi.string(),
+        'x-b3-spanid': joi.string(),
+        'x-b3-parentspanid': joi.string(),
+        'x-b3-sampled': joi.string(),
+        'x-b3-flags': joi.string(),
+        'x-ot-span-context': joi.string()
+    }),
     ipAddress: joi.string().max(50),
     frontEnd: joi.string().max(250).allow('', null),
     latitude: joi.number(),
@@ -35,6 +44,12 @@ const metaSchema = joi.object().keys({
 function initMetadataFromRequest(request = {}, port = {}) {
     let bus = port.bus || {};
     const {error, value} = metaSchema.validate({
+        forward: ['x-request-id', 'x-b3-traceid', 'x-b3-spanid', 'x-b3-parentspanid', 'x-b3-sampled', 'x-b3-flags', 'x-ot-span-context']
+            .reduce(function(object, key) {
+                var value = request.headers[key];
+                if (value !== undefined) object[key] = value;
+                return object;
+            }, {}),
         timeout: port.timing && request.payload.timeout,
         auth: request.auth.credentials,
         method: request.payload && request.payload.method,
@@ -61,6 +76,7 @@ function initMetadataFromRequest(request = {}, port = {}) {
     if (value.timeout != null) value.timeout = port.timing.after(value.timeout);
 
     port && port.setTimer && port.setTimer(value);
+    if (value.forward['x-request-id'] === undefined) value.forward['x-request-id'] = request.info.id;
     return value;
 }
 
