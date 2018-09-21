@@ -233,9 +233,7 @@ module.exports = function({parent}) {
                     path: '/health',
                     options: {
                         auth: false,
-                        handler: (request, reply) => {
-                            return this.isReady ? reply('ok') : reply('service not available').code(503);
-                        }
+                        handler: (request, h) => ((this.isReady && 'ok') || h.response('service not available').code(503))
                     }
                 });
                 if (this.bus.config.registry && this.config.registry !== false) {
