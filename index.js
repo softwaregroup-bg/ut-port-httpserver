@@ -24,7 +24,13 @@ module.exports = function({parent}) {
             } else {
                 config.routes.rpc.options = config.routes.rpc.config;
                 delete config.routes.rpc.config;
-                this.log.warn && this.log.warn('Rename routes.rpc.config to routes.rpc.options in port ' + config.id);
+                this.log.warn && this.log.warn('Rename routes.rpc.config to routes.rpc.options in port ' + config.id, {
+                    $meta: {
+                        mtid: 'deprecation',
+                        method: 'httpServerPort.constructor'
+                    },
+                    args: {id: config.id}
+                });
             }
         }
         this.config = this.merge({
@@ -270,7 +276,13 @@ module.exports = function({parent}) {
     };
 
     HttpServerPort.prototype.registerRequestHandler = function(items) {
-        items.map(handler => (handler.config && this.log.warn && this.log.warn('Rename "config" to "options" for handler ' + handler.path)));
+        items.map(handler => (handler.config && this.log.warn && this.log.warn('Rename "config" to "options" for handler ' + handler.path, {
+            $meta: {
+                mtid: 'deprecation',
+                method: 'httpServerPort.registerRequestHandler'
+            },
+            args: {id: handler.path}
+        })));
         if (this.hapiServers.length) {
             this.hapiServers.map(server => server.route(items));
         } else {

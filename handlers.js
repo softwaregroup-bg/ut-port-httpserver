@@ -141,7 +141,14 @@ module.exports = function(port, errors) {
 
     const rpcHandler = port.handler = function rpcHandler(request, h, customReply) {
         let $meta = {};
-        port.log.trace && port.log.trace({payload: request && request.payload});
+        port.log.trace && port.log.trace({
+            payload: request && request.payload,
+            headers: request && request.headers,
+            $meta: {
+                mtid: 'payload',
+                method: ((request && request.payload && request.payload.method) || 'httpServerPort') + '.decode'
+            }
+        });
 
         const reply = function(resp, headers, statusCode) {
             let response = h.response(resp);
