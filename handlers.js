@@ -105,14 +105,14 @@ module.exports = function(port, errors) {
     };
     const doValidate = function doValidate(checkType, method, data) {
         if (!method) {
-            throw errors.methodNotFound();
+            throw errors['httpServerPort.methodNotFound']();
         } else if (Object.keys(validations[method] || {}).length === 2) {
             let validationResult = byMethodValidate(checkType, method, data);
             if (validationResult.error) {
                 throw validationResult.error;
             }
         } else if (!validations[method] && !port.config.validationPassThrough) {
-            throw errors.validationNotFound({params: {method}});
+            throw errors['httpServerPort.validationNotFound']({params: {method}});
         }
     };
 
@@ -204,7 +204,7 @@ module.exports = function(port, errors) {
         let routeConfig = ((config[request.params.method] || {}).config || {});
 
         if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
-            port.log.error && port.log.error(errors.xsrfTokenMismatch());
+            port.log.error && port.log.error(errors['httpServerPort.xsrfTokenMismatch']());
             return handleError({
                 code: '404',
                 message: 'Not found',
@@ -400,7 +400,7 @@ module.exports = function(port, errors) {
                             protection: res.protection
                         });
                     } else {
-                        return handleError(errors.notPermitted({params: {method: request.payload.method}}));
+                        return handleError(errors['httpServerPort.notPermitted']({params: {method: request.payload.method}}));
                     }
                 }
             })
