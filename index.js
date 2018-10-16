@@ -233,7 +233,7 @@ module.exports = function({parent}) {
             .then(() => Promise.all(this.hapiServers.map(server => {
                 server.route({
                     method: 'GET',
-                    path: '/health',
+                    path: '/healthz',
                     options: {
                         auth: false,
                         handler: (request, h) => ((this.isReady && 'ok') || h.response('service not available').code(503))
@@ -257,7 +257,7 @@ module.exports = function({parent}) {
                         // custom
                         this.config.registry
                     );
-                    config.check.http = `${config.protocol || info.protocol}://${config.address}:${config.port}/health`;
+                    config.check.http = `${config.protocol || info.protocol}://${config.address}:${config.port}/healthz`;
                     return this.bus.importMethod('registry.service.add')(config);
                 };
             }))).then(() => {
