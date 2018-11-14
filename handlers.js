@@ -85,11 +85,14 @@ module.exports = function(port, errors) {
     let validations = {};
 
     function addDebugInfo(msg, err) {
-        (err && port.config.debug) || ((port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.debug = err));
+        if (err && port.config.debug) {
+            msg.debug = err;
+            msg.error.stack = err.stack;
+        };
     }
 
     function addMetaInfo(msg, $meta) {
-        ($meta && port.config.debug) || ((port.config.debug == null && port.bus.config && port.bus.config.debug) && (msg.$meta = $meta));
+        $meta && port.config.debug && (msg.$meta = $meta);
     }
 
     const byMethodValidate = function byMethodValidate(checkType, method, data) {
