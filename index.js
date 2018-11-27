@@ -1,6 +1,5 @@
 'use strict';
 const path = require('path');
-const util = require('util');
 const hapi = require('hapi');
 const inert = require('inert');
 const vision = require('vision');
@@ -15,9 +14,9 @@ const uuid = require('uuid/v4');
 const errorsFactory = require('./errors');
 const serverRequire = require;
 
-module.exports = function({parent}) {
-    function HttpServerPort({config}) {
-        parent && parent.apply(this, arguments);
+module.exports = ({utPort}) => class HttpServerPort extends utPort {
+    constructor({config}) {
+        super(...arguments);
         if (config && config.routes && config.routes.rpc && config.routes.rpc.config) {
             if (config.routes.rpc.options) {
                 throw new Error('Rename routes.rpc.config to routes.rpc.options in port ' + config.id);
@@ -29,13 +28,19 @@ module.exports = function({parent}) {
                         mtid: 'deprecation',
                         method: 'httpServerPort.constructor'
                     },
-                    args: {id: config.id}
+                    args: { id: config.id }
                 });
             }
         }
-        this.config = this.merge({
-            id: null,
-            logLevel: 'info',
+        Object.assign(this.errors, errorsFactory(this.bus.errors));
+        this.hapiServers = [];
+        this.socketServers = [];
+        this.socketSubscriptions = [];
+        this.routes = [];
+        this.stream = {};
+    }
+    get defaults() {
+        return {
             type: 'httpserver',
             port: 8080,
             connections: [],
@@ -95,31 +100,19 @@ module.exports = function({parent}) {
                     algorithm: 'HS256'
                 }
             }
-        }, config);
-
-        Object.assign(this.errors, errorsFactory(this.bus.errors));
-        this.hapiServers = [];
-        this.socketServers = [];
-        this.socketSubscriptions = [];
-        this.routes = [];
-        this.stream = {};
+        };
     }
-
-    if (parent) {
-        util.inherits(HttpServerPort, parent);
-    }
-
-    HttpServerPort.prototype.init = function init() {
-        parent && parent.prototype.init.apply(this, arguments);
+    async init() {
+        const result = await super.init(...arguments);
         this.latency = this.counter && this.counter('average', 'lt', 'Latency');
         this.bytesSent = this.counter && this.counter('counter', 'bs', 'Bytes sent', 300);
         this.bytesReceived = this.counter && this.counter('counter', 'br', 'Bytes received', 300);
         this.bus.registerLocal({
             registerRequestHandler: this.registerRequestHandler.bind(this)
         }, this.config.id);
-    };
-
-    HttpServerPort.prototype.createServer = async function createServer(config) {
+        return result;
+    }
+    async createServer(config) {
         var server = new hapi.Server(this.merge({
             routes: {
                 validate: {
@@ -173,15 +166,13 @@ module.exports = function({parent}) {
         server.route(handlers(this, this.errors));
 
         return server;
-    };
-
-    HttpServerPort.prototype.start = function start() {
-        this.bus && this.bus.importMethods(this.config, this.config.imports, undefined, this);
+    }
+    async start() {
+        this.bus && this.bus.importMethods(this.methods, this.config.imports, undefined, this);
         let args = Array.prototype.slice.call(arguments);
         this.context = {requests: {}};
         this.stream = this.pull(false, this.context);
-
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             let fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
             fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
                 if (err) {
@@ -200,79 +191,68 @@ module.exports = function({parent}) {
                     resolve('Temp dir for file uploads has been verified: ' + fileUploadTempDir);
                 }
             });
-        })
-            .then(() => {
-                var servers = [];
-                if (this.config.connections && this.config.connections.length) {
-                    servers = this.config.connections.map(connection => this.createServer(
-                        Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection))
-                    );
-                } else {
-                    servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port})];
+        });
+        var servers = [];
+        if (this.config.connections && this.config.connections.length) {
+            servers = this.config.connections.map(connection => this.createServer(
+                Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection))
+            );
+        } else {
+            servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port})];
+        }
+        this.hapiServers = await Promise.all(servers);
+        await super.start(...args);
+        if (this.socketSubscriptions.length) {
+            this.hapiServers.forEach(server => {
+                var socketServer = new SocketServer(this, this.config);
+                this.socketSubscriptions.forEach(pathParams => socketServer.registerPath.apply(socketServer, pathParams));
+                this.socketServers.push(socketServer);
+                if (this.hapiServers.length === 1) { // @TODO: fix this.... put this here because there is no concept how to separate soc. serv. from multiple hapi servers
+                    socketServer.start(this.hapiServers[0].listener);
                 }
-                return Promise.all(servers);
-            })
-            .then(servers => {
-                this.hapiServers = servers;
-                return parent && parent.prototype.start.apply(this, args);
-            })
-            .then(() => {
-                if (this.socketSubscriptions.length) {
-                    this.hapiServers.forEach(server => {
-                        var socketServer = new SocketServer(this, this.config);
-                        this.socketSubscriptions.forEach(config => socketServer.registerPath.apply(socketServer, config));
-                        this.socketServers.push(socketServer);
-                        if (this.hapiServers.length === 1) { // @TODO: fix this.... put this here because there is no concept how to separate soc. serv. from multiple hapi servers
-                            socketServer.start(this.hapiServers[0].listener);
-                        }
-                    });
-                };
-                return 0;
-            })
-            .then(() => Promise.all(this.hapiServers.map(server => server.start())))
-            .then(() => Promise.all(this.hapiServers.map(server => {
-                server.route({
-                    method: 'GET',
-                    path: '/healthz',
-                    options: {
-                        auth: false,
-                        handler: (request, h) => ((this.isReady && 'ok') || h.response('service not available').code(503))
-                    }
-                });
-                if (this.bus.config.registry && this.config.registry !== false) {
-                    let info = this.server.info;
-                    let config = this.merge(
-                    // defaults
-                        {
-                            name: this.bus.config.implementation,
-                            address: info.host, // info.address is 0.0.0.0 so we use the host
-                            port: info.port,
-                            id: uuid(),
-                            check: {},
-                            context: {
-                                type: 'http',
-                                pid: process.pid
-                            }
-                        },
-                        // custom
-                        this.config.registry
-                    );
-                    config.check.http = `${config.protocol || info.protocol}://${config.address}:${config.port}/healthz`;
-                    return this.bus.importMethod('registry.service.add')(config);
-                };
-            }))).then(() => {
-                this.log.info && this.log.info({
-                    message: 'HTTP server started',
-                    $meta: {
-                        mtid: 'event',
-                        opcode: 'port.started'
-                    }
-                });
-                return true;
             });
-    };
-
-    HttpServerPort.prototype.registerRequestHandler = function(items) {
+        }
+        await Promise.all(this.hapiServers.map(server => server.start()));
+        await Promise.all(this.hapiServers.map(server => {
+            server.route({
+                method: 'GET',
+                path: '/healthz',
+                options: {
+                    auth: false,
+                    handler: (request, h) => ((this.isReady && 'ok') || h.response('service not available').code(503))
+                }
+            });
+            if (this.bus.config.registry && this.config.registry !== false) {
+                let info = this.server.info;
+                let registryConfig = this.merge(
+                    // defaults
+                    {
+                        name: this.bus.config.implementation,
+                        address: info.host, // info.address is 0.0.0.0 so we use the host
+                        port: info.port,
+                        id: uuid(),
+                        check: {},
+                        context: {
+                            type: 'http',
+                            pid: process.pid
+                        }
+                    },
+                    // custom
+                    this.config.registry);
+                registryConfig.check.http = `${registryConfig.protocol || info.protocol}://${registryConfig.address}:${registryConfig.port}/healthz`;
+                return this.bus.importMethod('registry.service.add')(registryConfig);
+            };
+        }));
+        this.log.info && this.log.info({
+            message: 'HTTP server started',
+            $meta: {
+                mtid: 'event',
+                opcode: 'port.started'
+            }
+        });
+        return true;
+    }
+    registerRequestHandler(items) {
         items.map(handler => (handler.config && this.log.warn && this.log.warn('Rename "config" to "options" for handler ' + handler.path, {
             $meta: {
                 mtid: 'deprecation',
@@ -285,17 +265,15 @@ module.exports = function({parent}) {
         } else {
             Array.prototype.push.apply(this.routes, items);
         }
-    };
-
-    HttpServerPort.prototype.registerSocketSubscription = function(path, verifyClient, opts) {
+    }
+    registerSocketSubscription(path, verifyClient, opts) {
         this.socketSubscriptions.push([path, verifyClient, opts]);
         return (params, message) =>
             this.socketServers &&
             (this.socketServers.length === 1) && // TODO: fix this... prevent pulbishing on multiple socett servers for now
             this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message));
-    };
-
-    HttpServerPort.prototype.enableHotReload = function enableHotReload(config) {
+    }
+    enableHotReload(config) {
         return new Promise((resolve, reject) => {
             if (this.hotReload) {
                 resolve(true);
@@ -369,19 +347,15 @@ module.exports = function({parent}) {
                 // @TODO implement lasso hot reload
             }
         });
-    };
-
-    HttpServerPort.prototype.stop = function stop() {
+    }
+    async stop() {
         this.socketServers && this.socketServers.map((socketServer) => socketServer.stop());
-        return Promise.all(this.hapiServers.map(server => server.stop()))
-            .then(() => parent && parent.prototype.stop.call(this));
-    };
-
-    HttpServerPort.prototype.status = function status() {
+        await Promise.all(this.hapiServers.map(server => server.stop()));
+        return super.stop(...arguments);
+    }
+    status() {
         return {
             port: this.hapiServers && this.hapiServers[0] && this.hapiServers[0].info && this.hapiServers[0].info.port
         };
-    };
-
-    return HttpServerPort;
+    }
 };
