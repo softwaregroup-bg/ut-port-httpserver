@@ -6,23 +6,23 @@ const joi = require('joi');
 const uuid = require('uuid/v4');
 const {initMetadataFromRequest} = require('./common');
 
-const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
+const getReqRespRpcValidation = function getReqRespRpcValidation(validation, methodName) {
     let request = {
-        payload: routeConfig.config.payload || joi.object({
+        payload: validation.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
             timeout: joi.number().optional(),
             id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')),
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required(),
-            params: routeConfig.config.params.label('params').required()
+            method: joi.string().valid((validation && validation.paramsMethod) || methodName).required(),
+            params: validation.params.label('params').required()
         }),
         params: joi.object({
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method)
+            method: joi.string().valid((validation && validation.paramsMethod) || methodName)
         })
     };
-    let response = routeConfig.config.response || (routeConfig.config.result && joi.object({
+    let response = validation.response || (validation.result && joi.object({
         jsonrpc: joi.string().valid('2.0').required(),
         id: joi.alternatives().try(joi.number(), joi.string()).required(),
-        result: routeConfig.config.result.label('result'),
+        result: validation.result.label('result'),
         error: joi.object({
             code: joi.number().integer().description('Error code'),
             message: joi.string().description('Debug error message'),
@@ -39,13 +39,13 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     return {request, response};
 };
 
-const getReqRespValidation = function getReqRespValidation(routeConfig) {
+const getReqRespValidation = function getReqRespValidation(validation) {
     return {
         request: {
-            payload: routeConfig.config.payload,
-            params: routeConfig.config.params
+            payload: validation.payload,
+            params: validation.params
         },
-        response: routeConfig.config.result
+        response: validation.result
     };
 };
 
@@ -64,25 +64,25 @@ const isUploadValid = function isUploadValid(request, uploadConfig) {
     return false;
 };
 
-const assertRouteConfig = function assertRouteConfig(routeConfig) {
-    if (!routeConfig.config.params && !routeConfig.config.payload) {
-        throw new Error(`Missing 'params'/'payload' in validation schema for method: ${routeConfig.method}`);
-    } else if (routeConfig.config.params && !routeConfig.config.params.isJoi) {
-        throw new Error(`'params' must be a joi schema object! Method: ${routeConfig.method}`);
-    } else if (routeConfig.config.payload && !routeConfig.config.payload.isJoi) {
-        throw new Error(`'payload' must be a joi schema object! Method: ${routeConfig.method}`);
-    } else if (routeConfig.config.result && !routeConfig.config.result.isJoi) {
-        throw new Error(`'result' must be a joi schema object! Method: ${routeConfig.method}`);
-    } else if (routeConfig.config.response && (!routeConfig.config.response.isJoi && routeConfig.config.response !== 'stream')) {
-        throw new Error(`'response' must be a joi schema object! Method: ${routeConfig.method}`);
+const assertRouteConfig = function assertRouteConfig(validation, methodName) {
+    if (!validation.params && !validation.payload) {
+        throw new Error(`Missing 'params'/'payload' in validation schema for method: ${methodName}`);
+    } else if (validation.params && !validation.params.isJoi) {
+        throw new Error(`'params' must be a joi schema object! Method: ${methodName}`);
+    } else if (validation.payload && !validation.payload.isJoi) {
+        throw new Error(`'payload' must be a joi schema object! Method: ${methodName}`);
+    } else if (validation.result && !validation.result.isJoi) {
+        throw new Error(`'result' must be a joi schema object! Method: ${methodName}`);
+    } else if (validation.response && (!validation.response.isJoi && validation.response !== 'stream')) {
+        throw new Error(`'response' must be a joi schema object! Method: ${methodName}`);
     }
 };
 
 module.exports = function(port, errors) {
-    let httpMethods = {};
-    let pendingRoutes = [];
-    let config = {};
-    let validations = {};
+    const httpMethods = {};
+    const pendingRoutes = [];
+    const validations = {};
+    const methodConfig = {};
 
     function addDebugInfo(msg, err) {
         if (err && port.config.debug) {
@@ -174,9 +174,9 @@ module.exports = function(port, errors) {
             };
             addDebugInfo(msg, response);
             addMetaInfo(msg, $responseMeta);
-            if (port.config.receive instanceof Function) {
+            if (port.methods.receive instanceof Function) {
                 return Promise.resolve()
-                    .then(() => port.config.receive(msg, $meta))
+                    .then(() => port.methods.receive(msg, $meta))
                     .then(function(result) {
                         if (typeof customReply === 'function') {
                             return customReply(reply, result, $meta);
@@ -204,7 +204,7 @@ module.exports = function(port, errors) {
         let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
         let publicToken = request.headers && request.headers['x-xsrf-token'];
         let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
-        let routeConfig = ((config[request.params.method] || {}).config || {});
+        let routeConfig = methodConfig[request.params.method] || {};
 
         if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
             port.log.error && port.log.error(errors['httpServerPort.xsrfTokenMismatch']());
@@ -441,29 +441,28 @@ module.exports = function(port, errors) {
             }
         }
     }, port.config.routes.rpc));
-    port.bus.importMethods(httpMethods, port.config.api);
+    port.bus.attachHandlers(httpMethods, port.config.api);
 
-    function routeAdd(method, path, registerInSwagger) {
-        let currentMethodConfig = (config[method] && config[method].config) || {};
-        let isRpc = !(currentMethodConfig.isRpc === false);
-        validations[method] = isRpc ? getReqRespRpcValidation(config[method]) : getReqRespValidation(config[method]);
-        if (currentMethodConfig.paramsMethod) {
-            currentMethodConfig.paramsMethod.reduce((prev, cur) => {
+    function routeAdd(methodName, validation, path, registerInSwagger) {
+        let isRpc = !(validation.isRpc === false);
+        validations[methodName] = isRpc ? getReqRespRpcValidation(validation, methodName) : getReqRespValidation(validation);
+        if (validation.paramsMethod) {
+            validation.paramsMethod.reduce((prev, cur) => {
                 if (!validations[cur]) {
-                    validations[cur] = validations[method];
+                    validations[cur] = validations[methodName];
                 }
             });
         }
-        let tags = [port.config.id, config[method].method];
+        let tags = [port.config.id, methodName];
         if (registerInSwagger) {
             tags.unshift('api');
         }
         let responseValidation = {};
-        if (validations[method].response) {
+        if (validations[methodName].response) {
             responseValidation = {
                 options: {
                     response: {
-                        schema: validations[method].response,
+                        schema: validations[methodName].response,
                         failAction: (request, h, error) => {
                             port.log.error && port.log.error(error);
                             return h.continue;
@@ -472,9 +471,9 @@ module.exports = function(port, errors) {
                 }
             };
         }
-        let auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
+        let auth = ((validation && typeof (validation.auth) === 'undefined') ? 'jwt' : validation.auth);
         pendingRoutes.unshift(port.merge({}, (isRpc ? port.config.routes.rpc : {}), {
-            method: currentMethodConfig.httpMethod || 'POST',
+            method: validation.httpMethod || 'POST',
             path: path,
             options: {
                 handler: function(req, repl) {
@@ -482,24 +481,24 @@ module.exports = function(port, errors) {
                         req.payload = {
                             id: uuid(),
                             jsonrpc: '2.0',
-                            method,
+                            methodName,
                             params: port.merge({}, req.params, {})
                         };
                     }
-                    req.params.method = method;
+                    req.params.method = methodName;
                     req.params.isRpc = isRpc;
                     return rpcHandler(req, repl);
                 },
-                app: currentMethodConfig.app,
-                timeout: currentMethodConfig.timeout,
+                app: validation.app,
+                timeout: validation.timeout,
                 auth,
-                description: currentMethodConfig.description || config[method].method,
-                notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
-                tags: (currentMethodConfig.tags || []).concat(tags),
+                description: validation.description || methodName,
+                notes: (validation.notes || []).concat([methodName + ' method definition']),
+                tags: (validation.tags || []).concat(tags),
                 validate: {
                     options: {abortEarly: false},
-                    payload: validations[method].request.payload,
-                    params: (path.indexOf('{') >= 0) ? validations[method].request.params : undefined,
+                    payload: validations[methodName].request.payload,
+                    params: (path.indexOf('{') >= 0) ? validations[methodName].request.params : undefined,
                     query: false
                 }
             }
@@ -507,29 +506,37 @@ module.exports = function(port, errors) {
         return path;
     };
     let paths = [];
-    Object.keys(httpMethods).forEach(function(key) {
-        if (key.endsWith('.routeConfig') && Array.isArray(httpMethods[key])) {
-            httpMethods[key].forEach(function(routeConfig) {
-                if (routeConfig.config.isRpc === false) {
-                    config[routeConfig.method] = routeConfig;
-                    if (routeConfig.config.route) {
-                        paths.push(routeAdd(routeConfig.method, routeConfig.config.route, true));
-                    } else {
-                        paths.push(routeAdd(routeConfig.method, routeConfig.method.split('.').join('/'), true));
-                    }
-                } else {
-                    assertRouteConfig(routeConfig);
-                    config[routeConfig.method] = routeConfig;
-                    if (routeConfig.config && routeConfig.config.route) {
-                        paths.push(routeAdd(routeConfig.method, routeConfig.config.route, true));
-                    } else {
-                        paths.push(routeAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), true));
-                        paths.push(routeAdd(routeConfig.method, '/rpc/' + routeConfig.method));
-                    }
-                }
-            });
+    let addHandler = ({method, config}) => {
+        if (config.isRpc === false) {
+            if (config.route) {
+                paths.push(routeAdd(method, config, config.route, true));
+            } else {
+                paths.push(routeAdd(method, config, method.split('.').join('/'), true));
+            }
+        } else {
+            assertRouteConfig(config, method);
+            if (config && config.route) {
+                paths.push(routeAdd(method, config, config.route, true));
+            } else {
+                paths.push(routeAdd(method, config, '/rpc/' + method.split('.').join('/'), true));
+                paths.push(routeAdd(method, config, '/rpc/' + method));
+            }
         }
+    };
+
+    httpMethods.imported && Object.values(httpMethods.imported).forEach((imported) => {
+        Object.entries(imported).forEach(([method, validation]) => {
+            if (validation instanceof Function) {
+                let config = validation();
+                method = method.split('validation.', 2).pop();
+                methodConfig[method] = config;
+                addHandler({method, config});
+            } else {
+                throw new Error('Invalid entry in validations:' + method);
+            }
+        });
     });
+
     port.log.trace && port.log.trace({$meta: {mtid: 'config', opcode: 'paths'}, message: paths.sort()});
     pendingRoutes.push({
         method: 'POST',

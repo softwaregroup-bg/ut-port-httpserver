@@ -44,6 +44,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             type: 'httpserver',
             port: 8080,
             connections: [],
+            namespace: [],
             identityNamespace: 'identity',
             routes: {
                 rpc: {
@@ -168,8 +169,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         return server;
     }
     async start() {
-        this.bus && this.bus.importMethods(this.methods, this.config.imports, undefined, this);
-        let args = Array.prototype.slice.call(arguments);
+        this.bus && this.bus.attachHandlers(this.methods, this.config.imports, this);
         this.context = {requests: {}};
         this.stream = this.pull(false, this.context);
         await new Promise((resolve, reject) => {
@@ -201,7 +201,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port})];
         }
         this.hapiServers = await Promise.all(servers);
-        await super.start(...args);
+        await super.start(...arguments);
         if (this.socketSubscriptions.length) {
             this.hapiServers.forEach(server => {
                 var socketServer = new SocketServer(this, this.config);
