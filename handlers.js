@@ -25,12 +25,14 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
         result: routeConfig.config.result.label('result'),
         error: joi.object({
             code: joi.number().integer().description('Error code'),
+            key: joi.any().description('Error key'),
             message: joi.string().description('Debug error message'),
             errorPrint: joi.string().optional().description('User friendly error message'),
             print: joi.string().optional().description('User friendly error message'),
             fieldErrors: joi.any().description('Field validation errors'),
             details: joi.object().optional().description('Error udf details'),
-            type: joi.string().description('Error type')
+            type: joi.string().description('Error type'),
+			translations: joi.any().optional().description('Error translations in all languages')
         }).label('error'),
         debug: joi.object().label('debug')
     })
@@ -338,27 +340,29 @@ module.exports = function(port, errors) {
                     let appId = request.payload.params && request.payload.params.appId;
                     let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
                     let uuId = uuid();
+                    // meta additional props
                     let jwtSigned = jwt.sign({
                         timezone: tz,
-                        xsrfToken: uuId,
+                        // xsrfToken: uuId,
                         actorId: res['identity.check'].actorId,
+                        // identifier: res && res.identifier && res.identifier.identifier ? res.identifier.identifier : null,
                         sessionId: res['identity.check'].sessionId,
                         scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
                     }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
                     endReply.result.jwt = {value: jwtSigned};
-                    endReply.result.xsrf = {uuId};
+                    // endReply.result.xsrf = {uuId};
 
                     return reply(endReply)
                         .state(
                             port.config.jwt.cookieKey,
                             jwtSigned,
                             Object.assign({path: port.config.cookiePaths}, port.config.cookie)
-                        )
-                        .state(
-                            'xsrf-token',
-                            uuId,
-                            Object.assign({path: port.config.cookiePaths}, port.config.cookie, {isHttpOnly: false})
                         );
+                        // .state(
+                        //     'xsrf-token',
+                        //     uuId,
+                        //     Object.assign({path: port.config.cookiePaths}, port.config.cookie, {isHttpOnly: false})
+                        // );
                 } else {
                     return reply(endReply);
                 }
@@ -492,7 +496,11 @@ module.exports = function(port, errors) {
                     if (routeConfig.config && routeConfig.config.route) {
                         routeAdd(routeConfig.method, routeConfig.config.route, true);
                     } else {
-                        routeAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), true);
+                        let addToSwagger = true;
+                        if (port.config && port.config.skipMethods && port.config.skipMethods.indexOf(routeConfig.method) !== -1) {
+                            addToSwagger = false;
+                        }
+                        routeAdd(routeConfig.method, '/rpc/' + routeConfig.method.split('.').join('/'), addToSwagger);
                         routeAdd(routeConfig.method, '/rpc/' + routeConfig.method);
                     }
                 }
