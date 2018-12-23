@@ -16,7 +16,7 @@
     "vision": "5.4.0"
   },
   "devDependencies": {
-    "ut-tools": "^6.3.4"
+    "ut-tools": "^6.6.2"
   },
   "peerDependencies": {
     "react-hot-loader": "^4.6.2",
