@@ -288,29 +288,24 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 if (typeof config.entry !== 'object') {
                     return reject(new Error('config.entry must be an Object'));
                 }
-                for (let name in config.entry) {
-                    if (config.entry.hasOwnProperty(name) && name !== 'vendor') {
-                        if (!Array.isArray(config.entry[name])) {
-                            return reject(new Error(config.entry[name] + ' should be an Array'));
-                        }
-                        (config.entry[name].indexOf('webpack-hot-middleware/client') < 0) && config.entry[name].unshift('webpack-hot-middleware/client');
-                        (config.entry[name].indexOf('react-hot-loader/patch') < 0) && config.entry[name].unshift('react-hot-loader/patch');
-                    }
-                }
                 if (!Array.isArray(config.plugins)) {
                     return reject(new Error('config.plugins must be an Array'));
                 }
-                config.plugins.push(new webpack.HotModuleReplacementPlugin());
                 let compiler = webpack(config);
                 let assetsConfig = {
                     noInfo: true,
                     publicPath: config.output.publicPath,
                     stats: {
                         colors: true
+                    },
+                    watchOptions: {
+                        aggregateTimeout: 500,
+                        ignored: /(node_modules[\\/](?!(impl|ut)-)|\.git)/
                     }
                 };
                 if (process.platform === 'darwin') {
                     assetsConfig.watchOptions = {
+                        ignored: /(node_modules[\\/](?!(impl|ut)-)|\.git)/,
                         aggregateTimeout: 1000,
                         poll: false,
                         useFsEvents: true,
@@ -318,6 +313,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                     };
                 } else if (process.platform !== 'win32') {
                     assetsConfig.watchOptions = {
+                        ignored: /(node_modules[\\/](?!(impl|ut)-)|\.git)/,
                         aggregateTimeout: 300,
                         poll: true,
                         watch: true
@@ -330,7 +326,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 }, (this.config.packer && this.config.packer.hotMiddleware) || {});
 
                 this.hapiServers[0].register({
-                    plugin: serverRequire('hapi-webpack-plugin'),
+                    plugin: serverRequire('./hapi-webpack-plugin'),
                     options: {
                         compiler,
                         assets,
@@ -343,8 +339,6 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                         return true;
                     })
                     .catch(reject);
-            } else {
-                // @TODO implement lasso hot reload
             }
         });
     }

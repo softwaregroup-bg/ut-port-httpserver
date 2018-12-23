@@ -19,11 +19,11 @@
     "ut-tools": "^6.3.4"
   },
   "peerDependencies": {
-    "hapi-webpack-plugin": "^3.0.0",
+    "react-hot-loader": "^4.6.2",
     "ut-port": "^6.6.0",
-    "react-hot-loader": "^3.1.3",
-    "webpack": "^3.11.0",
-    "webpack-hot-middleware": "^2.21.2"
+    "webpack": "^4.27.1",
+    "webpack-dev-middleware": "^3.4.0",
+    "webpack-hot-middleware": "^2.24.3"
   },
   "description": "UT port httpserver module",
   "scripts": {
