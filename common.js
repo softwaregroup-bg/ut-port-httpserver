@@ -76,7 +76,6 @@ function initMetadataFromRequest(request = {}, port = {}) {
     if (value.timeout != null) value.timeout = port.timing.after(value.timeout);
 
     port && port.setTimer && port.setTimer(value);
-    if (value.forward['x-request-id'] === undefined) value.forward['x-request-id'] = request.info.id;
     return value;
 }
 
