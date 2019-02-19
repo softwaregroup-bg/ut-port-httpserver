@@ -16,6 +16,7 @@
     "vision": "5.4.0"
   },
   "devDependencies": {
+    "tap": "^12.5.2",
     "ut-tools": "^6.6.2"
   },
   "peerDependencies": {
