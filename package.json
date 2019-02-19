@@ -19,6 +19,7 @@
     "ut-tools": "^6.6.2"
   },
   "peerDependencies": {
+    "ut-bus": "^7.1.1",
     "react-hot-loader": "^4.6.2",
     "ut-port": "^6.6.0",
     "webpack": "^4.27.1",

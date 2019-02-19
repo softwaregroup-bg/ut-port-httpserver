@@ -524,7 +524,7 @@ module.exports = function(port, errors) {
         }
     };
 
-    httpMethods.imported && Object.values(httpMethods.imported).forEach((imported) => {
+    httpMethods.importedMap && Array.from(httpMethods.importedMap.values()).forEach((imported) => {
         Object.entries(imported).forEach(([method, validation]) => {
             if (validation instanceof Function) {
                 let config = validation();
