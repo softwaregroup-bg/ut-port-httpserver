@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "tap": "^12.5.2",
-    "ut-tools": "^6.6.2"
+    "ut-tools": "^6.12.2"
   },
   "peerDependencies": {
     "ut-bus": "^7.1.1",
