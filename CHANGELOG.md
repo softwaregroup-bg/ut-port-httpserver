@@ -1,3 +1,12 @@
+## [10.4.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.1...v10.4.2) (2019-02-23)
+
+
+### Bug Fixes
+
+* update jsonwebtoken ([8655f99](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8655f99))
+
+
+
 ## [10.4.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.0...v10.4.1) (2019-02-19)
 
 
