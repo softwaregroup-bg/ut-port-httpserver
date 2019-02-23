@@ -10,7 +10,7 @@
     "hapi-swagger": "9.1.2",
     "inert": "5.1.0",
     "joi": "13.7.0",
-    "jsonwebtoken": "8.3.0",
+    "jsonwebtoken": "8.5.0",
     "os": "^0.1.1",
     "uuid": "3.3.2",
     "vision": "5.4.0"
