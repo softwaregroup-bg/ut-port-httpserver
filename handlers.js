@@ -98,10 +98,10 @@ module.exports = function(port, errors) {
     const byMethodValidate = function byMethodValidate(checkType, method, data) {
         let vr;
         if (checkType === 'request') {
-            vr = validations[method].request.payload.validate(data);
+            vr = validations[method].request.payload.validate(data, {abortEarly: false});
             vr.method = 'payload';
         } else if (checkType === 'response') {
-            vr = validations[method].response.validate(data);
+            vr = validations[method].response.validate(data, {abortEarly: false});
             vr.method = 'response';
         }
         return vr;
