@@ -1,3 +1,12 @@
+## [10.4.3](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.2...v10.4.3) (2019-03-01)
+
+
+### Bug Fixes
+
+* set abortEarly to false ([27e7150](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/27e7150))
+
+
+
 ## [10.4.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.1...v10.4.2) (2019-02-23)
 
 
