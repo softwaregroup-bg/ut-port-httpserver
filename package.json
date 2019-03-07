@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "10.4.3",
+  "version": "10.4.4",
   "dependencies": {
     "ut-wss": "^0.2.0",
     "fs-plus": "3.0.2",
