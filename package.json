@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "10.3.0-rc-godfather.9",
+  "version": "10.3.0",
   "dependencies": {
     "ut-wss": ">=0.2.0-rc-godfather.1 <=0.2.0-rc-godfather.999",
     "fs-plus": "3.0.2",

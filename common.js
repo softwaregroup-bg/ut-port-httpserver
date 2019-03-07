@@ -56,7 +56,7 @@ function initMetadataFromRequest(request = {}, port = {}) {
         opcode: request.payload && request.payload.method ? request.payload.method.split('.').pop() : '',
         mtid: (request.payload && !request.payload.id) ? 'notification' : 'request',
         requestHeaders: request.headers,
-        ipAddress: ((request.headers && request.headers['x-forwarded-for']) || request.info.remoteAddress).split(',')[0],
+        ipAddress: ((port.config && port.config.allowXFF && request.headers && request.headers['x-forwarded-for']) || request.info.remoteAddress).split(',')[0],
         frontEnd: request.headers && request.headers['user-agent'],
         latitude: request.headers && request.headers.latitude,
         longitude: request.headers && request.headers.longitude,
