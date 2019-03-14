@@ -75,7 +75,7 @@ function initMetadataFromRequest(request = {}, port = {}) {
     }
     if (value.timeout != null) value.timeout = port.timing.after(value.timeout);
 
-    port && port.setTimer && port.setTimer(value);
+    value.method && port && port.setTimer && port.setTimer(value);
     return value;
 }
 
