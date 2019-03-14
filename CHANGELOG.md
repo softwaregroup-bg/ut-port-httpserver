@@ -1,3 +1,12 @@
+## [10.4.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.4...v10.4.5) (2019-03-14)
+
+
+### Bug Fixes
+
+* set timer only when there is method ([0b8e54e](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/0b8e54e))
+
+
+
 ## [10.4.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.3...v10.4.4) (2019-03-07)
 
 
