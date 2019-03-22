@@ -1,3 +1,7 @@
+## [10.4.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.5...v10.4.6) (2019-03-22)
+
+
+
 ## [10.4.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.4...v10.4.5) (2019-03-14)
 
 
