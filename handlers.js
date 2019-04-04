@@ -375,6 +375,7 @@ module.exports = function(port, errors) {
                             xsrfToken: uuId,
                             actorId: res['identity.check'].actorId,
                             sessionId: res['identity.check'].sessionId,
+                            channel: res['identity.check'].channel,
                             scopes: endReply.result['permission.get'].map((e) => ({actionId: e.actionId, objectId: e.objectId})).filter((e) => (appId && (e.actionId.indexOf(appId) === 0 || e.actionId === '%')))
                         }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
                         endReply.result.jwt = {value: jwtSigned};
