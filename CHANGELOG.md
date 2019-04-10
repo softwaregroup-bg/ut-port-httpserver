@@ -1,3 +1,12 @@
+# [10.5.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.6...v10.5.0) (2019-04-10)
+
+
+### Features
+
+* added channel to the JWT ([#144](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/144)) ([1d44d02](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/1d44d02))
+
+
+
 ## [10.4.6](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.5...v10.4.6) (2019-03-22)
 
 
