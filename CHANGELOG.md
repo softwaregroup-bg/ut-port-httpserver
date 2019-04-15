@@ -1,3 +1,12 @@
+## [10.5.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.5.0...v10.5.1) (2019-04-15)
+
+
+### Bug Fixes
+
+* allow channel in auth ([c1f8373](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/c1f8373))
+
+
+
 # [10.5.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.4.6...v10.5.0) (2019-04-10)
 
 
