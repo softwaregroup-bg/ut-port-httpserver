@@ -12,6 +12,7 @@ const metaSchema = joi.object().keys({
         scopes: joi.array(),
         sessionId: joi.string().max(36),
         timezone: joi.string(),
+        channel: joi.string(),
         xsrfToken: joi.string().max(36)
     }).allow(null),
     method: joi.string().max(100),
