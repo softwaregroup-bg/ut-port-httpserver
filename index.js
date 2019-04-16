@@ -243,15 +243,6 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 return this.bus.importMethod('registry.service.add')(registryConfig);
             };
         }));
-        this.log.info && this.log.info({
-            message: {
-                text: 'HTTP server started'
-            },
-            $meta: {
-                mtid: 'event',
-                opcode: 'port.started'
-            }
-        });
         return true;
     }
     registerRequestHandler(items) {
