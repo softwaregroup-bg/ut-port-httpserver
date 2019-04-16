@@ -244,7 +244,9 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             };
         }));
         this.log.info && this.log.info({
-            message: 'HTTP server started',
+            message: {
+                text: 'HTTP server started'
+            },
             $meta: {
                 mtid: 'event',
                 opcode: 'port.started'
