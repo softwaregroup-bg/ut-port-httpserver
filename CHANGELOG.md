@@ -1,3 +1,12 @@
+# [10.6.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.5.2...v10.6.0) (2019-07-19)
+
+
+### Features
+
+* expose k8s config ([7f7e35b](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/7f7e35b))
+
+
+
 ## [10.5.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.5.1...v10.5.2) (2019-04-16)
 
 
