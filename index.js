@@ -111,6 +111,18 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         this.bus.registerLocal({
             registerRequestHandler: this.registerRequestHandler.bind(this)
         }, this.config.id);
+        if (this.config.host) {
+            this.config.k8s = {
+                ports: [{
+                    name: 'http-server',
+                    service: true,
+                    ingress: {
+                        host: this.config.host
+                    },
+                    containerPort: this.config.port
+                }]
+            };
+        }
         return result;
     }
     async createServer(config) {
@@ -195,10 +207,10 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         var servers = [];
         if (this.config.connections && this.config.connections.length) {
             servers = this.config.connections.map(connection => this.createServer(
-                Object.assign({port: (this.config.port == null) ? 8080 : this.config.port}, connection))
+                Object.assign({port: (this.config.port == null) ? 8080 : this.config.port, host: this.config.host}, connection))
             );
         } else {
-            servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port})];
+            servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port, host: this.config.host})];
         }
         this.hapiServers = await Promise.all(servers);
         await super.start(...arguments);
