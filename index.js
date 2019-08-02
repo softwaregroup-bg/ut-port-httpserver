@@ -207,10 +207,18 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         var servers = [];
         if (this.config.connections && this.config.connections.length) {
             servers = this.config.connections.map(connection => this.createServer(
-                Object.assign({port: (this.config.port == null) ? 8080 : this.config.port, host: this.config.host}, connection))
+                Object.assign({
+                    port: (this.config.port == null) ? 8080 : this.config.port,
+                    host: this.config.host,
+                    address: this.config.address
+                }, connection))
             );
         } else {
-            servers = [this.createServer({port: (this.config.port == null) ? 8080 : this.config.port, host: this.config.host})];
+            servers = [this.createServer({
+                port: (this.config.port == null) ? 8080 : this.config.port,
+                host: this.config.host,
+                address: this.config.address
+            })];
         }
         this.hapiServers = await Promise.all(servers);
         await super.start(...arguments);
