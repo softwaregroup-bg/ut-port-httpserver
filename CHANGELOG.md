@@ -1,3 +1,12 @@
+# [10.7.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.6.0...v10.7.0) (2019-08-02)
+
+
+### Features
+
+* support address in config ([2973aca](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/2973aca))
+
+
+
 # [10.6.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.5.2...v10.6.0) (2019-07-19)
 
 
