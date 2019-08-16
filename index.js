@@ -12,9 +12,13 @@ const packageJson = require('./package.json');
 const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('./socketServer');
-const uuid = require('uuid/v4');
+const uuid = require('uuid/v4'); 
+const hoek = require('hoek');
+const Boom = require('boom');
 let errors;
+let tenantInfo = {
 
+};
 module.exports = function({parent}) {
     function HttpServerPort({config}) {
         parent && parent.apply(this, arguments);
@@ -143,6 +147,36 @@ module.exports = function({parent}) {
                     request.response.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
                 }
                 return reply.continue();
+            });
+        }
+
+        if (this.config.subdomain && this.config.subdomain.domainName) {
+            this.hapiServer.ext('onRequest', async (request, reply) => {
+                let { domainName, exclude } = this.config.subdomain;
+                exclude = exclude || [];
+                let hostNameArr = request.info.hostname.split('.');
+                const sliceLength = domainName ? domainName.split('.').length : 2;
+                hostNameArr = hostNameArr.slice(0, hostNameArr.length - sliceLength);
+                hostNameArr = hostNameArr.filter(s => !exclude.includes(s));
+                let subdomain = hostNameArr.join('.').toLowerCase();
+                // check the sub domain is registered as tenant code
+                try {
+                    if (!tenantInfo[subdomain]) {
+                        tenantInfo = {};
+                        var res = await this.bus.importMethod('tenant.tenant.list')({});
+                        (res.tenant || []).forEach((t) => tenantInfo[(t.code || '').toLowerCase()] = t.actorId);
+                    }
+
+                    if (tenantInfo[subdomain]) {
+                        request.subdomain = subdomain;
+                        request.tenantId = tenantInfo[subdomain];
+                        return reply.continue();
+                    } else {
+                        return reply(Boom.notFound('Service is not available'));
+                    }
+                } catch (err) {
+                    return reply(Boom.notFound('Service is not available'));
+                }
             });
         }
 

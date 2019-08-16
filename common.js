@@ -24,6 +24,8 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         os: osName,
         version: bus.config && bus.config.version,
         serviceName: bus.config && bus.config.implementation,
-        deviceId: request.headers && request.headers.deviceId
+        deviceId: request.headers && request.headers.deviceId,
+        tenantId: request.tenantId,
+        subdomain: request.subdomain
     };
 }
