@@ -161,13 +161,13 @@ module.exports = function({parent}) {
                 let subdomain = hostNameArr.join('.').toLowerCase();
                 // check the sub domain is registered as tenant code
                 try {
-                    if (!tenantInfo[subdomain]) {
+                    if (tenantInfo[subdomain] === null || tenantInfo[subdomain] === undefined) {
                         tenantInfo = {};
                         var res = await this.bus.importMethod('tenant.tenant.list')({});
                         (res.tenant || []).forEach((t) => tenantInfo[(t.code || '').toLowerCase()] = t.actorId);
                     }
 
-                    if (tenantInfo[subdomain]) {
+                    if (tenantInfo[subdomain] !== null && tenantInfo[subdomain] !== undefined) {
                         request.subdomain = subdomain;
                         request.tenantId = tenantInfo[subdomain];
                         return reply.continue();
