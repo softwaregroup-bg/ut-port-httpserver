@@ -4,6 +4,7 @@
   "dependencies": {
     "boom": "^4.0.1",
     "call": "3.0.3",
+    "content": "4.0.6",
     "fs-plus": "2.9.3",
     "hapi": "16.0.2",
     "hapi-auth-basic": "4.2.0",
@@ -14,6 +15,7 @@
     "jsonwebtoken": "7.1.9",
     "lodash.mergewith": "4.6.0",
     "os": "^0.1.1",
+    "pez": "4.0.5",
     "uuid": "3.1.0",
     "vision": "4.1.1",
     "ws": "2.3.1"

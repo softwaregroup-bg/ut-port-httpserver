@@ -5,6 +5,9 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
 const uuid = require('uuid/v4');
+const Content = require('content');
+const Pez = require('pez');
+
 const {initMetadataFromRequest} = require('./common');
 
 const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
@@ -48,19 +51,11 @@ const getReqRespValidation = function getReqRespValidation(routeConfig) {
     };
 };
 
-const isUploadValid = function isUploadValid(request, uploadConfig) {
-    let file = request.payload.file;
-    if (!file) {
-        return false;
-    }
-    let fileName = file.hapi.filename;
+function isUploadValid(fileName, uploadConfig) {
     let isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
     let uploadExtension = fileName.split('.').pop();
     let isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
-    if (file && isNameValid && isExtensionAllowed) {
-        return true;
-    }
-    return false;
+    return isNameValid && isExtensionAllowed;
 };
 
 const assertRouteConfig = function assertRouteConfig(routeConfig) {
@@ -510,69 +505,50 @@ module.exports = function(port, errors) {
             payload: {
                 maxBytes: port.config.fileUpload.payloadMaxBytes,
                 output: 'stream',
-                parse: true,
+                parse: false,
                 allow: 'multipart/form-data'
             },
             handler: function(request, reply) {
-                Promise.resolve()
-                    .then(() => {
-                        let $meta = initMetadataFromRequest(request, port.bus);
-                        let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
-                        return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
-                    })
-                    .then((res) => {
-                        let file = request.payload.file;
-                        let isValid = isUploadValid(request, port.config.fileUpload);
-                        if (!isValid) {
-                            return reply('').code(400);
-                        } else {
-                            let fileName = (new Date()).getTime() + '_' + file.hapi.filename;
-                            let path = port.bus.config.workDir + '/uploads/' + fileName;
-                            let ws = fs.createWriteStream(path);
-                            ws.on('error', function(err) {
-                                port.log.error && port.log.error(err);
-                                reply('');
+                const contentType = Content.type(request.headers['content-type']);
+                if (!contentType || !contentType.boundary) return reply('Missing content type boundary').code(400);
+                const dispenser = new Pez.Dispenser({boundary: contentType.boundary});
+                Promise.resolve().then(() => {
+                    let $meta = initMetadataFromRequest(request, port.bus);
+                    let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                    return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
+                }).then(() => {
+                    const fileInfo = {
+                        filename: '',
+                        headers: {}
+                    };
+                    dispenser.once('close', () => reply(JSON.stringify((fileInfo))));
+                    dispenser.on('part', async part => {
+                        if (part.name === 'file') {
+                            fileInfo.filename = Date.now() + '_' + part.filename;
+                            fileInfo.headers = part.headers;
+                            if (!isUploadValid(part.filename, port.config.fileUpload)) return reply('').code(400);
+                            let path = port.bus.config.workDir + '/uploads/' + fileInfo.filename;
+                            let file = fs.createWriteStream(path);
+                            file.on('error', function(error) {
+                                port.log.error && port.log.error(error);
+                                reply(error.message, 500);
                             });
-                            file.pipe(ws);
-                            return file.on('end', function(err) {
-                                if (err) {
-                                    port.log.error && port.log.error(err);
-                                    reply('');
-                                } else {
-                                    if (file.hapi.headers['content-type'] === 'base64/png') {
-                                        fs.readFile(path, (err, fileContent) => {
-                                            if (err) {
-                                                reply('');
-                                            }
-                                            fileContent = fileContent.toString();
-                                            let matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-                                            if (matches.length === 3) {
-                                                let imageBuffer = {};
-                                                imageBuffer.type = matches[1];
-                                                imageBuffer.data = new Buffer(matches[2], 'base64');
-                                                fileContent = imageBuffer.data;
-                                                fs.writeFile(path, fileContent, (err) => {
-                                                    if (err) reply('');
-                                                    reply(JSON.stringify({
-                                                        filename: fileName,
-                                                        headers: file.hapi.headers
-                                                    }));
-                                                });
-                                            } else reply('');
-                                        });
-                                    } else {
-                                        reply(JSON.stringify({
-                                            filename: fileName,
-                                            headers: file.hapi.headers
-                                        }));
-                                    }
-                                }
-                            });
+                            part.pipe(file);
                         }
-                    })
-                    .catch((err) => {
-                        if (err) reply('').code(401);
                     });
+                    dispenser.once('error', error => {
+                        port.log.error && port.log.error(error);
+                        reply(error.message, 500);
+                    });
+                    request.payload.pipe(dispenser);
+                    return true;
+                }, error => {
+                    port.log.error && port.log.error(error);
+                    reply(error.message, 401);
+                }).catch(error => {
+                    port.log.error && port.log.error(error);
+                    reply(error.message, 500);
+                });
             }
         }
     });
