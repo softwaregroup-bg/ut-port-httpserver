@@ -206,14 +206,17 @@ module.exports = function(port, errors) {
         let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
         let routeConfig = methodConfig[request.params.method] || {};
 
-        if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
-            port.log.error && port.log.error(errors['httpServerPort.xsrfTokenMismatch']());
-            return handleError({
-                code: '404',
-                message: 'Not found',
-                errorPrint: 'Not found'
-            });
+        if (request.payload && request.payload.method && request.payload.method !== 'identity.check') {
+            if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
+                port.log.error && port.log.error(errors['httpServerPort.xsrfTokenMismatch']());
+                return handleError({
+                    code: '404',
+                    message: 'Not found',
+                    errorPrint: 'Not found'
+                });
+            }
         }
+
         if (request.params && request.params.isRpc && (!request.payload || !request.payload.jsonrpc)) {
             return handleError({
                 code: '-1',
