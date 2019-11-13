@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const joi = require('joi');
 const uuid = require('uuid/v4');
 const {initMetadataFromRequest} = require('./common');
+const util = require('util');
 
 const getReqRespRpcValidation = function getReqRespRpcValidation(validation, methodName) {
     let request = {
@@ -351,7 +352,7 @@ module.exports = function(port, errors) {
         } else if (port.config.publicMethods && port.config.publicMethods.indexOf(request.payload.method) > -1) {
             return processMessage();
         }
-
+        let res = {};
         return Promise.resolve()
             .then(() => {
                 if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
@@ -362,7 +363,44 @@ module.exports = function(port, errors) {
                 let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                 return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
             })
-            .then((res) => {
+            .then((resp) => {
+                res = resp;
+                if (request.payload.params && request.payload.params.channel === 'mobile') {
+                    // try and get the permissions and float/commssion accounts for agent
+                    let _meta = Object.assign({}, $meta);
+                    _meta.method = 'agent.agent.get';
+                    return port.bus.importMethod(_meta.method)({actorId: res['identity.check'].actorId}, _meta)
+                    .then((respAgent) => {
+                        // try and get the latest balance from cbs else revert to saved agent account balance
+                        // if (respAgent && respAgent.account && Object.keys(respAgent.account).length) {
+                        //     _meta.method = 'cbs.account.search';
+                        //     let reqAccountBalances = [];
+                        //     respAgent.account.forEach(acct => {
+                        //         if (acct.accountTypeCode && ['float', 'commission'].includes(acct.accountTypeCode)) {
+                        //             reqAccountBalances.push(port.bus.importMethod(_meta.method)({accountNumber: acct.accountNumber}, _meta));
+                        //         }
+                        //     });
+                        //     return Promise.all(reqAccountBalances)
+                        //     .then((respAccountBalances) => {
+                        //         respAccountBalances && respAccountBalances.forEach((acct, idx) => {
+                        //             if (acct && acct.accountNumber && acct.actualBalance && respAgent.account[idx].accountNumber === acct.accountNumber) {
+                        //                 respAgent.account[idx].balance = acct.actualBalance;
+                        //             }
+                        //         });
+                        //         return respAgent;
+                        //     })
+                        //     .catch((err) => {
+                        //         return respAgent;
+                        //     });
+                        // }
+                        return respAgent;
+                    })
+                    .catch((err) => {
+                        return {};
+                    });
+                }
+                return {};
+            }).then((resp) => {
                 if (request.payload.method === identityCheckFullName) {
                     endReply.result = res;
                     const reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
@@ -383,6 +421,39 @@ module.exports = function(port, errors) {
                         }, port.config.jwt.key, (port.config.jwt.signOptions || {}));
                         endReply.result.jwt = {value: jwtSigned};
                         endReply.result.xsrf = {uuId};
+                        endReply.result.floatAccounts = [];
+                        endReply.result.commisssionAccounts = [];
+                        if (request.payload.params && request.payload.params.channel === 'mobile' && resp && resp.account) {
+                            let floatAccounts = [];
+                            let commissionAccounts = [];
+
+                            resp && resp.account && resp.account.forEach(acct => {
+                                if (acct.accountTypeCode && acct.accountTypeCode && acct.accountTypeCode.toLowerCase() === 'float') {
+                                    floatAccounts.push({ 
+                                        type: 'account',
+                                        number: acct.accountNumber,
+                                        currency: acct.currencyName,
+                                        balance: [{
+                                            type: 'available',
+                                            value: acct.balance
+                                        }]
+                                    });
+                                }
+                                if (acct.accountTypeCode && acct.accountTypeCode && acct.accountTypeCode.toLowerCase() === 'commission') {
+                                    commissionAccounts.push({ 
+                                        type: 'account',
+                                        number: acct.accountNumber,
+                                        currency: acct.currencyName,
+                                        balance: [{
+                                            type: 'available',
+                                            value: acct.balance
+                                        }]
+                                    });
+                                }
+                            });
+                            endReply.result.floatAccounts = floatAccounts;
+                            endReply.result.commisssionAccounts = commissionAccounts;
+                        }
 
                         return reply(endReply)
                             .state(
