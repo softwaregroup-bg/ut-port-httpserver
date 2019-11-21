@@ -78,7 +78,7 @@ const assertRouteConfig = function assertRouteConfig(validation, methodName) {
     }
 };
 
-module.exports = function(port, errors) {
+module.exports = function(port, errors, utApi) {
     const httpMethods = {};
     const pendingRoutes = [];
     const validations = {};
@@ -532,11 +532,13 @@ module.exports = function(port, errors) {
                 method = method.split('validation.', 2).pop();
                 methodConfig[method] = config;
                 addHandler({method, config});
+                utApi && utApi.rpcRoutes([{method, ...config}]);
             } else {
                 throw new Error('Invalid entry in validations:' + method);
             }
         });
     });
+    utApi && utApi.uiRoutes && pendingRoutes.push(...utApi.uiRoutes);
 
     port.log.trace && port.log.trace({$meta: {mtid: 'config', opcode: 'paths'}, message: paths.sort()});
     pendingRoutes.push({

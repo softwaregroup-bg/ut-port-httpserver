@@ -89,6 +89,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 },
                 pathPrefixSize: 2 // this helps extracting the namespace from the second argument of the url
             },
+            oidc: {},
             jwt: {
                 cookieKey: 'ut5-cookie',
                 key: 'ut5-secret',
@@ -176,7 +177,8 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         server.auth.default('jwt');
 
         server.route(this.routes);
-        server.route(handlers(this, this.errors));
+        const utApi = await require('ut-api')({service: this.config.id, oidc: this.config.oidc, auth: false, ui: true});
+        server.route(handlers(this, this.errors, utApi));
 
         return server;
     }
