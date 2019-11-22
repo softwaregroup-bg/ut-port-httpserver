@@ -532,7 +532,7 @@ module.exports = function(port, errors, utApi) {
                 method = method.split('validation.', 2).pop();
                 methodConfig[method] = config;
                 addHandler({method, config});
-                utApi && utApi.rpcRoutes([{method, ...config}]);
+                utApi && utApi.rpcRoutes([{method, ...config, version: validation.pkg && validation.pkg.version}]);
             } else {
                 throw new Error('Invalid entry in validations:' + method);
             }
