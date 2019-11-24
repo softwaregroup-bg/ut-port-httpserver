@@ -5,8 +5,6 @@ const inert = require('inert');
 const vision = require('vision');
 const jwt = require('hapi-auth-jwt2');
 const basicAuth = require('hapi-auth-basic');
-const swagger = require('hapi-swagger');
-const packageJson = require('./package.json');
 const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('ut-wss');
@@ -82,12 +80,6 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 maxFileName: 100,
                 payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)
                 extensionsWhiteList: ['pdf', 'doc', 'docx', 'xls', 'txt', 'jpg', 'jpeg', 'png']
-            },
-            swagger: {
-                info: {
-                    version: packageJson.version
-                },
-                pathPrefixSize: 2 // this helps extracting the namespace from the second argument of the url
             },
             oidc: {},
             jwt: {
@@ -165,10 +157,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             basicAuth,
             jwt,
             inert,
-            vision, {
-                plugin: swagger,
-                options: this.config.swagger
-            }
+            vision
         ]);
 
         server.auth.strategy('jwt', 'jwt', this.merge({
@@ -177,7 +166,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         server.auth.default('jwt');
 
         server.route(this.routes);
-        const utApi = await require('ut-api')({service: this.config.id, oidc: this.config.oidc, auth: false, ui: true});
+        const utApi = this.config.swagger && await require('ut-api')({service: this.config.id, oidc: this.config.oidc, auth: false, ui: true});
         server.route(handlers(this, this.errors, utApi));
 
         return server;
