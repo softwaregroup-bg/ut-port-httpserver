@@ -530,6 +530,9 @@ module.exports = function(port, errors) {
             if (validation instanceof Function) {
                 let config = validation();
                 method = method.split('validation.', 2).pop();
+                if (method.startsWith('identity.') && port.config.identityNamespace !== 'identity') {
+                    method = method.replace('identity', port.config.identityNamespace);
+                }
                 methodConfig[method] = config;
                 addHandler({method, config});
             } else {
