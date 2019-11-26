@@ -104,14 +104,15 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         this.bus.registerLocal({
             registerRequestHandler: this.registerRequestHandler.bind(this)
         }, this.config.id);
-        if (this.config.host) {
+        if (this.config.host || this.config.ingress) {
             this.config.k8s = {
                 ports: [{
                     name: 'http-server',
                     service: true,
-                    ingress: {
-                        host: this.config.host
-                    },
+                    ingress: [].concat(this.config.ingress || {}).map(ingress => ({
+                        host: this.config.host,
+                        ...ingress
+                    })),
                     containerPort: this.config.port
                 }]
             };
