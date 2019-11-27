@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "10.8.0-api.1",
+  "version": "10.8.0-api.2",
   "dependencies": {
     "ut-api": "^7.4.0",
     "ut-wss": "^0.2.0",
