@@ -2,7 +2,7 @@
 const path = require('path');
 const hapi = require('hapi');
 const inert = require('inert');
-const vision = require('vision');
+const h2o2 = require('h2o2');
 const jwt = require('hapi-auth-jwt2');
 const basicAuth = require('hapi-auth-basic');
 const handlers = require('./handlers');
@@ -158,7 +158,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             basicAuth,
             jwt,
             inert,
-            vision
+            h2o2
         ]);
 
         server.auth.strategy('jwt', 'jwt', this.merge({
@@ -167,7 +167,20 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         server.auth.default('jwt');
 
         server.route(this.routes);
-        const utApi = this.config.swagger && await require('ut-api')({service: this.config.id, oidc: this.config.oidc, auth: false, ui: true});
+        const utApi = this.config.swagger && await require('ut-api')({
+            service: this.config.id,
+            oidc: this.config.oidc,
+            auth: false,
+            ui: {
+                ...this.config.swagger,
+                services: this.config.swagger.services && (
+                    () => Promise.all(this.config.swagger.services.map(name =>
+                        this.bus.importMethod(name + '.service.get')({})
+                            .then(result => ({namespace: name, ...result}))
+                    ))
+                )
+            }
+        });
         server.route(handlers(this, this.errors, utApi));
 
         return server;
