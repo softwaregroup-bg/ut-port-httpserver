@@ -177,7 +177,10 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                     () => Promise.all(this.config.swagger.services.map(name =>
                         this.bus.importMethod(name + '.service.get')({})
                             .then(result => ({namespace: name, ...result}))
-                    ))
+                    )).catch(error => {
+                        this.error(error);
+                        throw error;
+                    })
                 )
             }
         });
