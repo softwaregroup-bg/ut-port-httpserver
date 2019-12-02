@@ -1,3 +1,12 @@
+## [10.8.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.0...v10.8.1) (2019-12-02)
+
+
+### Bug Fixes
+
+* update ut-api ([a851ebb](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/a851ebb))
+
+
+
 # [10.8.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.0-api.5...v10.8.0) (2019-12-02)
 
 
