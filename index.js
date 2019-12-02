@@ -2,11 +2,9 @@
 const path = require('path');
 const hapi = require('hapi');
 const inert = require('inert');
-const vision = require('vision');
+const h2o2 = require('h2o2');
 const jwt = require('hapi-auth-jwt2');
 const basicAuth = require('hapi-auth-basic');
-const swagger = require('hapi-swagger');
-const packageJson = require('./package.json');
 const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('ut-wss');
@@ -83,12 +81,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)
                 extensionsWhiteList: ['pdf', 'doc', 'docx', 'xls', 'txt', 'jpg', 'jpeg', 'png']
             },
-            swagger: {
-                info: {
-                    version: packageJson.version
-                },
-                pathPrefixSize: 2 // this helps extracting the namespace from the second argument of the url
-            },
+            oidc: {},
             jwt: {
                 cookieKey: 'ut5-cookie',
                 key: 'ut5-secret',
@@ -111,14 +104,15 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         this.bus.registerLocal({
             registerRequestHandler: this.registerRequestHandler.bind(this)
         }, this.config.id);
-        if (this.config.host) {
+        if (this.config.host || this.config.ingress) {
             this.config.k8s = {
                 ports: [{
                     name: 'http-server',
                     service: true,
-                    ingress: {
-                        host: this.config.host
-                    },
+                    ingress: [].concat(this.config.ingress || {}).map(ingress => ({
+                        host: this.config.host,
+                        ...ingress
+                    })),
                     containerPort: this.config.port
                 }]
             };
@@ -164,10 +158,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             basicAuth,
             jwt,
             inert,
-            vision, {
-                plugin: swagger,
-                options: this.config.swagger
-            }
+            h2o2
         ]);
 
         server.auth.strategy('jwt', 'jwt', this.merge({
@@ -176,7 +167,24 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         server.auth.default('jwt');
 
         server.route(this.routes);
-        server.route(handlers(this, this.errors));
+        const utApi = this.config.swagger && await require('ut-api')({
+            service: this.config.id,
+            oidc: this.config.oidc,
+            auth: false,
+            ui: {
+                ...this.config.swagger,
+                services: this.config.swagger.services && (
+                    () => Promise.all(this.config.swagger.services.map(name =>
+                        this.bus.importMethod(name + '.service.get')({})
+                            .then(result => ({namespace: name, ...result}))
+                    )).catch(error => {
+                        this.error(error);
+                        throw error;
+                    })
+                )
+            }
+        });
+        server.route(handlers(this, this.errors, utApi));
 
         return server;
     }
