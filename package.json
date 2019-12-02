@@ -2,7 +2,7 @@
   "name": "ut-port-httpserver",
   "version": "10.8.0",
   "dependencies": {
-    "ut-api": "^7.4.3",
+    "ut-api": "^7.4.4",
     "ut-wss": "^0.2.0",
     "fs-plus": "3.0.2",
     "h2o2": "8.2.0",
