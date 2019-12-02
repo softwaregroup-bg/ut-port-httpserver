@@ -1,3 +1,21 @@
+# [10.8.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.0-api.5...v10.8.0) (2019-12-02)
+
+
+### Bug Fixes
+
+* update ut-api ([e01d979](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/e01d979))
+
+
+
+## [10.7.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.0-api.0...v10.7.1) (2019-11-25)
+
+
+### Bug Fixes
+
+* reuse all validations when overriding the identity http routes ([#150](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/150)) ([60707f5](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/60707f5))
+
+
+
 ## [10.7.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.7.0...v10.7.1) (2019-11-25)
 
 
