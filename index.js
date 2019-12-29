@@ -152,6 +152,7 @@ module.exports = function({parent}) {
 
         if (this.config.subdomain && this.config.subdomain.domainName) {
             this.hapiServer.ext('onRequest', async (request, reply) => {
+                // this.log.info({message: 'REQUEST INFO' + JSON.stringify(request.info, null, 2)});
                 let { domainName, exclude } = this.config.subdomain;
                 exclude = exclude || [];
                 let hostNameArr = request.info.hostname.split('.');
@@ -159,6 +160,12 @@ module.exports = function({parent}) {
                 hostNameArr = hostNameArr.slice(0, hostNameArr.length - sliceLength);
                 hostNameArr = hostNameArr.filter(s => !exclude.includes(s));
                 let subdomain = hostNameArr.join('.').toLowerCase();
+                let subdomainSplit = subdomain.split('-');
+                if (subdomainSplit.length > 2) {
+                    subdomain = subdomainSplit[1];
+                } else {
+                    subdomain = subdomainSplit[0];
+                }
                 // check the sub domain is registered as tenant code
                 try {
                     if (tenantInfo[subdomain] === null || tenantInfo[subdomain] === undefined) {
@@ -172,10 +179,10 @@ module.exports = function({parent}) {
                         request.tenantId = tenantInfo[subdomain];
                         return reply.continue();
                     } else {
-                        return reply(Boom.notFound('Service is not available'));
+                        return reply.continue(); // reply(Boom.notFound('Service is not available'));
                     }
                 } catch (err) {
-                    return reply(Boom.notFound('Service is not available'));
+                    return reply.continue(); // reply(Boom.notFound('Service is not available'));
                 }
             });
         }
