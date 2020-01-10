@@ -150,43 +150,6 @@ module.exports = function({parent}) {
             });
         }
 
-        if (this.config.subdomain && this.config.subdomain.domainName) {
-            this.hapiServer.ext('onRequest', async (request, reply) => {
-                // this.log.info({message: 'REQUEST INFO' + JSON.stringify(request.info, null, 2)});
-                let { domainName, exclude } = this.config.subdomain;
-                exclude = exclude || [];
-                let hostNameArr = request.info.hostname.split('.');
-                const sliceLength = domainName ? domainName.split('.').length : 2;
-                hostNameArr = hostNameArr.slice(0, hostNameArr.length - sliceLength);
-                hostNameArr = hostNameArr.filter(s => !exclude.includes(s));
-                let subdomain = hostNameArr.join('.').toLowerCase();
-                let subdomainSplit = subdomain.split('-');
-                if (subdomainSplit.length > 2) {
-                    subdomain = subdomainSplit[1];
-                } else {
-                    subdomain = subdomainSplit[0];
-                }
-                // check the sub domain is registered as tenant code
-                try {
-                    if (tenantInfo[subdomain] === null || tenantInfo[subdomain] === undefined) {
-                        tenantInfo = {};
-                        var res = await this.bus.importMethod('tenant.tenant.list')({});
-                        (res.tenant || []).forEach((t) => tenantInfo[(t.code || '').toLowerCase()] = t.actorId);
-                    }
-
-                    if (tenantInfo[subdomain] !== null && tenantInfo[subdomain] !== undefined) {
-                        request.subdomain = subdomain;
-                        request.tenantId = tenantInfo[subdomain];
-                        return reply.continue();
-                    } else {
-                        return reply.continue(); // reply(Boom.notFound('Service is not available'));
-                    }
-                } catch (err) {
-                    return reply.continue(); // reply(Boom.notFound('Service is not available'));
-                }
-            });
-        }
-
         return new Promise((resolve, reject) => {
             let fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
             fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
