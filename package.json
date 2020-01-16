@@ -16,8 +16,11 @@
     "uuid": "3.3.2"
   },
   "devDependencies": {
-    "tap": "^12.5.2",
-    "ut-tools": "^6.29.1"
+    "json-schema-to-markdown": "1.1.1",
+    "tap": "^12.7.0",
+    "ut-run": "^10.17.3",
+    "ut-tools": "^6.30.3",
+    "why-is-node-running": "^2.1.0"
   },
   "peerDependencies": {
     "ut-bus": "^7.1.1",
@@ -30,6 +33,7 @@
   "description": "UT port httpserver module",
   "scripts": {
     "lint": "ut-lint .",
+    "doc": "ut-doc",
     "release": "ut-release",
     "changelog": "ut-changelog",
     "check": "ut-check",
