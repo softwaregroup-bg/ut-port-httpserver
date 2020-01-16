@@ -1,3 +1,12 @@
+## [10.8.2](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.1...v10.8.2) (2020-01-16)
+
+
+### Bug Fixes
+
+* call imported methods using port namespace ([#151](https://github.com/softwaregroup-bg/ut-port-httpserver/issues/151)) ([0353901](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/0353901))
+
+
+
 ## [10.8.1](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.0...v10.8.1) (2019-12-02)
 
 
