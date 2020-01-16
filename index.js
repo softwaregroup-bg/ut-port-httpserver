@@ -188,10 +188,21 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
 
         return server;
     }
+    async exec(...params) {
+        let $meta = params && params.length > 1 && params[params.length - 1];
+        let methodName = ($meta && $meta.method) || 'exec';
+        let method = this.findHandler(methodName);
+        method = method || this.methods.exec;
+        if (method instanceof Function) {
+            return method.apply(this, params);
+        } else {
+            throw this.bus.errors['bus.methodNotFound']({ params: { method: $meta && $meta.method } });
+        }
+    }
     async start() {
         this.bus && this.bus.attachHandlers(this.methods, this.config.imports, this);
         this.context = {requests: {}};
-        this.stream = this.pull(false, this.context);
+        this.stream = this.pull({exec: this.exec}, this.context);
         await new Promise((resolve, reject) => {
             let fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
             fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
