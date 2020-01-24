@@ -1,16 +1,21 @@
 require('ut-run').run({
     main: [
-        require('..'),
-        function methods() {
-            return {
-                'monitoring.publish'() {
-                    return 'result';
+        () => ({
+            test: () => [
+                require('..'),
+                function methods() {
+                    return {
+                        'monitoring.publish'() {
+                            return 'result';
+                        }
+                    };
                 }
-            };
-        }
+            ]
+        })
     ],
     method: 'unit',
     config: {
+        test: true,
         HttpServerPort: {
             namespace: 'monitoring',
             imports: ['methods']
