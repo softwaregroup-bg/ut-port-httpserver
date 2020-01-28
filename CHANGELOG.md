@@ -1,3 +1,12 @@
+## [10.8.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.4...v10.8.5) (2020-01-28)
+
+
+### Bug Fixes
+
+* do not break api docs due to missing services ([10fed56](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/10fed56))
+
+
+
 ## [10.8.4](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.3...v10.8.4) (2020-01-24)
 
 
