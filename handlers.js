@@ -497,6 +497,24 @@ module.exports = function(port, errors, utApi) {
                 notes: (validation.notes || []).concat([methodName + ' method definition']),
                 tags: (validation.tags || []).concat(tags),
                 validate: {
+                    failAction: (request, h, error) => {
+                        error = port.errors['port.paramsValidation']({
+                            cause: error,
+                            params: {
+                                method: methodName,
+                                type: 'params'
+                            }
+                        });
+                        port.log.error && port.log.error(error);
+                        return h.response({
+                            ...request.payload && request.payload.jsonrpc && {jsonrpc: request.payload.jsonrpc},
+                            ...request.payload && request.payload.id && {id: request.payload.id},
+                            error: {
+                                type: error.type,
+                                message: error.message
+                            }
+                        }).code(400).takeover();
+                    },
                     options: {abortEarly: false},
                     payload: validations[methodName].request.payload,
                     params: (path.indexOf('{') >= 0) ? validations[methodName].request.params : undefined,

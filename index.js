@@ -385,4 +385,10 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             port: this.hapiServers && this.hapiServers[0] && this.hapiServers[0].info && this.hapiServers[0].info.port
         };
     }
+
+    handlers() {
+        return {
+            [this.config.id + '.status']: this.status
+        };
+    }
 };
