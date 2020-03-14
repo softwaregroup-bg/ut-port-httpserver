@@ -37,6 +37,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         this.routes = [];
         this.stream = {};
     }
+
     get defaults() {
         return {
             type: 'httpserver',
@@ -96,6 +97,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             }
         };
     }
+
     async init() {
         const result = await super.init(...arguments);
         this.latency = this.counter && this.counter('average', 'lt', 'Latency');
@@ -119,8 +121,9 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         }
         return result;
     }
+
     async createServer(config) {
-        var server = new hapi.Server(this.merge({
+        const server = new hapi.Server(this.merge({
             routes: {
                 validate: {
                     failAction: (request, h, err) => {
@@ -189,9 +192,10 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
 
         return server;
     }
+
     async exec(...params) {
-        let $meta = params && params.length > 1 && params[params.length - 1];
-        let methodName = ($meta && $meta.method) || 'exec';
+        const $meta = params && params.length > 1 && params[params.length - 1];
+        const methodName = ($meta && $meta.method) || 'exec';
         let method = this.findHandler(methodName);
         method = method || this.methods.exec;
         if (method instanceof Function) {
@@ -200,12 +204,13 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             throw this.bus.errors['bus.methodNotFound']({ params: { method: $meta && $meta.method } });
         }
     }
+
     async start() {
         this.bus && this.bus.attachHandlers(this.methods, this.config.imports, this);
         this.context = {requests: {}};
         this.stream = this.pull({exec: this.exec}, this.context);
         await new Promise((resolve, reject) => {
-            let fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
+            const fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
             fs.access(fileUploadTempDir, fs.R_OK | fs.W_OK, function(err) {
                 if (err) {
                     if (err.code === 'ENOENT') {
@@ -224,7 +229,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 }
             });
         });
-        var servers = [];
+        let servers = [];
         if (this.config.connections && this.config.connections.length) {
             servers = this.config.connections.map(connection => this.createServer(
                 Object.assign({
@@ -244,7 +249,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         await super.start(...arguments);
         if (this.socketSubscriptions.length) {
             this.hapiServers.forEach(server => {
-                var socketServer = new SocketServer(this, this.config);
+                const socketServer = new SocketServer(this, this.config);
                 this.socketSubscriptions.forEach(pathParams => socketServer.registerPath.apply(socketServer, pathParams));
                 this.socketServers.push(socketServer);
                 if (this.hapiServers.length === 1) { // @TODO: fix this.... put this here because there is no concept how to separate soc. serv. from multiple hapi servers
@@ -263,8 +268,8 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 }
             });
             if (this.bus.config.registry && this.config.registry !== false) {
-                let info = this.server.info;
-                let registryConfig = this.merge(
+                const info = this.server.info;
+                const registryConfig = this.merge(
                     // defaults
                     {
                         name: this.bus.config.implementation,
@@ -285,6 +290,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
         }));
         return true;
     }
+
     registerRequestHandler(items) {
         items.map(handler => (handler.config && this.log.warn && this.log.warn('Rename "config" to "options" for handler ' + handler.path, {
             $meta: {
@@ -299,6 +305,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             Array.prototype.push.apply(this.routes, items);
         }
     }
+
     registerSocketSubscription(path, verifyClient, opts) {
         this.socketSubscriptions.push([path, verifyClient, opts]);
         return (params, message) =>
@@ -306,12 +313,13 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             (this.socketServers.length === 1) && // TODO: fix this... prevent pulbishing on multiple socett servers for now
             this.socketServers.map((socketServer) => socketServer.publish({path: path, params: params}, message));
     }
+
     enableHotReload(config) {
         return new Promise((resolve, reject) => {
             if (this.hotReload) {
                 resolve(true);
             } else if (this.config.packer && this.config.packer.name === 'webpack') {
-                let webpack = serverRequire('webpack');
+                const webpack = serverRequire('webpack');
                 if (typeof config.output !== 'object') {
                     return reject(new Error('config.output must be an Object'));
                 }
@@ -324,7 +332,7 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                 if (!Array.isArray(config.plugins)) {
                     return reject(new Error('config.plugins must be an Array'));
                 }
-                let compiler = webpack(config);
+                const compiler = webpack(config);
                 let assetsConfig = {
                     noInfo: true,
                     publicPath: config.output.publicPath,
@@ -353,8 +361,8 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
                     };
                 }
                 assetsConfig = this.merge(assetsConfig, this.config.packer.assets);
-                let assets = this.merge(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
-                let hot = this.merge({
+                const assets = this.merge(assetsConfig, (this.config.packer && this.config.packer.devMiddleware) || {});
+                const hot = this.merge({
                     publicPath: config.output.publicPath
                 }, (this.config.packer && this.config.packer.hotMiddleware) || {});
 
@@ -375,11 +383,13 @@ module.exports = ({utPort}) => class HttpServerPort extends utPort {
             }
         });
     }
+
     async stop() {
         this.socketServers && this.socketServers.map((socketServer) => socketServer.stop());
         await Promise.all(this.hapiServers.map(server => server.stop()));
         return super.stop(...arguments);
     }
+
     status() {
         return {
             port: this.hapiServers && this.hapiServers[0] && this.hapiServers[0].info && this.hapiServers[0].info.port

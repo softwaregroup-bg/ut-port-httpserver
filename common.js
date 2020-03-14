@@ -1,4 +1,3 @@
-'use strict';
 const os = require('os');
 const joi = require('joi');
 const osName = [os.type(), os.platform(), os.release()].join(':');
@@ -43,11 +42,11 @@ const metaSchema = joi.object().keys({
 });
 
 function initMetadataFromRequest(request = {}, port = {}) {
-    let bus = port.bus || {};
+    const bus = port.bus || {};
     const {error, value} = metaSchema.validate({
         forward: ['x-request-id', 'x-b3-traceid', 'x-b3-spanid', 'x-b3-parentspanid', 'x-b3-sampled', 'x-b3-flags', 'x-ot-span-context']
             .reduce(function(object, key) {
-                var value = request.headers[key];
+                const value = request.headers[key];
                 if (value !== undefined) object[key] = value;
                 return object;
             }, {}),
