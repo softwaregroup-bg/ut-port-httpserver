@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "11.0.0-validations.0",
+  "version": "11.0.0-validations.1",
   "dependencies": {
     "ut-api": "^7.4.4",
     "ut-wss": "^1.0.0",
