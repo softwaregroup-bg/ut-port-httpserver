@@ -511,7 +511,8 @@ module.exports = function(port, errors, utApi) {
                             ...request.payload && request.payload.id && {id: request.payload.id},
                             error: {
                                 type: error.type,
-                                message: error.message
+                                message: error.message,
+                                ...port.config.debug && {cause: error.cause}
                             }
                         }).code(400).takeover();
                     },
