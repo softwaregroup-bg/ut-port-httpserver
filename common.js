@@ -26,6 +26,8 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         serviceName: bus.config && bus.config.implementation,
         deviceId: request.headers && request.headers.deviceId,
         tenantId: request.tenantId,
-        subdomain: request.subdomain
+        subdomain: request.subdomain,
+        channel: (request.auth.credentials || {}).channel || request.channel,
+        language: (request.auth.credentials || {}).language
     };
 }

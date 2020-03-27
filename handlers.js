@@ -124,9 +124,12 @@ module.exports = function(port, errors) {
         } else {
             identityCheckParams = {actionId: request.payload.method};
         }
+        let credentials = Object.assign({}, request.auth.credentials);
+        delete credentials.channel;
+        delete credentials.language;
         mergeWith(
             identityCheckParams,
-            request.auth.credentials,
+            credentials,
             {
                 ip: (
                     (port.config.allowXFF && request.headers['x-forwarded-for'])
@@ -213,9 +216,9 @@ module.exports = function(port, errors) {
             msgOptions = msgOptions || {};
             try {
                 $meta = initMetadataFromRequest(request, port.bus);
-                if (msgOptions.language) {
-                    $meta.language = msgOptions.language;
-                }
+                // if (!$meta.language && msgOptions.language) {
+                //     $meta.language = msgOptions.language;
+                // }
                 if (msgOptions.protection) {
                     $meta.protection = msgOptions.protection;
                 }
@@ -339,6 +342,8 @@ module.exports = function(port, errors) {
                     let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
                     let uuId = uuid();
                     let jwtSigned = jwt.sign({
+                        channel: res['identity.check'].channel,
+                        language: res.language,
                         timezone: tz,
                         xsrfToken: uuId,
                         actorId: res['identity.check'].actorId,
