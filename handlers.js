@@ -155,8 +155,24 @@ module.exports = function(port, errors) {
             return repl;
         };
 
-        function handleError(error, response) {
+        const  handleError = async function (error, response, options = {}) {
             let $meta = {};
+            let {$meta: $originalMeta = {}} = options;
+            if (error.type) {
+                try {
+                    let iso2Code = ($originalMeta.language || {}).iso2Code || 'en';
+                    let { items = [] } = await port.bus.importMethod('core.itemCode.fetch')({
+                        itemCode: error.type,
+                        alias: ['error'],
+                        languageIsoCode: iso2Code
+                    }, $meta)
+                    let dbError = items[0];
+                    if (dbError) {
+                        error.message = dbError.display || error.message;
+                        error.errorPrint = dbError.display || error.errorPrint;
+                    }
+                } catch(err) {}
+            }
             let msg = {
                 jsonrpc: (request.payload && request.payload.jsonrpc) || '',
                 id: (request.payload && request.payload.id) || '',
@@ -204,7 +220,7 @@ module.exports = function(port, errors) {
             id: (request && request.payload && request.payload.id)
         };
 
-        const processMessage = function(msgOptions) {
+        const processMessage = async function(msgOptions) {
             let $meta;
             function callReply(response) {
                 if (typeof customReply === 'function') {
@@ -240,7 +256,7 @@ module.exports = function(port, errors) {
                             addDebugInfo(endReply, response);
                             return customReply(reply, endReply, $meta);
                         }
-                        return handleError(endReply.error, response);
+                        return handleError(endReply.error, response, {msg: request.payload.params, $meta});
                     }
                     if (response && response.auth) {
                         delete response.auth;
@@ -260,7 +276,7 @@ module.exports = function(port, errors) {
                                     type: $meta.errorType || response.type,
                                     fieldErrors: $meta.fieldErrors || response.fieldErrors
                                 };
-                                handleError(endReply.error, response);
+                                handleError(endReply.error, response, {msg: request.payload.params, $meta});
                             } else {
                                 let s = fs.createReadStream(fn);
                                 if ($meta.tmpStaticFileName) {
@@ -303,7 +319,7 @@ module.exports = function(port, errors) {
                     message: err.message,
                     errorPrint: err.message,
                     type: err.type
-                }, err);
+                }, err, { msg: request.payload.params, $meta});
             }
         };
 

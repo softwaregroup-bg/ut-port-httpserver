@@ -16,9 +16,6 @@ const uuid = require('uuid/v4');
 const hoek = require('hoek');
 const Boom = require('boom');
 let errors;
-let tenantInfo = {
-
-};
 module.exports = function({parent}) {
     function HttpServerPort({config}) {
         parent && parent.apply(this, arguments);
