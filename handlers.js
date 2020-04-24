@@ -531,7 +531,7 @@ module.exports = function(port, errors, utApi) {
             if (config.route) {
                 paths.push(routeAdd(method, config, config.route, true));
             } else {
-                paths.push(routeAdd(method, config, method.split('.').join('/'), true));
+                paths.push(routeAdd(method, config, '/' + method.split('.').join('/'), true));
             }
         } else {
             assertRouteConfig(config, method);
