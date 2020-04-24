@@ -3,12 +3,12 @@
   "version": "10.8.5",
   "dependencies": {
     "ut-api": "^7.4.4",
-    "ut-wss": "^0.2.0",
-    "fs-plus": "3.0.2",
+    "ut-wss": "^1.0.0",
+    "fs-plus": "3.1.1",
     "h2o2": "8.2.0",
     "hapi": "17.6.0",
     "hapi-auth-basic": "5.0.0",
-    "hapi-auth-jwt2": "8.1.0",
+    "hapi-auth-jwt2": "8.8.1",
     "inert": "5.1.0",
     "joi": "13.7.0",
     "jsonwebtoken": "8.5.0",
@@ -23,7 +23,7 @@
     "why-is-node-running": "^2.1.0"
   },
   "peerDependencies": {
-    "ut-bus": "^7.1.1",
+    "ut-bus": "^7.4.2",
     "react-hot-loader": "^4.6.2",
     "ut-port": "^6.6.0",
     "webpack": "^4.27.1",

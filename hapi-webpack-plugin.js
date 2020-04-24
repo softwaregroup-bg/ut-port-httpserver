@@ -30,19 +30,15 @@ function register(server, options) {
                 req,
                 res
             } = request.raw;
-            try {
-                let setupWebpackDevMiddleware = new Promise((resolve, reject) => {
-                    webpackDevMiddleware(req, res, error => {
-                        if (error) reject(error);
-                        resolve();
-                    });
+            const setupWebpackDevMiddleware = new Promise((resolve, reject) => {
+                webpackDevMiddleware(req, res, error => {
+                    if (error) reject(error);
+                    resolve();
                 });
+            });
 
-                await setupWebpackDevMiddleware;
-                return h.continue;
-            } catch (err) {
-                throw err;
-            }
+            await setupWebpackDevMiddleware;
+            return h.continue;
         }
     });
 
@@ -54,19 +50,15 @@ function register(server, options) {
                 req,
                 res
             } = request.raw;
-            try {
-                let setupWebpackHotMiddleware = new Promise((resolve, reject) => {
-                    webpackHotMiddleware(req, res, error => {
-                        if (error) reject(error);
-                        resolve();
-                    });
+            const setupWebpackHotMiddleware = new Promise((resolve, reject) => {
+                webpackHotMiddleware(req, res, error => {
+                    if (error) reject(error);
+                    resolve();
                 });
+            });
 
-                await setupWebpackHotMiddleware;
-                return h.continue;
-            } catch (err) {
-                throw err;
-            }
+            await setupWebpackHotMiddleware;
+            return h.continue;
         }
     });
 

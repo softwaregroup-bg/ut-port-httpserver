@@ -7,7 +7,7 @@ const uuid = require('uuid/v4');
 const {initMetadataFromRequest} = require('./common');
 
 const getReqRespRpcValidation = function getReqRespRpcValidation(validation, methodName) {
-    let request = {
+    const request = {
         payload: validation.payload || joi.object({
             jsonrpc: joi.string().valid('2.0').required(),
             timeout: joi.number().optional(),
@@ -19,7 +19,7 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(validation, met
             method: joi.string().valid((validation && validation.paramsMethod) || methodName)
         })
     };
-    let response = validation.response || (validation.result && joi.object({
+    const response = validation.response || (validation.result && joi.object({
         jsonrpc: joi.string().valid('2.0').required(),
         id: joi.alternatives().try(joi.number(), joi.string()).required(),
         result: validation.result.label('result'),
@@ -50,14 +50,14 @@ const getReqRespValidation = function getReqRespValidation(validation) {
 };
 
 const isUploadValid = function isUploadValid(request, uploadConfig) {
-    let file = request.payload.file;
+    const file = request.payload.file;
     if (!file) {
         return false;
     }
-    let fileName = file.hapi.filename;
-    let isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
-    let uploadExtension = fileName.split('.').pop();
-    let isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
+    const fileName = file.hapi.filename;
+    const isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
+    const uploadExtension = fileName.split('.').pop();
+    const isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
     if (file && isNameValid && isExtensionAllowed) {
         return true;
     }
@@ -110,7 +110,7 @@ module.exports = function(port, errors, utApi) {
         if (!method) {
             throw errors['httpServerPort.methodNotFound']();
         } else if (Object.keys(validations[method] || {}).length === 2) {
-            let validationResult = byMethodValidate(checkType, method, data);
+            const validationResult = byMethodValidate(checkType, method, data);
             if (validationResult.error) {
                 throw validationResult.error;
             }
@@ -119,7 +119,7 @@ module.exports = function(port, errors, utApi) {
         }
     };
 
-    let identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
+    const identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
 
     const prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
         let identityCheckParams;
@@ -154,7 +154,7 @@ module.exports = function(port, errors, utApi) {
         });
 
         const reply = function(resp, headers, statusCode) {
-            let response = h.response(resp);
+            const response = h.response(resp);
             headers && Object.keys(headers).forEach(function(header) {
                 response.header(header, headers[header]);
             });
@@ -166,8 +166,8 @@ module.exports = function(port, errors, utApi) {
         };
 
         function handleError(error, response, $responseMeta) {
-            let $meta = {};
-            let msg = {
+            const $meta = {};
+            const msg = {
                 jsonrpc: (request.payload && request.payload.jsonrpc) || '',
                 id: (request.payload && request.payload.id) || '',
                 error: error
@@ -201,10 +201,10 @@ module.exports = function(port, errors, utApi) {
             });
         }
 
-        let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
-        let publicToken = request.headers && request.headers['x-xsrf-token'];
-        let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
-        let routeConfig = methodConfig[request.params.method] || {};
+        const privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
+        const publicToken = request.headers && request.headers['x-xsrf-token'];
+        const auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
+        const routeConfig = methodConfig[request.params.method] || {};
 
         if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
             port.log.error && port.log.error(errors['httpServerPort.xsrfTokenMismatch']());
@@ -221,7 +221,7 @@ module.exports = function(port, errors, utApi) {
                 errorPrint: 'Malformed JSON RPC Request'
             });
         }
-        let endReply = {
+        const endReply = {
             jsonrpc: request.payload.jsonrpc,
             id: (request && request.payload && request.payload.id)
         };
@@ -247,7 +247,7 @@ module.exports = function(port, errors, utApi) {
                         throw new Error('Add return value of method ' + request.payload.method);
                     }
                     if (!$responseMeta || $responseMeta.mtid === 'error') {
-                        let erMs = $responseMeta.errorMessage || response.message;
+                        const erMs = $responseMeta.errorMessage || response.message;
                         endReply.error = {
                             code: $responseMeta.errorCode || response.code || -1,
                             message: erMs,
@@ -270,8 +270,8 @@ module.exports = function(port, errors, utApi) {
                         return reply(response, $responseMeta.responseHeaders);
                     }
                     if ($responseMeta && ($responseMeta.staticFileName || $responseMeta.tmpStaticFileName)) {
-                        let fn = $responseMeta.staticFileName || $responseMeta.tmpStaticFileName;
-                        let downloadFileName = $responseMeta.downloadFileName || fn;
+                        const fn = $responseMeta.staticFileName || $responseMeta.tmpStaticFileName;
+                        const downloadFileName = $responseMeta.downloadFileName || fn;
                         return new Promise(function(resolve) {
                             fs.access(fn, fs.constants.R_OK, (err) => {
                                 if (err) {
@@ -284,7 +284,7 @@ module.exports = function(port, errors, utApi) {
                                     };
                                     return resolve(handleError(endReply.error, response, $responseMeta));
                                 } else {
-                                    let s = fs.createReadStream(fn);
+                                    const s = fs.createReadStream(fn);
                                     if ($responseMeta.tmpStaticFileName) {
                                         s.on('end', () => { // cleanup, remove file after it gets send to the client
                                             process.nextTick(() => {
@@ -356,7 +356,7 @@ module.exports = function(port, errors, utApi) {
                         'permission.get': ['*']
                     };
                 }
-                let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                const identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                 return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
             })
             .then((res) => {
@@ -367,10 +367,10 @@ module.exports = function(port, errors, utApi) {
                         request.auth.credentials &&
                         request.auth.credentials.sessionId));
                     if (res['identity.check'] && res['identity.check'].sessionId && !reuseCookie()) {
-                        let appId = request.payload.params && request.payload.params.appId;
-                        let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
-                        let uuId = uuid();
-                        let jwtSigned = jwt.sign({
+                        const appId = request.payload.params && request.payload.params.appId;
+                        const tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
+                        const uuId = uuid();
+                        const jwtSigned = jwt.sign({
                             timezone: tz,
                             xsrfToken: uuId,
                             actorId: res['identity.check'].actorId,
@@ -445,7 +445,7 @@ module.exports = function(port, errors, utApi) {
     port.bus.attachHandlers(httpMethods, port.config.api);
 
     function routeAdd(methodName, validation, path, registerInSwagger) {
-        let isRpc = !(validation.isRpc === false);
+        const isRpc = !(validation.isRpc === false);
         validations[methodName] = isRpc ? getReqRespRpcValidation(validation, methodName) : getReqRespValidation(validation);
         if (validation.paramsMethod) {
             validation.paramsMethod.reduce((prev, cur) => {
@@ -454,7 +454,7 @@ module.exports = function(port, errors, utApi) {
                 }
             });
         }
-        let tags = [port.config.id, methodName];
+        const tags = [port.config.id, methodName];
         if (registerInSwagger) {
             tags.unshift('api');
         }
@@ -472,7 +472,7 @@ module.exports = function(port, errors, utApi) {
                 }
             };
         }
-        let auth = ((validation && typeof (validation.auth) === 'undefined') ? 'jwt' : validation.auth);
+        const auth = ((validation && typeof (validation.auth) === 'undefined') ? 'jwt' : validation.auth);
         pendingRoutes.unshift(port.merge({}, (isRpc ? port.config.routes.rpc : {}), {
             method: validation.httpMethod || 'POST',
             path: path,
@@ -506,8 +506,8 @@ module.exports = function(port, errors, utApi) {
         }, responseValidation));
         return path;
     };
-    let paths = [];
-    let addHandler = ({method, config}) => {
+    const paths = [];
+    const addHandler = ({method, config}) => {
         if (config.isRpc === false) {
             if (config.route) {
                 paths.push(routeAdd(method, config, config.route, true));
@@ -528,7 +528,7 @@ module.exports = function(port, errors, utApi) {
     httpMethods.importedMap && Array.from(httpMethods.importedMap.values()).forEach((imported) => {
         Object.entries(imported).forEach(([method, validation]) => {
             if (validation instanceof Function) {
-                let config = validation();
+                const config = validation();
                 method = method.split('validation.', 2).pop();
                 if (method.startsWith('identity.') && port.config.identityNamespace !== 'identity') {
                     method = method.replace('identity', port.config.identityNamespace);
@@ -559,17 +559,17 @@ module.exports = function(port, errors, utApi) {
             },
             handler: function(request, h) {
                 return new Promise((resolve, reject) => {
-                    let $meta = initMetadataFromRequest(request, port);
-                    let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                    const $meta = initMetadataFromRequest(request, port);
+                    const identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                     port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta).then((res) => {
-                        let file = request.payload.file;
-                        let isValid = isUploadValid(request, port.config.fileUpload);
+                        const file = request.payload.file;
+                        const isValid = isUploadValid(request, port.config.fileUpload);
                         if (!isValid) {
                             resolve(h.response('Invalid file name').code(400));
                         } else {
-                            let fileName = (new Date()).getTime() + '_' + file.hapi.filename;
-                            let path = port.bus.config.workDir + '/uploads/' + fileName;
-                            let ws = fs.createWriteStream(path);
+                            const fileName = (new Date()).getTime() + '_' + file.hapi.filename;
+                            const path = port.bus.config.workDir + '/uploads/' + fileName;
+                            const ws = fs.createWriteStream(path);
                             ws.on('error', function(err) {
                                 port.log.error && port.log.error(err);
                                 reject(err);
@@ -587,9 +587,9 @@ module.exports = function(port, errors, utApi) {
                                                 return;
                                             }
                                             fileContent = fileContent.toString();
-                                            let matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+                                            const matches = fileContent.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
                                             if (matches.length === 3) {
-                                                let imageBuffer = {};
+                                                const imageBuffer = {};
                                                 imageBuffer.type = matches[1];
                                                 imageBuffer.data = Buffer.from(matches[2], 'base64');
                                                 fileContent = imageBuffer.data;
