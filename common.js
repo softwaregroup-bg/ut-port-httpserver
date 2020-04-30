@@ -1,4 +1,3 @@
-'use strict';
 const os = require('os');
 const joi = require('joi');
 const osName = [os.type(), os.platform(), os.release()].join(':');

@@ -1,6 +1,6 @@
 {
   "name": "ut-port-httpserver",
-  "version": "10.8.5",
+  "version": "11.0.0-validations.2",
   "dependencies": {
     "ut-api": "^7.4.4",
     "ut-wss": "^1.0.0",
@@ -17,9 +17,10 @@
   },
   "devDependencies": {
     "json-schema-to-markdown": "1.1.1",
+    "request": "2.88.0",
     "tap": "^14.10.6",
-    "ut-run": "^10.18.2",
-    "ut-tools": "^6.31.2",
+    "ut-run": ">=10.20.0-validations.5 <=10.20.0-validations.999",
+    "ut-tools": "^6.33.3",
     "why-is-node-running": "^2.1.0"
   },
   "peerDependencies": {
