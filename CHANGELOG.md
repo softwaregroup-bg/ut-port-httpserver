@@ -1,3 +1,17 @@
+# [11.0.0](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.5...v11.0.0) (2020-04-30)
+
+
+### Bug Fixes
+
+* invalid path ([8cd17c7](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/8cd17c7e0a45ad4249e2bdca779c3ed714e6a30d))
+
+
+### Features
+
+* return specific error when validation fails ([1406c99](https://github.com/softwaregroup-bg/ut-port-httpserver/commit/1406c9991b5a1c395a31231bb7cb1204f64bc075))
+
+
+
 ## [10.8.5](https://github.com/softwaregroup-bg/ut-port-httpserver/compare/v10.8.4...v10.8.5) (2020-01-28)
 
 
