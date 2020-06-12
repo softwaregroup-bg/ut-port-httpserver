@@ -636,10 +636,3 @@ function getWeekOfMonth(date) {
     var offsetDate = date.getDate() + firstWeekday - 1;
     return Math.floor(offsetDate / 7);
 }
-
-function getPath (fullFilepath) {
-	let filepath = fullFilepath.split('/');
-    filepath.pop();
-    filepath = filepath.join('/');
-	console.log(filepath);
-}
