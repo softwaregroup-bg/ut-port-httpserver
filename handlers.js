@@ -540,14 +540,15 @@ module.exports = function(port, errors) {
                         let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                         return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
                     })
-                    .then((res) => {
+                    .then(async (res) => {
                         let file = request.payload.file;
                         let isValid = isUploadValid(request, port.config.fileUpload);
                         if (!isValid) {
                             return reply('').code(400);
                         } else {
-                            let fileName = (new Date()).getTime() + '_' + file.hapi.filename;
+                            let fileName = await generateFileName(file.hapi.filename);
                             let path = port.bus.config.workDir + '/uploads/' + fileName;
+                            await checkAndCreateFolder(path);
                             let ws = fs.createWriteStream(path);
                             ws.on('error', function(err) {
                                 port.log.error && port.log.error(err);
@@ -599,3 +600,46 @@ module.exports = function(port, errors) {
 
     return pendingRoutes;
 };
+
+function checkAndCreateFolder(fullFilepath){
+    let filepath = path.dirname(fullFilepath);
+    return new Promise((resolve, reject) => {
+        try {
+            fs.accessSync(filepath, fs.constants.F_OK);
+            resolve(filepath);
+        } catch(e){
+            fs.mkdir(filepath, { recursive: true }, e => {
+                if (e) {
+                    reject(e);
+                } else {
+                    resolve(filepath);
+                }
+             });
+        }
+    });
+}
+
+function generateFileName(name) {
+    return new Promise((resolve, reject) => {
+        let date = new Date();
+        let fileName = (date).getTime() + '_' + name;
+        let y = date.getFullYear();
+        let m = date.getMonth();
+        let w = getWeekOfMonth(date);
+        fileName = y + '/' + m + '/'+ w + '/' + fileName;
+        resolve(fileName);
+    });
+}
+
+function getWeekOfMonth(date) {
+    var firstWeekday = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    var offsetDate = date.getDate() + firstWeekday - 1;
+    return Math.floor(offsetDate / 7);
+}
+
+function getPath (fullFilepath) {
+	let filepath = fullFilepath.split('/');
+    filepath.pop();
+    filepath = filepath.join('/');
+	console.log(filepath);
+}
