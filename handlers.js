@@ -607,14 +607,21 @@ function checkAndCreateFolder(fullFilepath){
         try {
             fs.accessSync(filepath, fs.constants.F_OK);
             resolve(filepath);
-        } catch(e){
-            fs.mkdir(filepath, { recursive: true }, e => {
-                if (e) {
-                    reject(e);
-                } else {
-                    resolve(filepath);
-                }
-             });
+        } catch(e) {
+            try {
+                filepath
+                .split(path.sep)
+                .reduce((prevPath, folder) => {
+                const currentPath = path.join(prevPath, folder, path.sep);
+                    if (!fs.existsSync(currentPath)){
+                        fs.mkdirSync(currentPath);
+                    }
+                    return currentPath;
+                }, '');
+                resolve(filepath);
+            } catch(err) {
+                reject(err);
+            }
         }
     });
 }
@@ -624,9 +631,9 @@ function generateFileName(name) {
         let date = new Date();
         let fileName = (date).getTime() + '_' + name;
         let y = date.getFullYear();
-        let m = date.getMonth();
+        let m = date.getMonth() + 1;
         let w = getWeekOfMonth(date);
-        fileName = y + '/' + m + '/'+ w + '/' + fileName;
+        fileName = y + path.sep + m + path.sep + w + path.sep + fileName;
         resolve(fileName);
     });
 }
