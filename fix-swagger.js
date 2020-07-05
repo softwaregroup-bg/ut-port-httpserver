@@ -63,5 +63,3 @@ Properties.prototype.parseAlternatives = function(property, joiObj, name, parame
 
     return property;
 };
-// eslint-disable-next-line
-console.log('SWAGGER FIX');
