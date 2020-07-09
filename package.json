@@ -21,6 +21,9 @@
     "tap": "^14.10.6",
     "ut-run": "^10.26.2",
     "ut-tools": "^6.33.3",
+    "webpack": "^4.27.1",
+    "webpack-dev-middleware": "^3.4.0",
+    "webpack-hot-middleware": "^2.24.3",
     "why-is-node-running": "^2.1.0"
   },
   "peerDependencies": {
