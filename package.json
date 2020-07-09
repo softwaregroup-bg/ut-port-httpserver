@@ -19,17 +19,12 @@
     "json-schema-to-markdown": "1.1.1",
     "request": "2.88.0",
     "tap": "^14.10.6",
-    "ut-run": ">=10.20.0-validations.5 <=10.20.0-validations.999",
+    "ut-run": "^10.26.2",
     "ut-tools": "^6.33.3",
     "why-is-node-running": "^2.1.0"
   },
   "peerDependencies": {
-    "ut-bus": "^7.4.2",
-    "react-hot-loader": "^4.6.2",
-    "ut-port": "^6.6.0",
-    "webpack": "^4.27.1",
-    "webpack-dev-middleware": "^3.4.0",
-    "webpack-hot-middleware": "^2.24.3"
+    "ut-run": "^10.26.2"
   },
   "description": "UT port httpserver module",
   "scripts": {
