@@ -471,6 +471,7 @@ module.exports = function(port, errors) {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
             config: {
+                ...(currentMethodConfig.config || {}),
                 handler: function(req, repl) {
                     if (!isRpc && !req.payload) {
                         req.payload = {
