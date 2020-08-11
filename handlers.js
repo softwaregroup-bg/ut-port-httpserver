@@ -10,19 +10,19 @@ const {initMetadataFromRequest} = require('./common');
 const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     let request = {
         payload: routeConfig.config.payload || joi.object({
-            jsonrpc: joi.string().valid('2.0').required(),
-            id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required(),
-            params: routeConfig.config.params.label('params').required()
+            jsonrpc: joi.string().valid('2.0').required().description('JSON RPC version'),
+            id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required().description('Request ID'),
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required().description('API Method'),
+            params: routeConfig.config.params.label('params').required().description('API Parameters')
         }),
         params: joi.object({
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method)
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).description('API Method')
         })
     };
     let response = routeConfig.config.response || (routeConfig.config.result && joi.object({
-        jsonrpc: joi.string().valid('2.0').required(),
-        id: joi.alternatives().try(joi.number(), joi.string()).required(),
-        result: routeConfig.config.result.label('result'),
+        jsonrpc: joi.string().valid('2.0').required().description('JSON RPC version'),
+        id: joi.alternatives().try(joi.number(), joi.string()).required().description('Request ID'),
+        result: routeConfig.config.result.label('result').description('Result'),
         error: joi.object({
             code: joi.number().integer().description('Error code'),
             message: joi.string().description('Debug error message'),
@@ -31,8 +31,8 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             fieldErrors: joi.any().description('Field validation errors'),
             details: joi.object().optional().description('Error udf details'),
             type: joi.string().description('Error type')
-        }).label('error'),
-        debug: joi.object().label('debug')
+        }).label('error').description('Error'),
+        debug: joi.object().label('debug').description('Debug')
     })
     .xor('result', 'error'));
     return {request, response};
@@ -181,7 +181,9 @@ module.exports = function(port, errors) {
             addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
                 return Promise.resolve()
-                    .then(() => port.config.receive(msg, $meta))
+                    .then(() => {
+                        return port.config.receive(msg, $meta);
+                    })
                     .then(function(result) {
                         if (typeof customReply === 'function') {
                             return customReply(reply, result, $meta);
@@ -486,8 +488,8 @@ module.exports = function(port, errors) {
                     return rpcHandler(req, repl);
                 },
                 auth,
-                description: currentMethodConfig.description || config[method].method,
-                notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
+                // description: currentMethodConfig.description || config[method].method,
+                notes: currentMethodConfig.description || (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
                 tags: (currentMethodConfig.tags || []).concat(tags),
                 validate: {
                     options: {abortEarly: false},
