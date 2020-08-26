@@ -524,7 +524,7 @@ module.exports = function(port, errors) {
                     dispenser.once('close', () => reply(JSON.stringify((fileInfo))));
                     dispenser.on('part', async part => {
                         if (part.name === 'file') {
-                            fileInfo.filename = Date.now() + '_' + part.filename;
+                            fileInfo.filename = uuid() + '.' + part.filename.split('.').pop();
                             fileInfo.headers = part.headers;
                             if (!isUploadValid(part.filename, port.config.fileUpload)) return reply('').code(400);
                             let path = port.bus.config.workDir + '/uploads/' + fileInfo.filename;
