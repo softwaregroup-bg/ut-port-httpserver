@@ -512,16 +512,31 @@ module.exports = function(port, errors) {
                 const contentType = Content.type(request.headers['content-type']);
                 if (!contentType || !contentType.boundary) return reply('Missing content type boundary').code(400);
                 const dispenser = new Pez.Dispenser({boundary: contentType.boundary});
+
                 Promise.resolve().then(() => {
-                    let $meta = initMetadataFromRequest(request, port.bus);
-                    let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                    var $meta = initMetadataFromRequest(request, port.bus);
+                    var identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                     return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
-                }).then(() => {
+                }).then(async function(identity) {
                     const fileInfo = {
                         filename: '',
                         headers: {}
                     };
-                    dispenser.once('close', () => reply(JSON.stringify((fileInfo))));
+                    if (port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay) {
+                        await port.bus.importMethod('document.maxNumberPerActor.validate')({
+                            actorId: identity.person.actorId,
+                            size: request.headers['content-length'],
+                            maxDocsPerDay: port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay
+                        });
+                    }
+                    dispenser.once('close', async function() {
+                        let add = await port.bus.importMethod('document.maxNumberPerActor.add')({
+                            actorId: identity.person.actorId,
+                            filePath: fileInfo.filename,
+                            size: request.headers['content-length']
+                        });
+                        reply(JSON.stringify((fileInfo)))
+                    });
                     dispenser.on('part', async part => {
                         if (part.name === 'file') {
                             fileInfo.filename = uuid() + '.' + part.filename.split('.').pop();
@@ -546,8 +561,12 @@ module.exports = function(port, errors) {
                     port.log.error && port.log.error(error);
                     reply(error.message, 401);
                 }).catch(error => {
-                    port.log.error && port.log.error(error);
-                    reply(error.message, 500);
+                    if (error.message === 'security.maxDocumentsPerDayExceeded') {
+                        reply('You exceeded max documents per day').code(400);
+                    } else {
+                        port.log.error && port.log.error(error);
+                        reply(error.message, 500);
+                    }
                 });
             }
         }
