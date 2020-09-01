@@ -14,7 +14,7 @@ const fs = require('fs-plus');
 const SocketServer = require('./socketServer');
 const uuid = require('uuid/v4');
 let errors;
-
+require('./fix-swagger');
 module.exports = function({parent}) {
     function HttpServerPort({config}) {
         parent && parent.apply(this, arguments);
