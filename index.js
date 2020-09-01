@@ -12,9 +12,11 @@ const packageJson = require('./package.json');
 const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('./socketServer');
-const uuid = require('uuid/v4');
+const uuid = require('uuid/v4'); 
+const hoek = require('hoek');
+const Boom = require('boom');
+require('./fix-swagger');
 let errors;
-
 module.exports = function({parent}) {
     function HttpServerPort({config}) {
         parent && parent.apply(this, arguments);

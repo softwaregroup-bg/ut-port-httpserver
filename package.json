@@ -10,8 +10,6 @@
     "hapi-auth-basic": "4.2.0",
     "hapi-auth-jwt2": "7.2.4",
     "hapi-swagger": "7.5.0",
-    "inert": "4.0.4",
-    "joi": "10.0.6",
     "jsonwebtoken": "7.1.9",
     "lodash.mergewith": "4.6.0",
     "os": "^0.1.1",

@@ -13,19 +13,19 @@ const {initMetadataFromRequest} = require('./common');
 const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     let request = {
         payload: routeConfig.config.payload || joi.object({
-            jsonrpc: joi.string().valid('2.0').required(),
-            id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required(),
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required(),
-            params: routeConfig.config.params.label('params').required()
+            jsonrpc: joi.string().valid('2.0').required().description('JSON RPC version'),
+            id: joi.alternatives().try(joi.number().example(1), joi.string().example('1')).required().description('Request ID'),
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).required().description('API Method'),
+            params: routeConfig.config.params.label('params').required().description('API Parameters')
         }),
         params: joi.object({
-            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method)
+            method: joi.string().valid((routeConfig.config && routeConfig.config.paramsMethod) || routeConfig.method).description('API Method')
         })
     };
     let response = routeConfig.config.response || (routeConfig.config.result && joi.object({
-        jsonrpc: joi.string().valid('2.0').required(),
-        id: joi.alternatives().try(joi.number(), joi.string()).required(),
-        result: routeConfig.config.result.label('result'),
+        jsonrpc: joi.string().valid('2.0').required().description('JSON RPC version'),
+        id: joi.alternatives().try(joi.number(), joi.string()).required().description('Request ID'),
+        result: routeConfig.config.result.label('result').description('Result'),
         error: joi.object({
             code: joi.number().integer().description('Error code'),
             message: joi.string().description('Debug error message'),
@@ -34,8 +34,8 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             fieldErrors: joi.any().description('Field validation errors'),
             details: joi.object().optional().description('Error udf details'),
             type: joi.string().description('Error type')
-        }).label('error'),
-        debug: joi.object().label('debug')
+        }).label('error').description('Error'),
+        debug: joi.object().label('debug').description('Debug')
     })
     .xor('result', 'error'));
     return {request, response};
@@ -119,9 +119,12 @@ module.exports = function(port, errors) {
         } else {
             identityCheckParams = {actionId: request.payload.method};
         }
+        let credentials = Object.assign({}, request.auth.credentials);
+        delete credentials.channel;
+        delete credentials.language;
         mergeWith(
             identityCheckParams,
-            request.auth.credentials,
+            credentials,
             {
                 ip: (
                     (port.config.allowXFF && request.headers['x-forwarded-for'])
@@ -147,8 +150,24 @@ module.exports = function(port, errors) {
             return repl;
         };
 
-        function handleError(error, response) {
+        const  handleError = async function (error, response, options = {}) {
             let $meta = {};
+            let {$meta: $originalMeta = {}} = options;
+            if (error.type) {
+                try {
+                    let iso2Code = ($originalMeta.language || {}).iso2Code || 'en';
+                    let { items = [] } = await port.bus.importMethod('core.itemCode.fetch')({
+                        itemCode: error.type,
+                        alias: ['error'],
+                        languageIsoCode: iso2Code
+                    }, $meta)
+                    let dbError = items[0];
+                    if (dbError) {
+                        error.message = dbError.display || error.message;
+                        error.errorPrint = dbError.display || error.errorPrint;
+                    }
+                } catch(err) {}
+            }
             let msg = {
                 jsonrpc: (request.payload && request.payload.jsonrpc) || '',
                 id: (request.payload && request.payload.id) || '',
@@ -157,7 +176,9 @@ module.exports = function(port, errors) {
             addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
                 return Promise.resolve()
-                    .then(() => port.config.receive(msg, $meta))
+                    .then(() => {
+                        return port.config.receive(msg, $meta);
+                    })
                     .then(function(result) {
                         if (typeof customReply === 'function') {
                             return customReply(reply, result, $meta);
@@ -196,7 +217,7 @@ module.exports = function(port, errors) {
             id: (request && request.payload && request.payload.id)
         };
 
-        const processMessage = function(msgOptions) {
+        const processMessage = async function(msgOptions) {
             let $meta;
             function callReply(response) {
                 if (typeof customReply === 'function') {
@@ -208,9 +229,9 @@ module.exports = function(port, errors) {
             msgOptions = msgOptions || {};
             try {
                 $meta = initMetadataFromRequest(request, port.bus);
-                if (msgOptions.language) {
-                    $meta.language = msgOptions.language;
-                }
+                // if (!$meta.language && msgOptions.language) {
+                //     $meta.language = msgOptions.language;
+                // }
                 if (msgOptions.protection) {
                     $meta.protection = msgOptions.protection;
                 }
@@ -232,7 +253,7 @@ module.exports = function(port, errors) {
                             addDebugInfo(endReply, response);
                             return customReply(reply, endReply, $meta);
                         }
-                        return handleError(endReply.error, response);
+                        return handleError(endReply.error, response, {msg: request.payload.params, $meta});
                     }
                     if (response && response.auth) {
                         delete response.auth;
@@ -252,7 +273,7 @@ module.exports = function(port, errors) {
                                     type: $meta.errorType || response.type,
                                     fieldErrors: $meta.fieldErrors || response.fieldErrors
                                 };
-                                handleError(endReply.error, response);
+                                handleError(endReply.error, response, {msg: request.payload.params, $meta});
                             } else {
                                 let s = fs.createReadStream(fn);
                                 if ($meta.tmpStaticFileName) {
@@ -295,7 +316,7 @@ module.exports = function(port, errors) {
                     message: err.message,
                     errorPrint: err.message,
                     type: err.type
-                }, err);
+                }, err, { msg: request.payload.params, $meta});
             }
         };
 
@@ -334,6 +355,8 @@ module.exports = function(port, errors) {
                     let tz = (request.payload && request.payload.params && request.payload.params.timezone) || '+00:00';
                     let uuId = uuid();
                     let jwtSigned = jwt.sign({
+                        channel: res['identity.check'].channel,
+                        language: res.language,
                         timezone: tz,
                         xsrfToken: uuId,
                         actorId: res['identity.check'].actorId,
@@ -446,6 +469,7 @@ module.exports = function(port, errors) {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
             config: {
+                ...(currentMethodConfig.config || {}),
                 handler: function(req, repl) {
                     if (!isRpc && !req.payload) {
                         req.payload = {
@@ -460,8 +484,8 @@ module.exports = function(port, errors) {
                     return rpcHandler(req, repl);
                 },
                 auth,
-                description: currentMethodConfig.description || config[method].method,
-                notes: (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
+                // description: currentMethodConfig.description || config[method].method,
+                notes: currentMethodConfig.description || (currentMethodConfig.notes || []).concat([config[method].method + ' method definition']),
                 tags: (currentMethodConfig.tags || []).concat(tags),
                 validate: {
                     options: {abortEarly: false},
@@ -574,3 +598,46 @@ module.exports = function(port, errors) {
 
     return pendingRoutes;
 };
+
+function checkAndCreateFolder(fullFilepath){
+    let filepath = path.dirname(fullFilepath);
+    return new Promise((resolve, reject) => {
+        try {
+            fs.accessSync(filepath, fs.constants.F_OK);
+            resolve(filepath);
+        } catch(e) {
+            try {
+                filepath
+                .split(path.sep)
+                .reduce((prevPath, folder) => {
+                const currentPath = path.join(prevPath, folder, path.sep);
+                    if (!fs.existsSync(currentPath)){
+                        fs.mkdirSync(currentPath);
+                    }
+                    return currentPath;
+                }, '');
+                resolve(filepath);
+            } catch(err) {
+                reject(err);
+            }
+        }
+    });
+}
+
+function generateFileName(name) {
+    return new Promise((resolve, reject) => {
+        let date = new Date();
+        let fileName = (date).getTime() + '_' + name;
+        let y = date.getFullYear();
+        let m = date.getMonth() + 1;
+        let w = getWeekOfMonth(date);
+        fileName = y + path.sep + m + path.sep + w + path.sep + fileName;
+        resolve(fileName);
+    });
+}
+
+function getWeekOfMonth(date) {
+    var firstWeekday = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    var offsetDate = date.getDate() + firstWeekday - 1;
+    return Math.floor(offsetDate / 7);
+}
