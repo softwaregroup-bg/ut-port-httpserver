@@ -144,6 +144,8 @@ module.exports = function(port, errors) {
     const rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         port.log.trace && port.log.trace({payload: request && request.payload});
 
+        let $meta = initMetadataFromRequest(request, port.bus);
+
         const reply = function(resp, headers, statusCode) {
             let repl = _reply(resp);
             headers && Object.keys(headers).forEach(function(header) {
@@ -156,7 +158,6 @@ module.exports = function(port, errors) {
         };
 
         const  handleError = async function (error, response, options = {}) {
-            let $meta = {};
             let {$meta: $originalMeta = {}} = options;
             if (error.type) {
                 try {
@@ -178,6 +179,7 @@ module.exports = function(port, errors) {
                 id: (request.payload && request.payload.id) || '',
                 error: error
             };
+            port.config && port.config.error && port.config.error((request.payload || {}).params, $meta, error);
             addDebugInfo(msg, response);
             if (port.config.receive instanceof Function) {
                 return Promise.resolve()
@@ -223,7 +225,6 @@ module.exports = function(port, errors) {
         };
 
         const processMessage = async function(msgOptions) {
-            let $meta;
             function callReply(response) {
                 if (typeof customReply === 'function') {
                     customReply(reply, response, $meta);
@@ -233,10 +234,6 @@ module.exports = function(port, errors) {
             }
             msgOptions = msgOptions || {};
             try {
-                $meta = initMetadataFromRequest(request, port.bus);
-                // if (!$meta.language && msgOptions.language) {
-                //     $meta.language = msgOptions.language;
-                // }
                 if (msgOptions.protection) {
                     $meta.protection = msgOptions.protection;
                 }
@@ -336,19 +333,29 @@ module.exports = function(port, errors) {
         } else if (port.config.publicMethods && port.config.publicMethods.indexOf(request.payload.method) > -1) {
             return processMessage();
         }
-
         Promise.resolve()
-        .then(() => {
+        .then(async () => {
+            // for identity.check method call external receive
+            if (request.payload.method === identityCheckFullName) {
+                if (port.config.receive) {
+                    await port.config.receive(((request.payload || {}).params || {}), $meta);
+                }
+            }
             if (port.config.identityNamespace === false || (request.payload.method !== identityCheckFullName && request.route.settings.app.skipIdentityCheck === true)) {
                 return {
                     'permission.get': ['*']
                 };
             }
-            let $meta = initMetadataFromRequest(request, port.bus);
             let identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
             return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
-        .then((res) => {
+        .then(async (res) => {
+             // for identity.check method call external receive
+             if (request.payload.method === identityCheckFullName) {
+                if (port.config.send) {
+                    await port.config.send(((request.payload || {}).params || {}), $meta);
+                }
+            }
             if (request.payload.method === identityCheckFullName) {
                 endReply.result = res;
                 const reuseCookie = () => port.config.reuseCookie && (res['identity.check'].sessionId ===
