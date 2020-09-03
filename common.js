@@ -27,7 +27,7 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         deviceId: request.headers && request.headers.deviceId,
         tenantId: request.tenantId,
         subdomain: request.subdomain,
-        channel: (request.auth.credentials || {}).channel || request.channel,
+        channel: request.channel || (request.auth.credentials || {}).channel,
         language: (request.auth.credentials || {}).language
     };
 }
