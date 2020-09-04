@@ -87,18 +87,20 @@ function maliciousFileValidateFunc(uploadConfig) {
                 if (!file) {
                     file = request.payload.file;
                 }
+                if (!file || typeof file !== 'object') {
+                    return reject(new Error('Error while uploading file'));
+                }
                 const contentType = Content.type(request.headers['content-type']);
-                if (!contentType || !contentType.boundary) return reply('Missing content type boundary').code(400);
-                if (!isUploadValid(file.hapi.filename, uploadConfig)) return reply('Error while uploading file').code(400);
+                if (!contentType || !contentType.boundary) {
+                    throw new Error('Missing content type boundary');
+                }
+                isUploadValid(file.hapi.filename, uploadConfig);
                 if (port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay) {
                     await port.bus.importMethod('document.maxNumberPerActor.validate')({
                         actorId: actorId,
                         size: request.headers['content-length'],
                         maxDocsPerDay: port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay
                     });
-                }
-                if (!file || typeof file !== 'object') {
-                    return reject(new Error('Error while uploading file'));
                 }
                 return resolve(`${uuid()}.${file.hapi.filename.split('.').pop()}`);
             } catch(e) {
@@ -132,9 +134,15 @@ function initMetadataFromRequest(request = {}, bus = {}) {
 
 function isUploadValid(fileName, uploadConfig) {
     let isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
+    if (!isNameValid) {
+        throw new Error('The file name is too long!');
+    }
     let uploadExtension = fileName.split('.').pop();
     let isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
-    return isNameValid && isExtensionAllowed;
+    if (isExtensionAllowed) {
+        throw new Error('The file you are uploading is not supported!');
+    }
+    return true;;
 };
 
 function prepareIdentityCheckParamsFunc(port) {
