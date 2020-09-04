@@ -5,10 +5,9 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
 const uuid = require('uuid/v4');
-const Content = require('content');
-const Pez = require('pez');
 
-const {initMetadataFromRequest} = require('./common');
+const common= require('./common');
+const initMetadataFromRequest = common.initMetadataFromRequest;
 
 const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
     let request = {
@@ -49,13 +48,6 @@ const getReqRespValidation = function getReqRespValidation(routeConfig) {
         },
         response: routeConfig.config.result
     };
-};
-
-function isUploadValid(fileName, uploadConfig) {
-    let isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
-    let uploadExtension = fileName.split('.').pop();
-    let isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
-    return isNameValid && isExtensionAllowed;
 };
 
 const assertRouteConfig = function assertRouteConfig(routeConfig) {
@@ -112,26 +104,7 @@ module.exports = function(port, errors) {
 
     let identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
 
-    const prepareIdentityCheckParams = function prepareIdentityCheckParams(request, identityCheckFullName) {
-        let identityCheckParams;
-        if (request.payload.method === identityCheckFullName) {
-            identityCheckParams = mergeWith({}, request.payload.params);
-        } else {
-            identityCheckParams = {actionId: request.payload.method};
-        }
-        mergeWith(
-            identityCheckParams,
-            request.auth.credentials,
-            {
-                ip: (
-                    (port.config.allowXFF && request.headers['x-forwarded-for'])
-                        ? request.headers['x-forwarded-for']
-                        : request.info.remoteAddress
-                )
-            }
-        );
-        return identityCheckParams;
-    };
+    const prepareIdentityCheckParams = common.prepareIdentityCheckParamsFunc(port);
 
     const rpcHandler = port.handler = function rpcHandler(request, _reply, customReply) {
         port.log.trace && port.log.trace({payload: request && request.payload});
@@ -495,82 +468,12 @@ module.exports = function(port, errors) {
             });
         }
     });
-    pendingRoutes.push({
-        method: 'POST',
-        path: '/file-upload',
-        config: {
-            auth: {
-                strategy: 'jwt'
-            },
-            payload: {
-                maxBytes: port.config.fileUpload.payloadMaxBytes,
-                output: 'stream',
-                parse: false,
-                allow: 'multipart/form-data'
-            },
-            handler: function(request, reply) {
-                const contentType = Content.type(request.headers['content-type']);
-                if (!contentType || !contentType.boundary) return reply('Missing content type boundary').code(400);
-                const dispenser = new Pez.Dispenser({boundary: contentType.boundary});
-
-                Promise.resolve().then(() => {
-                    var $meta = initMetadataFromRequest(request, port.bus);
-                    var identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
-                    return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
-                }).then(async function(identity) {
-                    const fileInfo = {
-                        filename: '',
-                        headers: {}
-                    };
-                    if (port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay) {
-                        await port.bus.importMethod('document.maxNumberPerActor.validate')({
-                            actorId: identity.person.actorId,
-                            size: request.headers['content-length'],
-                            maxDocsPerDay: port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay
-                        });
-                    }
-                    dispenser.once('close', async function() {
-                        let add = await port.bus.importMethod('document.maxNumberPerActor.add')({
-                            actorId: identity.person.actorId,
-                            filePath: fileInfo.filename,
-                            size: request.headers['content-length']
-                        });
-                        reply(JSON.stringify((fileInfo)))
-                    });
-                    dispenser.on('part', async part => {
-                        if (part.name === 'file') {
-                            fileInfo.filename = uuid() + '.' + part.filename.split('.').pop();
-                            fileInfo.headers = part.headers;
-                            if (!isUploadValid(part.filename, port.config.fileUpload)) return reply('').code(400);
-                            let path = port.bus.config.workDir + '/uploads/' + fileInfo.filename;
-                            let file = fs.createWriteStream(path);
-                            file.on('error', function(error) {
-                                port.log.error && port.log.error(error);
-                                reply(error.message, 500);
-                            });
-                            part.pipe(file);
-                        }
-                    });
-                    dispenser.once('error', error => {
-                        port.log.error && port.log.error(error);
-                        reply(error.message, 500);
-                    });
-                    request.payload.pipe(dispenser);
-                    return true;
-                }, error => {
-                    port.log.error && port.log.error(error);
-                    reply(error.message, 401);
-                }).catch(error => {
-                    if (error.message === 'security.maxDocumentsPerDayExceeded') {
-                        reply('You exceeded max documents per day').code(400);
-                    } else {
-                        port.log.error && port.log.error(error);
-                        reply(error.message, 500);
-                    }
-                });
-            }
-        }
-    });
+    pendingRoutes.push(common.uploadFile({
+        port: port,
+        config: port.config.fileUpload,
+        urlPath: '/file-upload',
+        uploadPath: '/uploads/'
+    }));
 
     return pendingRoutes;
 };
