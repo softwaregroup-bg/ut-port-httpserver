@@ -136,6 +136,9 @@ function initMetadataFromRequest(request = {}, bus = {}) {
 }
 
 function isUploadValid(fileName, uploadConfig) {
+    if (!/^[a-zA-Z0-9]{1,200}\.[a-zA-Z0-9]{1,10}$/.test(fileName)) {
+        throw new Error('Invalid filename!!');
+    }
     let isNameValid = fileName.lastIndexOf('.') > -1 && fileName.length <= uploadConfig.maxFileName;
     if (!isNameValid) {
         throw new Error('The file name is too long!');
