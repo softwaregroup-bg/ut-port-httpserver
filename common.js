@@ -39,9 +39,10 @@ module.exports = {
                             }
                             const fileInfo = {
                                 filename: await maliciousFileValidate(request, port, identity.person.actorId, config.hapiFileProp),
-                                headers: {}
+                                headers: file.hapi.headers
                             };
                             const uploadPath = path.join(port.bus.config.workDir, config.uploadPath, fileInfo.filename);
+                            await checkAndCreateFolder(uploadPath);
                             const fileStream = fs.createWriteStream(uploadPath);
                             file.on('error', err => {
                                 reply({error: err}).code(400);
@@ -96,13 +97,14 @@ function maliciousFileValidateFunc(uploadConfig) {
                 }
                 isUploadValid(file.hapi.filename, uploadConfig);
                 if (port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay) {
-                    await port.bus.importMethod('document.maxNumberPerActor.validate')({
+                    var validate = await port.bus.importMethod('document.maxNumberPerActor.validate')({
                         actorId: actorId,
                         size: request.headers['content-length'],
                         maxDocsPerDay: port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay
                     });
+                    validate;
                 }
-                return resolve(`${uuid()}.${file.hapi.filename.split('.').pop()}`);
+                return resolve(generateFileName(file.hapi.filename));
             } catch(e) {
                 return reject(e);
             }
@@ -139,7 +141,7 @@ function isUploadValid(fileName, uploadConfig) {
     }
     let uploadExtension = fileName.split('.').pop();
     let isExtensionAllowed = uploadConfig.extensionsWhiteList.indexOf(uploadExtension.toLowerCase()) > -1;
-    if (isExtensionAllowed) {
+    if (!isExtensionAllowed) {
         throw new Error('The file you are uploading is not supported!');
     }
     return true;;
@@ -166,4 +168,45 @@ function prepareIdentityCheckParamsFunc(port) {
         );
         return identityCheckParams;
     }
+}
+
+function generateFileName(filename) {
+    let date = new Date();
+    let fileName = `${uuid()}.${filename.split('.').pop()}`;
+    let y = date.getFullYear();
+    let m = date.getMonth() + 1;
+    let w = getWeekOfMonth(date);
+    fileName = y + path.sep + m + path.sep + w + path.sep + fileName;
+    return fileName;
+}
+
+function getWeekOfMonth(date) {
+    var firstWeekday = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    var offsetDate = date.getDate() + firstWeekday - 1;
+    return Math.floor(offsetDate / 7);
+}
+
+function checkAndCreateFolder(fullFilepath){
+    let filepath = path.dirname(fullFilepath);
+    return new Promise((resolve, reject) => {
+        try {
+            fs.accessSync(filepath, fs.constants.F_OK);
+            resolve(filepath);
+        } catch(e) {
+            try {
+                filepath
+                .split(path.sep)
+                .reduce((prevPath, folder) => {
+                const currentPath = path.join(prevPath, folder, path.sep);
+                    if (!fs.existsSync(currentPath)){
+                        fs.mkdirSync(currentPath);
+                    }
+                    return currentPath;
+                }, '');
+                resolve(filepath);
+            } catch(err) {
+                reject(err);
+            }
+        }
+    });
 }
