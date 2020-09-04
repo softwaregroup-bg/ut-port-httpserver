@@ -62,20 +62,21 @@ module.exports = {
                             return true;
                         }, error => {
                             port.log.error && port.log.error(error);
-                            reply(error.message, 401);
+                            reply(error.message).code(400);
                         }).catch(error => {
                             if (error.message === 'security.maxDocumentsPerDayExceeded') {
                                 reply('You exceeded max documents per day').code(400);
                             } else {
                                 port.log.error && port.log.error(error);
-                                reply(error.message, 500);
+                                reply(error.message).code(400);
                             }
                         });
                     }
                 }
             }
-        } catch(e) {
-            throw e;
+        } catch(error) {
+            port.log.error && port.log.error(error);
+            reply(error.message).code(400);
         }
     }
 };
