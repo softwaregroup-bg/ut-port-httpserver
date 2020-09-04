@@ -90,11 +90,14 @@ function maliciousFileValidateFunc(uploadConfig) {
                     file = request.payload.file;
                 }
                 if (!file || typeof file !== 'object') {
-                    return reject(new Error('Error while uploading file'));
+                    return reject(new Error('Error while uploading file!'));
+                }
+                if (file._data.byteLength < (uploadConfig.payloadMinBytes || 2500)) {
+                    return reject(new Error('The file you are uploading is too small!'));
                 }
                 const contentType = Content.type(request.headers['content-type']);
                 if (!contentType || !contentType.boundary) {
-                    throw new Error('Missing content type boundary');
+                    throw new Error('Missing content type boundary!');
                 }
                 isUploadValid(file.hapi.filename, uploadConfig);
                 if (port.bus.config && port.bus.config.documents && port.bus.config.documents.maxDocsPerDay) {
