@@ -95,6 +95,11 @@ function maliciousFileValidateFunc(uploadConfig) {
                 if (file._data.byteLength < (uploadConfig.payloadMinBytes || 2500)) {
                     return reject(new Error('The file you are uploading is too small!'));
                 }
+                const configFetch = await port.bus.importMethod('implementation.configuration.fetch')({key: 'documentMaxFileSize'});
+                const documentMaxFileSize = configFetch.configuration[0] && configFetch.configuration[0].value ? configFetch.configuration[0].value : 5;
+                if (file._data.byteLength > documentMaxFileSize * 1048576) { //1048576 (1MB)
+                    return reject(new Error('The file you are uploading is too big!'));
+                }
                 const contentType = Content.type(request.headers['content-type']);
                 if (!contentType || !contentType.boundary) {
                     throw new Error('Missing content type boundary!');
