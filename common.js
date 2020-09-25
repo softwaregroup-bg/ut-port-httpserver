@@ -10,6 +10,8 @@ const fs = require('fs');
 module.exports = {
     initMetadataFromRequest,
     prepareIdentityCheckParamsFunc,
+    checkAndCreateFolder: checkAndCreateFolder,
+    maliciousFileValidateFunc: maliciousFileValidateFunc,
     uploadFile: function (config) {
         try {
             const port = config.port;
@@ -94,6 +96,9 @@ function maliciousFileValidateFunc(uploadConfig) {
                 }
                 if (file._data.byteLength < (uploadConfig.payloadMinBytes || 2500)) {
                     return reject(new Error('The file you are uploading is too small!'));
+                }
+                if (file._data.byteLength > (uploadConfig.payloadMaxBytes || 2000000)) {
+                    return reject(new Error('The file you are uploading is too big!'));
                 }
                 const contentType = Content.type(request.headers['content-type']);
                 if (!contentType || !contentType.boundary) {
