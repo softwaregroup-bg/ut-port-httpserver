@@ -153,9 +153,12 @@ module.exports = function(port, errors) {
         if (!(routeConfig.disableXsrf || (port.config.disableXsrf && port.config.disableXsrf.http)) && (auth && auth.indexOf('jwt') >= 0) && (!privateToken || privateToken === '' || privateToken !== publicToken)) {
             port.log.error && port.log.error({httpServerSecurity: 'fail', reason: 'private token != public token; cors error'});
             return handleError({
-                code: '404',
-                message: 'Not found',
-                errorPrint: 'Not found'
+                statusCode: 401,
+                error: 'Unauthorized',
+                message: 'Invalid token',
+                attributes: {
+                    error: 'Invalid token'
+                }
             });
         }
         if (request.params && request.params.isRpc && (!request.payload || !request.payload.jsonrpc)) {
