@@ -145,7 +145,8 @@ module.exports = function(port, errors) {
             }
         }
         let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
-        let publicToken = request.headers && request.headers['x-xsrf-token'];
+        let cookieXsrfToken =  request.headers && request.headers['cookie'] && request.headers['cookie'].split('xsrf-token=').pop().substring(0, 36);
+        let publicToken = request.headers && request.headers['x-xsrf-token'] || cookieXsrfToken;
         let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
         let routeConfig = ((config[request.params.method] || {}).config || {});
 
