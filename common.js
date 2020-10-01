@@ -80,8 +80,47 @@ module.exports = {
             port.log.error && port.log.error(error);
             reply(error.message).code(400);
         }
+    },
+    fetchFile: function (config) {
+        try {
+            const port = config.port;
+            const prepareIdentityCheckParams = prepareIdentityCheckParamsFunc(port);
+            const identityCheckFullName = [port.config.identityNamespace, 'check'].join('.');
+            return {
+                method: 'GET',
+                path: config.urlPath + '{p*}',
+                config: {
+                    auth: 'jwt',
+                    handler: function(request, reply) {
+                        Promise.resolve().then(() => {
+                            var $meta = initMetadataFromRequest(request, port.bus);
+                            request.payload = request.payload || {method: 'identity.check'};
+                            var identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
+                            return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
+                        }).then(async function(identity) {
+                            const filePath = path.join(config.port.bus.config.workDir, config.uploadPath, request.path.split(config.urlPath)[1]);
+                            if (fs.existsSync(filePath)) {
+                                return reply(fs.createReadStream(filePath));
+                            } else {
+                                return reply('{"statusCode":404,"error":"Not Found"}');
+                            }
+                        }, error => {
+                            port.log.error && port.log.error(error);
+                            reply(error.message).code(400);
+                        }).catch(error => {
+                            port.log.error && port.log.error(error);
+                            reply(error.message).code(400);
+                        });
+                    }
+                }
+            }
+        } catch(error) {
+            port.log.error && port.log.error(error);
+            reply(error.message).code(400);
+        }
     }
 };
+
 
 function maliciousFileValidateFunc(uploadConfig) {
     return function maliciousFileValidate(request, port, actorId, hapiFileProp) {
