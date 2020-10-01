@@ -6,6 +6,7 @@ const Content = require('content');
 const mergeWith = require('lodash.mergewith');
 const path = require('path');
 const fs = require('fs');
+var mime = require('mime-types')
 
 module.exports = {
     initMetadataFromRequest,
@@ -100,7 +101,7 @@ module.exports = {
                         }).then(async function(identity) {
                             const filePath = path.join(config.port.bus.config.workDir, config.uploadPath, request.path.split(config.urlPath)[1]);
                             if (fs.existsSync(filePath)) {
-                                return reply(fs.createReadStream(filePath));
+                                return reply(fs.createReadStream(filePath)).header('Content-Type', mime.lookup(filePath));
                             } else {
                                 return reply('{"statusCode":404,"error":"Not Found"}');
                             }
