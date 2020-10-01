@@ -472,12 +472,12 @@ module.exports = function(port, errors) {
             });
         }
     });
-    pendingRoutes.push(common.uploadFile({
-        port: port,
-        config: port.config.fileUpload,
-        urlPath: '/file-upload',
-        uploadPath: '/uploads/'
-    }));
+    // pendingRoutes.push(common.uploadFile({
+    //     port: port,
+    //     config: port.config.fileUpload,
+    //     urlPath: '/file-upload',
+    //     uploadPath: '/uploads/'
+    // }));
 
     return pendingRoutes;
 };
