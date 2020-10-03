@@ -159,7 +159,7 @@ module.exports = function(port, errors) {
 
         const  handleError = async function (error, response, options = {}) {
             let {$meta: $originalMeta = {}} = options;
-            if (error.type) {
+            if (error.type && error.skipErrorTranslation !== true) {
                 try {
                     let iso2Code = ($originalMeta.language || {}).iso2Code || 'en';
                     let { items = [] } = await port.bus.importMethod('core.itemCode.fetch')({
@@ -244,6 +244,7 @@ module.exports = function(port, errors) {
                     if (!$meta || $meta.mtid === 'error') {
                         let erMs = $meta.errorMessage || response.message;
                         endReply.error = {
+                            skipErrorTranslation: response.skipErrorTranslation || $meta.skipErrorTranslation,
                             code: $meta.errorCode || response.code || -1,
                             message: erMs,
                             errorPrint: $meta.errorPrint || response.print || erMs,
