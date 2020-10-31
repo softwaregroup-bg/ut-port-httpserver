@@ -174,6 +174,9 @@ module.exports = function(port, errors) {
                     }
                 } catch(err) {}
             }
+            if (error.skipErrorTranslation) {
+                delete error.skipErrorTranslation;
+            }
             let msg = {
                 jsonrpc: (request.payload && request.payload.jsonrpc) || '',
                 id: (request.payload && request.payload.id) || '',
@@ -411,7 +414,8 @@ module.exports = function(port, errors) {
                 code: err.code || '-1',
                 message: err.message,
                 errorPrint: err.errorPrint || err.message,
-                type: err.type
+                type: err.type,
+                skipErrorTranslation: err.skipErrorTranslation
             }, err)
         ));
     };
