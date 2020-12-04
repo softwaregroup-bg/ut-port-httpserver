@@ -44,7 +44,7 @@ module.exports = {
                                 filename: await maliciousFileValidate(request, port, identity.person.actorId, config.hapiFileProp),
                                 headers: file.hapi.headers
                             };
-                            const uploadPath = path.join(port.bus.config.workDir, config.uploadPath, fileInfo.filename);
+                            const uploadPath = path.join(port.bus.config.workDocumentDir || port.bus.config.workDir, config.uploadPath, fileInfo.filename);
                             await checkAndCreateFolder(uploadPath);
                             const fileStream = fs.createWriteStream(uploadPath);
                             file.on('error', err => {
@@ -99,7 +99,7 @@ module.exports = {
                             var identityCheckParams = prepareIdentityCheckParams(request, identityCheckFullName);
                             return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
                         }).then(async function(identity) {
-                            const filePath = path.join(config.port.bus.config.workDir, config.uploadPath, request.path.split(config.urlPath)[1]);
+                            const filePath = path.join(port.bus.config.workDocumentDir || config.port.bus.config.workDir, config.uploadPath, request.path.split(config.urlPath)[1]);
                             if (fs.existsSync(filePath)) {
                                 return reply(fs.createReadStream(filePath)).header('Content-Type', mime.lookup(filePath));
                             } else {
