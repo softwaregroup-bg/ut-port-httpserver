@@ -131,7 +131,8 @@ module.exports = function({parent}) {
             });
         } else {
             captureMetrics(this.hapiServer.connection({
-                port: (this.config.port == null) ? 8080 : this.config.port
+                port: (this.config.port == null) ? 8080 : this.config.port,
+                state: { strictHeader: (this.config.state && this.config.state.strictHeader) || true }
             }));
         }
 
