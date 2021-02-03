@@ -217,7 +217,8 @@ function prepareIdentityCheckParamsFunc(port) {
                     (port.config.allowXFF && request.headers['x-forwarded-for'])
                         ? request.headers['x-forwarded-for']
                         : request.info.remoteAddress
-                )
+                ),
+				auth: request.payload.auth
             }
         );
         return identityCheckParams;
