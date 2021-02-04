@@ -190,6 +190,9 @@ module.exports = function(port, errors) {
                 if (msgOptions.protection) {
                     $meta.protection = msgOptions.protection;
                 }
+				if (!$meta.auth && msgOptions.auth) {
+                    $meta.auth = msgOptions.auth;
+                }
                 const callback = function(response) {
                     if (response === undefined) {
                         throw new Error('Add return value of method ' + request.payload.method);
@@ -340,7 +343,8 @@ module.exports = function(port, errors) {
                 if (res['permission.get'] && res['permission.get'].length) {
                     return processMessage({
                         language: res.language,
-                        protection: res.protection
+                        protection: res.protection,
+                        auth: res
                     });
                 } else {
                     return handleError(errors.NotPermitted(`Missing Permission for ${request.payload.method}`));
