@@ -146,6 +146,8 @@ module.exports = function(port, errors) {
 
         let $meta = initMetadataFromRequest(request, port.bus);
 
+        let language = (request.headers && request.headers['x-language']);
+
         const reply = function(resp, headers, statusCode) {
             let repl = _reply(resp);
             headers && Object.keys(headers).forEach(function(header) {
@@ -157,22 +159,22 @@ module.exports = function(port, errors) {
             return repl;
         };
 
-        const  handleError = async function (error, response, options = {}) {
+        const handleError = async function(error, response, options = {}) {
             let {$meta: $originalMeta = {}} = options;
             if (error.type && error.skipErrorTranslation !== true) {
                 try {
-                    let iso2Code = ($originalMeta.language || {}).iso2Code || 'en';
+                    let iso2Code = ($originalMeta.language || {}).iso2Code || language || 'en';
                     let { items = [] } = await port.bus.importMethod('core.itemCode.fetch')({
                         itemCode: error.type,
                         alias: ['error'],
                         languageIsoCode: iso2Code
-                    }, $meta)
+                    }, $meta);
                     let dbError = items[0];
                     if (dbError) {
                         error.message = dbError.display || error.message;
                         error.errorPrint = dbError.display || error.errorPrint;
                     }
-                } catch(err) {}
+                } catch (err) { }
             }
             if (error.skipErrorTranslation) {
                 delete error.skipErrorTranslation;
@@ -201,7 +203,7 @@ module.exports = function(port, errors) {
                 }
                 return reply(msg);
             }
-        }
+        };
         let privateToken = request.auth && request.auth.credentials && request.auth.credentials.xsrfToken;
         let publicToken = request.headers && request.headers['x-xsrf-token'];
         let auth = request.route.settings && request.route.settings.auth && request.route.settings.auth.strategies;
@@ -322,7 +324,7 @@ module.exports = function(port, errors) {
                     message: err.message,
                     errorPrint: err.message,
                     type: err.type
-                }, err, { msg: request.payload.params, $meta});
+                }, err, { msg: request.payload.params, $meta });
             }
         };
 
