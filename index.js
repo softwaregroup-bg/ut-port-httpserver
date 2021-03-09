@@ -173,7 +173,7 @@ module.exports = function({parent}) {
                     inert,
                     vision, {
                         register: swagger,
-                        options: this.config.swagger
+                        ...this.config.swagger
                     }
                 ], (e) => (e ? reject(e) : resolve()));
             });
