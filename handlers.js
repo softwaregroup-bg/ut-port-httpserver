@@ -486,7 +486,7 @@ module.exports = function(port, errors) {
                 }
             };
         }
-        let auth = ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
+        let auth = (port.config.publicMethods || []).includes(method) ? false : ((currentMethodConfig && typeof (currentMethodConfig.auth) === 'undefined') ? 'jwt' : currentMethodConfig.auth);
         pendingRoutes.unshift(mergeWith({}, (isRpc ? port.config.routes.rpc : {}), {
             method: currentMethodConfig.httpMethod || 'POST',
             path: path,
