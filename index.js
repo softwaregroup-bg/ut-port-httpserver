@@ -241,6 +241,17 @@ module.exports = function({parent}) {
                     return this.bus.importMethod('registry.service.add')(config)
                         .then(resolve)
                         .catch(reject);
+                } else {
+                    this.hapiServer.route({
+                        method: 'GET',
+                        path: '/health',
+                        config: {
+                            auth: false,
+                            handler: (request, reply) => {
+                                return this.isReady ? reply('ok') : reply('service not available').code(503);
+                            }
+                        }
+                    });
                 }
                 return resolve();
             });

@@ -30,8 +30,9 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             print: joi.string().optional().description('User friendly error message'),
             fieldErrors: joi.any().description('Field validation errors'),
             details: joi.object().optional().description('Error udf details'),
-            type: joi.string().description('Error type')
-        }).label('error').description('Error'),
+            type: joi.string().description('Error type'),
+            skipErrorTranslation: joi.any()
+        }).label('error').description('Error').options({allowUnknown: true}),
         debug: joi.object().label('debug').description('Debug')
     })
     .xor('result', 'error'));
@@ -356,8 +357,11 @@ module.exports = function(port, errors) {
             return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
         .then(async (res) => {
-             // for identity.check method call external receive
-             if (request.payload.method === identityCheckFullName) {
+            if (res.language) {
+                $meta.language = res.language;
+            }
+              // for identity.check method call external receive
+            if (request.payload.method === identityCheckFullName) {
                 if (port.config.send) {
                     await port.config.send(((request.payload || {}).params || {}), $meta);
                 }
