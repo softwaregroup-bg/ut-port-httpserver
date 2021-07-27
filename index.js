@@ -59,8 +59,8 @@ module.exports = function({parent}) {
             setSecurityHeaders: false,
             fileUpload: {
                 maxFileName: 100,
-                payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)
-                extensionsWhiteList: ['pdf', 'doc', 'docx', 'xls', 'txt', 'jpg', 'jpeg', 'png']
+                // payloadMaxBytes: 5242880, // 5 MB. Default is 1048576 (1MB)
+                extensionsWhiteList: ['pdf', 'doc', 'docx', 'xls', 'txt', 'jpg', 'jpeg', 'png', 'xlsx', 'csv']
             },
             swagger: {
                 info: {
@@ -173,7 +173,7 @@ module.exports = function({parent}) {
                     inert,
                     vision, {
                         register: swagger,
-                        options: this.config.swagger
+                        ...this.config.swagger
                     }
                 ], (e) => (e ? reject(e) : resolve()));
             });
