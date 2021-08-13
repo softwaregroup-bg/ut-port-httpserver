@@ -30,9 +30,8 @@ const getReqRespRpcValidation = function getReqRespRpcValidation(routeConfig) {
             print: joi.string().optional().description('User friendly error message'),
             fieldErrors: joi.any().description('Field validation errors'),
             details: joi.object().optional().description('Error udf details'),
-            type: joi.string().description('Error type'),
-            skipErrorTranslation: joi.any()
-        }).label('error').description('Error').options({allowUnknown: true}),
+            type: joi.string().description('Error type')
+        }).options({allowUnknown: true}).label('error').description('Error'),
         debug: joi.object().label('debug').description('Debug')
     })
     .xor('result', 'error'));
@@ -154,6 +153,9 @@ module.exports = function(port, errors) {
             headers && Object.keys(headers).forEach(function(header) {
                 repl.header(header, headers[header]);
             });
+            if (resp.error && $meta.channel === 'merchantweb') {
+                statusCode = 500;
+            }
             if (statusCode) {
                 repl.code(statusCode);
             }
@@ -344,6 +346,17 @@ module.exports = function(port, errors) {
         .then(async () => {
             // for identity.check method call external receive
             if (request.payload.method === identityCheckFullName) {
+                if (request.payload.params && !$meta.auth && !request.payload.params.username) {
+                    let cookies = request.headers.cookie.split(';').reduce((obj, a) => {
+                        obj[a.split('=')[0].trim()] = a.split('=')[1];
+                        return obj;
+                    }, {});
+                    if (cookies[port.config.jwt.cookieKey]) {
+                        let data = jwt.decode(cookies[port.config.jwt.cookieKey]);
+                        $meta.auth = data;
+                        request.payload.params.sessionId = $meta.auth.sessionId;
+                    }
+                }
                 if (port.config.receive) {
                     await port.config.receive(((request.payload || {}).params || {}), $meta);
                 }
@@ -357,10 +370,7 @@ module.exports = function(port, errors) {
             return port.bus.importMethod(identityCheckFullName)(identityCheckParams, $meta);
         })
         .then(async (res) => {
-            if (res.language) {
-                $meta.language = res.language;
-            }
-              // for identity.check method call external receive
+             // for identity.check method call external receive
             if (request.payload.method === identityCheckFullName) {
                 if (port.config.send) {
                     await port.config.send(((request.payload || {}).params || {}), $meta);
@@ -622,25 +632,25 @@ module.exports = function(port, errors) {
     return pendingRoutes;
 };
 
-function checkAndCreateFolder(fullFilepath){
+function checkAndCreateFolder(fullFilepath) {
     let filepath = path.dirname(fullFilepath);
     return new Promise((resolve, reject) => {
         try {
             fs.accessSync(filepath, fs.constants.F_OK);
             resolve(filepath);
-        } catch(e) {
+        } catch (e) {
             try {
                 filepath
                 .split(path.sep)
                 .reduce((prevPath, folder) => {
-                const currentPath = path.join(prevPath, folder, path.sep);
-                    if (!fs.existsSync(currentPath)){
+                    const currentPath = path.join(prevPath, folder, path.sep);
+                    if (!fs.existsSync(currentPath)) {
                         fs.mkdirSync(currentPath);
                     }
                     return currentPath;
                 }, '');
                 resolve(filepath);
-            } catch(err) {
+            } catch (err) {
                 reject(err);
             }
         }
