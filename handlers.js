@@ -346,7 +346,7 @@ module.exports = function(port, errors) {
         .then(async () => {
             // for identity.check method call external receive
             if (request.payload.method === identityCheckFullName) {
-                if (request.payload.params && !$meta.auth && !request.payload.params.username) {
+                if (request.payload.params && !$meta.auth && !request.payload.params.username && port.config.jwt.checkSessionAtPublicMethod) {
                     let cookies = request.headers.cookie.split(';').reduce((obj, a) => {
                         obj[a.split('=')[0].trim()] = a.split('=')[1];
                         return obj;
