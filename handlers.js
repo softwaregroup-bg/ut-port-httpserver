@@ -153,9 +153,6 @@ module.exports = function(port, errors) {
             headers && Object.keys(headers).forEach(function(header) {
                 repl.header(header, headers[header]);
             });
-            if (resp.error && $meta.channel === 'merchantweb') {
-                statusCode = 500;
-            }
             if (statusCode) {
                 repl.code(statusCode);
             }
@@ -425,15 +422,16 @@ module.exports = function(port, errors) {
                 }
             }
         })
-        .catch((err) => (
-            handleError({
+        .catch((err) => {
+            err.statusCode && ($meta.statusCode = err.statusCode);
+            return handleError({
                 code: err.code || '-1',
                 message: err.message,
                 errorPrint: err.errorPrint || err.message,
                 type: err.type,
                 skipErrorTranslation: err.skipErrorTranslation
-            }, err)
-        ));
+            }, err);
+        });
     };
 
     pendingRoutes.unshift(mergeWith({
