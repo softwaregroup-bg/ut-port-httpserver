@@ -28,6 +28,7 @@ function initMetadataFromRequest(request = {}, bus = {}) {
         tenantId: request.tenantId,
         subdomain: request.subdomain,
         channel: request.channel || (request.auth.credentials || {}).channel,
-        language: (request.auth.credentials || {}).language
+        language: (request.auth.credentials || {}).language,
+        ...(request.$metaInfo || {})
     };
 }
