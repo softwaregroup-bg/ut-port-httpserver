@@ -135,16 +135,43 @@ module.exports = function({parent}) {
             }));
         }
 
-        if (this.config.setSecurityHeaders) {
-            this.hapiServer.ext('onPreResponse', function(request, reply) {
-                if (request.response && request.response.header) {
+        const funcPreResponse = function onPreResponse(request, reply) {
+            if (request.response && request.response.header) {
+                if( this.config.setSecurityHeaders ) {
                     request.response.header('X-Content-Type-Options', 'nosniff');
                     request.response.header('X-Frame-Options', 'SAMEORIGIN');
                     request.response.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
                 }
+                if( this.config.corsSettings ) {
+                    request.response.header('Access-Control-Allow-Credentials', true);
+                    request.response.header('Access-Control-Allow-Origin', this.config.corsSettings.accessControlAllowOrigin || '*')
+                    
+                    if( request.method === 'options') {
+                        request.response.header('Content-Type', this.config.corsSettings.contentType || 'application/json')
+                        request.response.header('Access-Control-Allow-Methods', this.config.corsSettings.accessControlAllowMethods ||'POST, GET, OPTIONS, PUT, DELETE')
+                        request.response.header('Access-Control-Allow-Headers', this.config.corsSettings.accessControlAllowHeaders || 'Origin, X-Requested-With, Content-Type, Accept, Key, Authorization')
+                    }
+                }
+            }
+            return reply.continue();
+        }
+
+        if (this.config.setSecurityHeaders || this.config.corsSettings) {
+            this.hapiServer.ext('onPreResponse', funcPreResponse.bind( this ));
+        }
+
+        /*if (this.config.setSecurityHeaders) {
+            this.hapiServer.ext('onPreResponse', function (this,request, reply) {
+                if (request.response && request.response.header) {
+                    if( this.config.setSecurityHeaders ) {
+                        request.response.header('X-Content-Type-Options', 'nosniff');
+                        request.response.header('X-Frame-Options', 'SAMEORIGIN');
+                        request.response.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+                    }
+                }
                 return reply.continue();
             });
-        }
+        }*/
 
         return new Promise((resolve, reject) => {
             let fileUploadTempDir = path.join(this.bus.config.workDir, 'ut-port-httpserver', 'uploads');
