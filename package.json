@@ -11,7 +11,7 @@
     "hapi-auth-jwt2": "8.8.1",
     "inert": "5.1.0",
     "joi": "13.7.0",
-    "jsonwebtoken": "8.5.0",
+    "jsonwebtoken": "9.0.0",
     "os": "^0.1.1",
     "uuid": "8.3.2"
   },
