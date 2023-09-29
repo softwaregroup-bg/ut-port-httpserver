@@ -13,14 +13,13 @@
     "joi": "13.7.0",
     "jsonwebtoken": "8.5.0",
     "os": "^0.1.1",
-    "uuid": "3.3.2"
+    "uuid": "8.3.2"
   },
   "devDependencies": {
     "json-schema-to-markdown": "1.1.1",
     "request": "2.88.0",
     "tap": "^14.10.6",
     "ut-run": "^10.26.2",
-    "ut-tools": "^6.33.3",
     "webpack": "^4.27.1",
     "webpack-dev-middleware": "^3.4.0",
     "webpack-hot-middleware": "^2.24.3",

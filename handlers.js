@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
-const uuid = require('uuid/v4');
+const uuid = require('uuid').v4;
 const {initMetadataFromRequest} = require('./common');
 
 const getReqRespRpcValidation = function getReqRespRpcValidation(validation, methodName) {

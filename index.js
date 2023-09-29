@@ -8,7 +8,7 @@ const basicAuth = require('hapi-auth-basic');
 const handlers = require('./handlers');
 const fs = require('fs-plus');
 const SocketServer = require('ut-wss');
-const uuid = require('uuid/v4');
+const uuid = require('uuid').v4;
 const errorsFactory = require('./errors');
 const serverRequire = require;
 
